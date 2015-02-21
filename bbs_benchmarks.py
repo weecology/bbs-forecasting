@@ -24,6 +24,7 @@ def get_data(dataset):
     else:
         if not database_exists('bbs'):
             install_dataset('bbs')
+        #FIXME: This query doesn't currently deal with poorly sampled species (e.g., nocturnal)
         bbs_query = """SELECT (counts.statenum * 1000) + counts.route AS site_id, counts.year,
                        counts.aou AS species_id, counts.speciestotal AS abundance
                        FROM bbs.counts JOIN bbs.weather
