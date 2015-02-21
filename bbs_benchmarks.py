@@ -6,6 +6,8 @@ import pandas as pd
 import sqlalchemy
 from sqlalchemy.engine import reflection
 
+from macroecotools import richness_in_group, abundance_in_group
+
 def database_exists(dataset):
     """Check to see if a dataset exists in the database"""
     insp = reflection.Inspector.from_engine(engine)
@@ -57,3 +59,4 @@ def filter_timeseries(data, group_cols, date_col, min_years):
 
 bbs_data = get_data('bbs')
 bbs_data_timeseries = filter_timeseries(bbs_data, ['site_id'], 'year', 10)
+richness = richness_in_group(bbs_data_timeseries, ['site_id', 'year'], ['species_id'])
