@@ -38,4 +38,22 @@ def get_data(dataset):
         bbs_data.to_csv(data_path, index=False)
         return bbs_data
 
+def filter_timeseries(data, group_cols, date_col, min_years):
+    """Filter data to only include time-series with minimum number of years
+
+    Args:
+        data: A Pandas data frame one or more date related columns
+        group_cols: A list of strings of names of columns to group by when
+            counting dates (e.g,. a siteID column)
+        date_col: The string name for the column holding the date
+        min_years: Minimum number of years to be considered a time-series
+
+    Returns:
+        The original data frame filtered to remove time-series < min_years
+
+    """
+    return data.groupby(group_cols).filter(lambda x: len(np.unique(x[date_col])) >= min_years)
+
+
 bbs_data = get_data('bbs')
+bbs_data_timeseries = filter_timeseries(bbs_data, ['site_id'], 'year', 10)
