@@ -3,10 +3,11 @@
 import os
 
 import pandas as pd
+import numpy as np
 import sqlalchemy
 from sqlalchemy.engine import reflection
 
-from macroecotools import richness_in_group, abundance_in_group
+from macroecotools import richness_in_group, abundance_in_group, obs_pred_rsquare
 
 def database_exists(dataset):
     """Check to see if a dataset exists in the database"""
@@ -54,9 +55,24 @@ def filter_timeseries(data, group_cols, date_col, min_years):
         The original data frame filtered to remove time-series < min_years
 
     """
+    #FIXME: Should support filtering to continuous time-series
     return data.groupby(group_cols).filter(lambda x: len(np.unique(x[date_col])) >= min_years)
 
 
 bbs_data = get_data('bbs')
 bbs_data_timeseries = filter_timeseries(bbs_data, ['site_id'], 'year', 10)
 richness = richness_in_group(bbs_data_timeseries, ['site_id', 'year'], ['species_id'])
+richness_by_site = richness.groupby('site_id')
+
+forecast_data = []
+for site, site_data in richness_by_site:
+    site_data = site_data.sort('year')
+    last_yr_ab = site_data['richness'].iloc[-1]
+    other_yrs_ab = site_data['richness'].iloc[:-1]
+    prev_yr_ab = site_data.sort('year')['richness'].iloc[-2]
+    avg_ab = np.mean(other_yrs_ab)
+    forecast_data.append([last_yr_ab, prev_yr_ab, avg_ab])
+
+forecast_data = pd.DataFrame(forecast_data, columns=['last_yr_ab', 'prev_yr_ab', 'avg_ab'])
+coefdet_avg_ab = obs_pred_rsquare(forecast_data['last_yr_ab'], forecast_data['avg_ab'])
+coefdet_prev_yr_ab = obs_pred_rsquare(forecast_data['last_yr_ab'], forecast_data['prev_yr_ab'])
