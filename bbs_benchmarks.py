@@ -67,12 +67,12 @@ richness_by_site = richness.groupby('site_id')
 forecast_data = []
 for site, site_data in richness_by_site:
     site_data = site_data.sort('year')
-    last_yr_ab = site_data['richness'].iloc[-1]
-    other_yrs_ab = site_data['richness'].iloc[:-1]
-    prev_yr_ab = site_data.sort('year')['richness'].iloc[-2]
-    avg_ab = np.mean(other_yrs_ab)
-    forecast_data.append([site, last_yr_ab, prev_yr_ab, avg_ab])
+    last_yr_rich = site_data['richness'].iloc[-1]
+    other_yrs_rich = site_data['richness'].iloc[:-1]
+    prev_yr_rich = site_data.sort('year')['richness'].iloc[-2]
+    avg_rich = np.mean(other_yrs_rich)
+    forecast_data.append([site, last_yr_rich, prev_yr_rich, avg_rich])
 
-forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_ab', 'prev_yr_ab', 'avg_ab'])
-coefdet_avg_ab = obs_pred_rsquare(forecast_data['last_yr_ab'], forecast_data['avg_ab'])
-coefdet_prev_yr_ab = obs_pred_rsquare(forecast_data['last_yr_ab'], forecast_data['prev_yr_ab'])
+forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_rich', 'prev_yr_rich', 'avg_rich'])
+coefdet_avg_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['avg_rich'])
+coefdet_prev_yr_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['prev_yr_rich'])
