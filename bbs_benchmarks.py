@@ -60,8 +60,10 @@ def filter_timeseries(data, group_cols, date_col, min_years):
 
 
 bbs_data = get_data('bbs')
-bbs_data_timeseries = filter_timeseries(bbs_data, ['site_id'], 'year', 10)
-richness = richness_in_group(bbs_data_timeseries, ['site_id', 'year'], ['species_id'])
+
+#Initial Richness Analysis
+bbs_comm_timeseries = filter_timeseries(bbs_data, ['site_id'], 'year', 10)
+richness = richness_in_group(bbs_comm_timeseries, ['site_id', 'year'], ['species_id'])
 richness_by_site = richness.groupby('site_id')
 
 forecast_data = []
@@ -76,3 +78,26 @@ for site, site_data in richness_by_site:
 forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_rich', 'prev_yr_rich', 'avg_rich'])
 coefdet_avg_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['avg_rich'])
 coefdet_prev_yr_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['prev_yr_rich'])
+
+
+#Initial Population Abundance Analysis
+bbs_pop_timeseries = filter_timeseries(bbs_data, ['site_id', 'species_id'], 'year', 10)
+ab_by_pop = bbs_pop_timeseries.groupby(['site_id', 'species_id'])
+
+forecast_data_pop = []
+step = 1
+for pop, pop_data in ab_by_pop:
+    site_id, species_id = pop
+    pop_data = pop_data.sort('year')
+    last_yr_ab = pop_data['abundance'].iloc[-1]
+    other_yrs_ab = pop_data['abundance'].iloc[:-1]
+    prev_yr_ab = pop_data.sort('year')['abundance'].iloc[-2]
+    avg_ab = np.mean(other_yrs_ab)
+    forecast_data_pop.append([site_id, species_id, last_yr_ab, prev_yr_ab, avg_ab])
+    step += 1
+    if step % 1000 == 0:
+        print(step / 200000.0)
+
+forecast_data_pop = pd.DataFrame(forecast_data_pop, columns=['site_id', 'species_id', 'last_yr_ab', 'prev_yr_ab', 'avg_ab'])
+coefdet_avg_ab = obs_pred_rsquare(forecast_data_pop['last_yr_ab'], forecast_data_pop['avg_ab'])
+coefdet_prev_yr_ab = obs_pred_rsquare(forecast_data_pop['last_yr_ab'], forecast_data_pop['prev_yr_ab'])
