@@ -10,4 +10,5 @@ for (datadir in datadirs) {
   sql_file = paste(datadir, ".sql", sep = "")
   sql_file_path = file.path(datapath, datadir, sql_file)
   system(paste("raster2pgsql -s 4326", bil_file_path, datadir, ">", sql_file_path))
+  system(paste("psql -d bbsforecasting -f", sql_file_path))
 }
