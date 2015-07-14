@@ -58,6 +58,29 @@ def filter_timeseries(data, group_cols, date_col, min_years):
     #FIXME: Should support filtering to continuous time-series
     return data.groupby(group_cols).filter(lambda x: len(np.unique(x[date_col])) >= min_years)
 
+def benchmark_predictions(time, value):
+    """Calculate benchmark predictions for a time-series
+
+    Determines the value of the time-series at in the previous year and the
+    long-term average of the time-series to use as benchmark predictions for
+    the current year.
+
+    Args:
+        time: A list like object with a list of times/dates
+        value: A list like object with a list of the values at the associated time
+
+    Returns:
+        A list of including the end of time-series richness, previous time-step
+        richness, and average richness for all time-steps except the end step
+
+    """
+    ts_data = pd.DataFrame({'time': time, 'value': value})
+    ts_data = ts_data.sort('time')
+    last_step_val = ts_data['value'].iloc[-1]
+    other_steps_vals = ts_data['value'].iloc[:-1]
+    prev_step_val = ts_data.sort('time')['value'].iloc[-2]
+    avg_val = np.mean(other_steps_vals)
+    return [last_step_val, prev_step_val, avg_val]
 
 bbs_data = get_data('bbs')
 
@@ -68,17 +91,12 @@ richness_by_site = richness.groupby('site_id')
 
 forecast_data = []
 for site, site_data in richness_by_site:
-    site_data = site_data.sort('year')
-    last_yr_rich = site_data['richness'].iloc[-1]
-    other_yrs_rich = site_data['richness'].iloc[:-1]
-    prev_yr_rich = site_data.sort('year')['richness'].iloc[-2]
-    avg_rich = np.mean(other_yrs_rich)
-    forecast_data.append([site, last_yr_rich, prev_yr_rich, avg_rich])
+    forecast_data.append([site] + benchmark_predictions(site_data['year'], site_data['richness']))
 
 forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_rich', 'prev_yr_rich', 'avg_rich'])
 coefdet_avg_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['avg_rich'])
 coefdet_prev_yr_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['prev_yr_rich'])
-
+print("done")
 
 #Initial Population Abundance Analysis
 bbs_pop_timeseries = filter_timeseries(bbs_data, ['site_id', 'species_id'], 'year', 10)
