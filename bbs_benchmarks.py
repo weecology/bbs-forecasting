@@ -93,11 +93,18 @@ richness_by_site = richness.groupby('site_id')
 
 forecast_data = []
 for site, site_data in richness_by_site:
-    forecast_data.append([site] + benchmark_predictions(site_data['year'], site_data['richness']))
+    for lag in range(1, 10):
+        forecast_data.append([site, lag] + benchmark_predictions(site_data['year'], site_data['richness'], lag=lag))
 
-forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_rich', 'prev_yr_rich', 'avg_rich'])
-coefdet_avg_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['avg_rich'])
-coefdet_prev_yr_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['prev_yr_rich'])
+forecast_data = pd.DataFrame(forecast_data, columns=['site', 'lag', 'last_yr_rich', 'lag_rich', 'avg_rich'])
+coefdets_avg_rich = []
+coefdets_lag_rich = []
+lags = []
+for lag in range(1, 10):
+    lags.append(lag)
+    lag_data = forecast_data[forecast_data['lag'] == lag]
+    coefdets_avg_rich.append(obs_pred_rsquare(lag_data['last_yr_rich'], lag_data['avg_rich']))
+    coefdets_lag_rich.append(obs_pred_rsquare(lag_data['last_yr_rich'], lag_data['lag_rich']))
 
 #Initial Population Abundance Analysis
 bbs_pop_timeseries = filter_timeseries(bbs_data, ['site_id', 'species_id'], 'year', 10)
