@@ -58,29 +58,31 @@ def filter_timeseries(data, group_cols, date_col, min_years):
     #FIXME: Should support filtering to continuous time-series
     return data.groupby(group_cols).filter(lambda x: len(np.unique(x[date_col])) >= min_years)
 
-def benchmark_predictions(time, value):
+def benchmark_predictions(time, value, lag=1):
     """Calculate benchmark predictions for a time-series
 
-    Determines the value of the time-series at in the previous year and the
-    long-term average of the time-series to use as benchmark predictions for
-    the current year.
+    Determines the value of the time-series at a given lag and the long-term
+    average of the time-series for all points up to that lag to use as
+    benchmark predictions for the last time-step.
 
     Args:
         time: A list like object with a list of times/dates
         value: A list like object with a list of the values at the associated time
 
     Returns:
-        A list of including the end of time-series richness, previous time-step
-        richness, and average richness for all time-steps except the end step
+        A list including the value at the final time-step, the value at the
+        lag, and the average value for all time-steps from the start of the
+        time-series up to and including the lag
 
     """
+    assert lag < len(time), "Lag must be less than the length of the time-series"
     ts_data = pd.DataFrame({'time': time, 'value': value})
     ts_data = ts_data.sort('time')
-    last_step_val = ts_data['value'].iloc[-1]
-    other_steps_vals = ts_data['value'].iloc[:-1]
-    prev_step_val = ts_data.sort('time')['value'].iloc[-2]
-    avg_val = np.mean(other_steps_vals)
-    return [last_step_val, prev_step_val, avg_val]
+    last_time_val = ts_data['value'].iloc[-1]
+    pre_lag_vals = ts_data['value'].iloc[:-lag]
+    lag_val = pre_lag_vals.iloc[-1]
+    avg_val = np.mean(pre_lag_vals)
+    return [last_time_val, lag_val, avg_val]
 
 bbs_data = get_data('bbs')
 
@@ -96,7 +98,6 @@ for site, site_data in richness_by_site:
 forecast_data = pd.DataFrame(forecast_data, columns=['site', 'last_yr_rich', 'prev_yr_rich', 'avg_rich'])
 coefdet_avg_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['avg_rich'])
 coefdet_prev_yr_rich = obs_pred_rsquare(forecast_data['last_yr_rich'], forecast_data['prev_yr_rich'])
-print("done")
 
 #Initial Population Abundance Analysis
 bbs_pop_timeseries = filter_timeseries(bbs_data, ['site_id', 'species_id'], 'year', 10)
