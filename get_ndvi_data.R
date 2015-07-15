@@ -1,0 +1,18 @@
+# Get NDVI data from MODIS
+
+library(MODISTools)
+library(stringr)
+
+route_data <- read.csv('data/BBS_routes.csv')
+coord_data <- route_data[c('lati', 'loni')]
+coord_data <- unique(coord_data) # the Routes table has duplicate coordinate values for some reason
+colnames(coord_data) <- c('lat', 'long')
+coord_data$start.date <- rep(2000, nrow(coord_data))
+coord_data$end.date <- rep(2014, nrow(coord_data))
+
+unaquired_coord_data = UpdateSubsets(LoadDat = coord_data, StartDate = TRUE,
+                                     Dir = "./data/modisdata/")
+
+MODISSubsets(LoadDat = unaquired_coord_data, Products = "MOD13Q1",
+             Bands = c("250m_16_days_NDVI"), Size = c(1,1),
+             SaveDir = "./data/modisdata", StartDate = TRUE)
