@@ -7,8 +7,6 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.engine import reflection
 
-from macroecotools import richness_in_group, abundance_in_group, obs_pred_rsquare
-
 def database_exists(dataset):
     """Check to see if a dataset exists in the database"""
     insp = reflection.Inspector.from_engine(engine)
@@ -83,3 +81,19 @@ def benchmark_predictions(time, value, lag=1):
     lag_val = pre_lag_vals.iloc[-1]
     avg_val = np.mean(pre_lag_vals)
     return [last_time_val, lag_val, avg_val]
+
+def mape(obs, pred):
+    """Mean absolute percentage error
+
+    Calculates the mean absolute percentage error = mean(abs(y_obs - y_pred)
+
+    Args:
+        obs: A list like object with a list of observed values
+        pred: A list like object with a list of predicted values
+
+    Returns:
+        float = mean absolute percentage error
+    """
+    pred = np.array(pred)
+    obs = np.array(obs)
+    return np.mean(np.abs(pred-obs))
