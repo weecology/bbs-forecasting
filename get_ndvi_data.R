@@ -10,7 +10,7 @@ colnames(coord_data) <- c('lat', 'long')
 coord_data$start.date <- rep(2000, nrow(coord_data))
 coord_data$end.date <- rep(2014, nrow(coord_data))
 
-unaquired_coord_data = UpdateSubsets(LoadDat = coord_data, StartDate = TRUE,
+unaquired_coord_data <- UpdateSubsets(LoadDat = coord_data, StartDate = TRUE,
                                      Dir = "./data/modisdata/")
 
 MODISSubsets(LoadDat = unaquired_coord_data, Products = "MOD13Q1",
