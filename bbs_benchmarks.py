@@ -39,7 +39,7 @@ def get_data(dataset):
         bbs_data.to_csv(data_path, index=False)
         return bbs_data
 
-def filter_timeseries(data, group_cols, date_col, min_years):
+def filter_timeseries(data, group_cols, date_col, min_years, contiguous=True):
     """Filter data to only include time-series with minimum number of years
 
     Args:
@@ -53,8 +53,17 @@ def filter_timeseries(data, group_cols, date_col, min_years):
         The original data frame filtered to remove time-series < min_years
 
     """
-    #FIXME: Should support filtering to continuous time-series
-    return data.groupby(group_cols).filter(lambda x: len(np.unique(x[date_col])) >= min_years)
+    #FIXME: Filtering for continguous time-series currently returns only
+    #       time-series that are *fully* continguous and sufficiently long
+    #       If there are sufficiently long contiguous time-series within a
+    #       non-contiguous time-series these should be kept as well (one/group)
+    if not contiguous:
+        filterby = lambda x: len(np.unique(x[date_col])) >= min_years
+    else:
+        filterby = lambda x: (len(np.unique(x[date_col])) >= min_years and
+                              len(np.unique(x[date_col])) == max(x[date_col] - min(x[date_col] -1)))
+    filtered =  data.groupby(group_cols).filter(filterby)
+    return filtered
 
 def benchmark_predictions(time, value, lag=1):
     """Calculate benchmark predictions for a time-series
