@@ -7,7 +7,7 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.engine import reflection
 
-def database_exists(dataset):
+def database_exists(dataset, engine):
     """Check to see if a dataset exists in the database"""
     insp = reflection.Inspector.from_engine(engine)
     return dataset in insp.get_schema_names()
@@ -23,7 +23,7 @@ def get_data(dataset):
     if os.path.exists(data_path):
         return pd.read_csv(data_path)
     else:
-        if not database_exists('bbs'):
+        if not database_exists('bbs', engine):
             install_dataset('bbs')
         #FIXME: This query doesn't currently deal with poorly sampled species (e.g., nocturnal)
         bbs_query = """SELECT (counts.statenum * 1000) + counts.route AS site_id, counts.year,
