@@ -1,7 +1,6 @@
 # Get NDVI data from MODIS
 
 library(MODISTools)
-library(stringr)
 library(dplyr)
 
 route_data <- read.csv('data/BBS_routes.csv')
