@@ -26,13 +26,16 @@ def get_data(dataset):
         if not database_exists('bbs', engine):
             install_dataset('bbs')
         #FIXME: This query doesn't currently deal with poorly sampled species (e.g., nocturnal)
-        bbs_query = """SELECT (counts.statenum * 1000) + counts.route AS site_id, counts.year,
-                       counts.aou AS species_id, counts.speciestotal AS abundance
+        bbs_query = """SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.lati as lat,
+                       routes.loni as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
                        FROM bbs.counts JOIN bbs.weather
                          ON bbs.counts.statenum=bbs.weather.statenum
                          AND bbs.counts.route=bbs.weather.route
                          AND bbs.counts.rpid=bbs.weather.rpid
                          AND bbs.counts.year=bbs.weather.year
+                         JOIN bbs.routes
+                         ON bbs.counts.statenum=bbs.routes.statenum
+                         AND bbs.counts.route=bbs.routes.route
                        WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;
                     """
         bbs_data = pd.read_sql_query(bbs_query, engine)
