@@ -22,5 +22,5 @@ unaquired_coord_data <- UpdateSubsets(LoadDat = coord_data, StartDate = TRUE,
                                      Dir = "./data/modisdata/")
 
 MODISSubsets(LoadDat = unaquired_coord_data, Products = "MOD13Q1",
-             Bands = c("250m_16_days_NDVI"), Size = c(1,1),
-             SaveDir = "./data/modisdata", StartDate = TRUE)
+             Bands = c("250m_16_days_NDVI", "250m_16_days_pixel_reliability"),
+             Size = c(1,1), SaveDir = "./data/modisdata", StartDate = TRUE)
