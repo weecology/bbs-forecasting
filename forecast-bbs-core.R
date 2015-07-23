@@ -3,7 +3,6 @@ library(dplyr)
 library(broom)
 library(MODISTools)
 library(DBI)
-library(ecoretriever)
 
 database_exists <- function(schema_name, con){
   # Check to see if a database exists
@@ -24,7 +23,7 @@ get_bbs_data <- function(){
   # Get the BBS data
   
   con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-  data_path <- paste('./data/', 'bbs', '_data.csv')
+  data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
     return(read.csv(data_path))
   }
@@ -47,7 +46,23 @@ get_bbs_data <- function(){
                          WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
     bbs_results <- dbSendQuery(con, bbs_query)
     bbs_data <- dbFetch(bbs_results)
-    write.csv(file = data_path, x = bbs_data)
+    colnames(bbs_data)[3] <- "long"
+    write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
   }
+}
+
+get_longest_contig_ts <- function(df){
+  full_ts <- seq(from=min(df$year), to=max(df$year), by=1)
+  contig_pos <- na.contiguous(match(full_ts,unique(df$year)))
+  filter(df, year %in% full_ts[contig_pos])
+}
+
+get_filtered_ts <- function(df, min_ts_length){
+  data_by_site <- group_by(df, site_id)
+  contig_ts <- do(data_by_site, get_longest_contig_ts(.))
+  contig_ts_by_site <- group_by(contig_ts, site_id)
+  contig_ts_length <- summarize(contig_ts_by_site, n_years = n_distinct(year))
+  long_ts <- filter(contig_ts_length, n_years >= min_ts_length)
+  contig_ts_long <- semi_join(contig_ts, long_ts)  
 }
