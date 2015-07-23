@@ -27,13 +27,13 @@ for (year in years){
   coord_date_data <- rbind(coord_date_data, coord_data_year)
 }
 
-if (length(list.files("./data/modisdata/yearly/")) > 0){
+if (length(list.files("./data/modisdata/100kmsq/")) > 0){
   unaquired_coord_data <- UpdateSubsets(LoadDat = coord_date_data, StartDate = TRUE,
-                                        Dir = "./data/modisdata/yearly/")
+                                        Dir = "./data/modisdata/100kmsq/")
 } else {
   unaquired_coord_data <- coord_date_data
 }
 
 MODISSubsets(LoadDat = unaquired_coord_data, Products = "MOD13Q1",
              Bands = c("250m_16_days_NDVI", "250m_16_days_pixel_reliability"),
-             Size = c(0,0), SaveDir = "./data/modisdata/yearly/", StartDate = TRUE)
+             Size = c(5,5), SaveDir = "./data/modisdata/100kmsq/", StartDate = TRUE)
