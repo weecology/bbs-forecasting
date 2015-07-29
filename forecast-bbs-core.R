@@ -1,4 +1,4 @@
-# library(forecast)
+library(forecast)
 library(dplyr)
 library(broom)
 library(MODISTools)
@@ -86,4 +86,14 @@ get_ndvi_ts_data <- function(tsdata){
   richness_ndvi <- read.csv(modis_data_files[1])
   colnames(richness_ndvi)[9] <- "ndvi"
   return(richness_ndvi)
+}
+
+get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
+  do(grouped_tsdata,
+     year = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
+     cast_naive = naive(.[[responsecol]][1:(length(.[[responsecol]]) - lag - 1)], lag),
+     cast_avg = meanf(.[[responsecol]][1:(length(.[[responsecol]]) - lag - 1)], lag),
+     cast_arima = forecast(auto.arima(.[[responsecol]][1:(length(.[[responsecol]]) - lag - 1)], seasonal = FALSE), h = lag),
+     test_set = (.[[responsecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])])
+  )
 }
