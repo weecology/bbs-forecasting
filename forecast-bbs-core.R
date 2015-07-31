@@ -102,11 +102,11 @@ get_error_measures <- function(obs, pred){
   error <- obs - pred
   percenterror <- error / obs * 100
   me <- mean(error, na.rm=TRUE)
-  mse <- mean(error^2, na.rm=TRUE)
+  rmse <- sqrt(mean(error^2, na.rm=TRUE))
   mae <- mean(abs(error), na.rm=TRUE)
-  mape <- mean(abs(percenterror), na.rm=TRUE)
   mpe <-  mean(percenterror, na.rm=TRUE)
-  results <- data.frame(t(unlist(c(me, mse, mae, mape, mpe))))
-  colnames(results) <- c('ME', 'MSE', 'MAE', 'MAPE', 'MPE')
+  mape <- mean(abs(percenterror), na.rm=TRUE)
+  results <- data.frame(t(unlist(c(me, rmse, mae, mpe, mape))))
+  colnames(results) <- c('ME', 'RMSE', 'MAE', 'MPE', 'MAPE')
   results
 }
