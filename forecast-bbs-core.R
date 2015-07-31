@@ -97,3 +97,16 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
      test_set = (.[[responsecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])])
   )
 }
+
+get_error_measures <- function(obs, pred){
+  error <- obs - pred
+  percenterror <- error / obs * 100
+  me <- mean(error, na.rm=TRUE)
+  mse <- mean(error^2, na.rm=TRUE)
+  mae <- mean(abs(error), na.rm=TRUE)
+  mape <- mean(abs(percenterror), na.rm=TRUE)
+  mpe <-  mean(percenterror, na.rm=TRUE)
+  results <- data.frame(t(unlist(c(me, mse, mae, mape, mpe))))
+  colnames(results) <- c('ME', 'MSE', 'MAE', 'MAPE', 'MPE')
+  results
+}
