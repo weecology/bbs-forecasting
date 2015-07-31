@@ -22,12 +22,12 @@ install_dataset <- function(dataset){
 get_bbs_data <- function(){
   # Get the BBS data
   
-  con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
     return(read.csv(data_path))
   }
   else{
+    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
     if (!database_exists('bbs', con)){
       install_dataset('bbs')
     }
