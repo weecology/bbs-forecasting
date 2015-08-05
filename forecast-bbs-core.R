@@ -67,8 +67,8 @@ get_filtered_ts <- function(df, min_ts_length){
   contig_ts_long <- semi_join(contig_ts, long_ts)  
 }
 
-get_ndvi_ts_data <- function(tsdata){
-  modis_data_files <- list.files("./data/modisdata/", pattern = "MODIS_Data", full.names = TRUE)
+get_ndvi_ts_data <- function(tsdata, modis_data_location){
+  modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
   if (length(modis_data_files) == 0){
     tsdata_by_site_yr <- group_by(tsdata, site_id, lat, long, year)
     richness_ndvi <- summarize(tsdata_by_site_yr, richness = n_distinct(species_id))
@@ -76,15 +76,18 @@ get_ndvi_ts_data <- function(tsdata){
     richness_ndvi$end.date <- paste(richness_ndvi$year, "-06-30", sep = "")
     
     output <- capture.output(
-                 MODISSummaries(LoadDat = richness_ndvi, Dir = "./data/modisdata/",
+                 MODISSummaries(LoadDat = richness_ndvi, Dir = modis_data_location,
                                 Product = "MOD13Q1", Bands = c("250m_16_days_NDVI"),
                                 ValidRange = c(-2000,10000),
                                 NoDataFill = -3000, ScaleFactor = 0.0001, StartDate = TRUE)
     )
   }
-  modis_data_files <- list.files("./data/modisdata/", pattern = "MODIS_Data", full.names = TRUE)
+  modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
   richness_ndvi <- read.csv(modis_data_files[1])
-  colnames(richness_ndvi)[9] <- "ndvi"
+  richness_ndvi <- transmute(richness_ndvi, site_id = site_id, lat = lat, long = long,
+                             year = year, richness = richness, start.date = start.date,
+                             end.date = end.date, SubsetID = SubsetID,
+                             ndvi = rowMeans(richness_ndvi[9:ncol(richness_ndvi)], na.rm = TRUE))
   return(richness_ndvi)
 }
 
