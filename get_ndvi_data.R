@@ -19,7 +19,7 @@ coord_date_data <- coord_data
 coord_date_data$start.date <- rep(as.Date("2000-06-01"), nrow(coord_data))
 coord_date_data$end.date <- rep(as.Date("2000-06-30"), nrow(coord_data))
 
-years = 2001:2014
+years = 2001:2015
 for (year in years){
   coord_data_year <- coord_data
   coord_data_year$start.date <- rep(as.Date(paste(year, "-06-01", sep="")), nrow(coord_data_year))
