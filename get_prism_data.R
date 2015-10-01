@@ -1,10 +1,19 @@
-# Download and install PRISM data into PostgreSQL
+# Download and install PRISM data into PostgreSQL and values for BBS routes
 
 library(prism)
-options(prism.path = "./data/prismdata")
-get_prism_monthlys(type="tmean", year = 1981:2010, month = 6, keepZip=F)
+library(raster)
+library(dplyr)
+library(tidyr)
+options(prism.path = "./data/prismdata_retriever")
 
-datapath = "./data/prismdata/"
+months <- c(1:12)
+clim_vars <- c("ppt", "tmin", "tmean", "tmax")
+for (month in months){
+  for (clim_var in clim_vars){
+    get_prism_monthlys(type=clim_var, year = 1981:2014, month = month, keepZip=F)
+  }
+}
+
 datadirs = dir(datapath)
 for (datadir in datadirs) {
   bil_file = paste(datadir, '.bil', sep = "")
