@@ -3,6 +3,7 @@ library(dplyr)
 library(broom)
 library(MODISTools)
 library(DBI)
+library(ecoretriever)
 
 database_exists <- function(schema_name, con){
   # Check to see if a database exists
