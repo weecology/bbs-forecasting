@@ -4,7 +4,7 @@ library(prism)
 library(raster)
 library(dplyr)
 library(tidyr)
-options(prism.path = "./data/prismdata_retriever")
+options(prism.path = "./data/prismdata")
 
 months <- c(1:12)
 clim_vars <- c("ppt", "tmin", "tmean", "tmax")
@@ -32,10 +32,9 @@ prism_stacked <- prism_stack(ls_prism_data())
 extracted <- raster::extract(prism_stacked, locations)
 prism_bbs_data <- data.frame(site_id = locations$site_id, coordinates(locations), extracted)
 prism_bbs_data <- prism_bbs_data %>%
-                    gather(date, value, 4:ncol(prism_bbs_data)) %>%
-                    tidyr::extract(date, c("clim_var", "year", "month"),
-                                   "PRISM_([:alpha:]*)_stable_[:alnum:]*_([:digit:]{4})([:digit:]{2})_") %>%
-                    spread(clim_var, value)
+                  gather(date, value, 4:ncol(prism_bbs_data)) %>%
+                  tidyr::extract(date, c("clim_var", "year", "month"),
+                                 "PRISM_([:alpha:]*)_stable_[:alnum:]*_([:digit:]{4})([:digit:]{2})_")
 prism_bbs_data$year <- as.numeric(prism_bbs_data$year)
 prism_bbs_data$month <- as.numeric(prism_bbs_data$month)
 database <- src_sqlite("./data/bbsforecasting.sqlite", create = TRUE)
