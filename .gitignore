@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+*.Rproj
+postgres_conn_file.txt
+.ipynb_checkpoints/
+data/prismdata/
