@@ -55,8 +55,9 @@ get_bbs_data <- function(){
 
 get_longest_contig_ts <- function(df){
   full_ts <- seq(from=min(df$year), to=max(df$year), by=1)
-  contig_pos <- na.contiguous(match(full_ts,unique(df$year)))
-  filter(df, year %in% full_ts[contig_pos])
+  years <- unique(df$year)
+  contig_pos <- na.contiguous(match(full_ts, years))
+  filter(df, year %in% years[contig_pos])
 }
 
 get_filtered_ts <- function(df, min_ts_length){
