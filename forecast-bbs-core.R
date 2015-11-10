@@ -69,6 +69,20 @@ get_filtered_ts <- function(df, min_ts_length){
   contig_ts_long <- semi_join(contig_ts, long_ts)  
 }
 
+#' Add zeros to population dynamics data
+#'
+#' For population dynamics data that lacks real zeros, add them
+#'
+#' @param df data.frame including site_id, year, species_id, and abundance columns
+#'
+#' @return Data frame with real zeros added
+get_popdyn_data_w_zeros <- function(commdyn_data, start_year, stop_year) {
+  sp_years <- expand.grid(site_id = unique(commdyn_data$site_id), year = start_year:stop_year, species_id = unique(commdyn_data$species_id))
+  popdyn_data <- commdyn_data %>%
+    do(left_join(sp_years, ., by=c("site_id", "year", "species_id")))
+  popdyn_data[is.na(popdyn_data)] <- 0
+  return(popdyn_data)
+}
 get_ndvi_ts_data <- function(tsdata, modis_data_location){
   modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
   if (length(modis_data_files) == 0){
