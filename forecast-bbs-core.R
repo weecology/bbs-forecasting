@@ -126,7 +126,7 @@ get_ndvi_ts_data <- function(tsdata, modis_data_location){
 #'       forecast, since when not hindcasting these may be different
 get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
   do(grouped_tsdata,
-     year = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
+     timeperiod = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
      cast_naive = naive(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], lag),
      cast_avg = meanf(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], lag),
      cast_arima = forecast(auto.arima(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], seasonal = FALSE), h = lag),
