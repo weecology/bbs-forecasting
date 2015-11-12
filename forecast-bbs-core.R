@@ -107,6 +107,23 @@ get_ndvi_ts_data <- function(tsdata, modis_data_location){
   return(richness_ndvi)
 }
 
+#' Perform a suite of time-series only forecasts
+#'
+#' Performs time-series only forecasting using naive, average, and ARIMA models
+#' for each group in a grouped data frame of time-series.
+#'
+#' @param grouped_tsdata data.frame is a grouped data frame where the group
+#' indicates how to split the data frame for running time-series models on each
+#' group
+#' @param timecol str name of the column that includes the time variable
+#' @param responsecol str name of the column that includes the response variable
+#' @param lag numeric how many time-steps to forecast and also how many
+#'   time-steps in the current time-series to ignore when fitting.
+#'
+#' @return data.frame
+#'
+#' TODO: separate time-steps to hold out from fitting from time-steps to
+#'       forecast, since when not hindcasting these may be different
 get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
   do(grouped_tsdata,
      year = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
