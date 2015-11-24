@@ -15,14 +15,14 @@ database_exists <- function(schema_name, con){
 
 install_dataset <- function(dataset){
   # Install a dataset using the ecoretriever
-  
+
   #ecoretriever currently not working in RStudio, issue filed
   ecoretriever::install(dataset, 'postgres', conn_file = 'postgres_conn_file.txt')
 }
 
 get_bbs_data <- function(){
   # Get the BBS data
-  
+
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
     return(read.csv(data_path))
@@ -66,7 +66,22 @@ get_filtered_ts <- function(df, min_ts_length){
   contig_ts_by_site <- group_by(contig_ts, site_id)
   contig_ts_length <- summarize(contig_ts_by_site, n_years = n_distinct(year))
   long_ts <- filter(contig_ts_length, n_years >= min_ts_length)
-  contig_ts_long <- semi_join(contig_ts, long_ts)  
+  contig_ts_long <- semi_join(contig_ts, long_ts)
+}
+
+#' Get data for all contiguous samples ending in a given year
+#'
+#' Get data for all contiguous samples ending in a given year.
+#' If only one year of contiguous data are available keep that year.
+#'
+#' @param df data.frame including a year column
+#' @param stopyear year of the most recent sample
+#'
+#' @return Contiguous time-series data frame (data.frame).
+#' A version of the original data frame only including years that
+#' are in a contiguous series with stopyear.
+get_modern_contig_ts <- function(df, stopyear) {
+
 }
 
 #' Add zeros to population dynamics data
@@ -90,7 +105,7 @@ get_ndvi_ts_data <- function(tsdata, modis_data_location){
     richness_ndvi <- summarize(tsdata_by_site_yr, richness = n_distinct(species_id))
     richness_ndvi$start.date <- paste(richness_ndvi$year, "-06-01", sep = "")
     richness_ndvi$end.date <- paste(richness_ndvi$year, "-06-30", sep = "")
-    
+
     output <- capture.output(
                  MODISSummaries(LoadDat = richness_ndvi, Dir = modis_data_location,
                                 Product = "MOD13Q1", Bands = c("250m_16_days_NDVI"),
