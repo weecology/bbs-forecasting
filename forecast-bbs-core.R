@@ -98,6 +98,7 @@ get_popdyn_data_w_zeros <- function(commdyn_data, start_year, stop_year) {
   popdyn_data[is.na(popdyn_data)] <- 0
   return(popdyn_data)
 }
+
 get_ndvi_ts_data <- function(tsdata, modis_data_location){
   modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
   if (length(modis_data_files) == 0){
@@ -120,6 +121,46 @@ get_ndvi_ts_data <- function(tsdata, modis_data_location){
                              end.date = end.date, SubsetID = SubsetID,
                              ndvi = rowMeans(richness_ndvi[9:ncol(richness_ndvi)], na.rm = TRUE))
   return(richness_ndvi)
+}
+
+
+#' Cleanup output from multi-time-series forecasting into a simple data frame
+#'
+#' Takes the output of a dplyr based run of forecasting on multiple groups and
+#' makes it into a simple data frame for further analysis. Currently this is
+#' specific to the form of data produce insdie of get_ts_forecasts.
+#'
+#' @param ts_forecast_df data.frame containing year, site, cast_naive, cast_avg,
+#'   and cast_arima columns
+#'
+#' @return data.frame
+cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
+  cleaned <-
+    ts_forecast_df %>%
+    rowwise() %>%
+    do(
+      {timeperiod <- as.data.frame(.$timeperiod)
+      testset <- as.data.frame(.$test_set)
+      colnames(timeperiod) <- c('timeperiod')
+      colnames(testset) <- c('obs')
+      naive <- as.data.frame(.$cast_naive)
+      colnames(naive) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+      naive$model <- 'naive'
+      naive <- cbind(timeperiod, naive, testset)
+      avg <- as.data.frame(.$cast_avg)
+      colnames(avg) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+      avg$model <- 'avg'
+      avg <-cbind(timeperiod, avg, testset)
+      arima <- as.data.frame(.$cast_arima)
+      colnames(arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+      arima$model <- 'arima'
+      arima <- cbind(timeperiod, arima, testset)
+      df <- rbind(naive, avg, arima)
+      for (group in groups) {df[[group]] <- .[[group]]}
+      df %>% select(model, timeperiod, obs, everything())
+      }
+    )
+  return(cleaned)
 }
 
 #' Perform a suite of time-series only forecasts
