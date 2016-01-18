@@ -1,6 +1,6 @@
 .Rproj.user
 .Rhistory
-.RData
+*.RData
 *.Rproj
 postgres_conn_file.txt
 .ipynb_checkpoints/
