@@ -74,3 +74,4 @@ full_bbs = bbs %>%
 
 
 saveRDS(full_bbs, file = "data/munged.rds")
+saveRDS(focal_year, "data/focal_year.rds")
