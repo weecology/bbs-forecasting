@@ -13,9 +13,9 @@ yearsToUse=1981:2014
 
 sqliteDBFile='./data/bbsforecasting.sqlite'
 if(file.exists(sqliteDBFile)){
-  database <- src_sqlite("./data/bbsforecasting.sqlite", create = FALSE)
+  database <- src_sqlite(sqliteDBFile, create = FALSE)
 } else {
-  database <- src_sqlite("./data/bbsforecasting.sqlite", create = TRUE)
+  database <- src_sqlite(sqliteDBFile, create = TRUE)
 }
 
 
