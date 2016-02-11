@@ -34,7 +34,7 @@ downloadPrism=function(){
 
 
 #########################################################
-#Pretty postgres isn't used anywhere after adding the raw prism to it,
+#Pretty sure postgres isn't used anywhere after adding the raw prism to it,
 #so i'll just comment this out for now. 
 ############################################################
 #datadirs = dir(datapath)
@@ -49,7 +49,8 @@ downloadPrism=function(){
 
 ########################################################
 #Takes output of ls_prism_data() and makes sure all files
-#within a year range are there. 
+#within a year range are there. ie. for all 12 months and 
+#all 4 variables. 
 #########################################################
 check_If_Prism_Files_Present=function(prismLS, years){
   #Extract out all the variable names and dates
@@ -89,6 +90,7 @@ get_prism_data=function(){
   } else if(class(prism_bbs_data)=='try-error') { 
     #If the query returned an error, assume it was because the table doesn't exist
     #and need's to be created/loaded from raw prism data. 
+    print('PRISM data table not found, processing raw data')
     
     #Load the bbs data locations and convert them to a spatial object.
     #Stop here if bbs data isn't available. Could also make this query the DB as well.
@@ -218,6 +220,7 @@ get_bioclim_data=function(){
   } else if(class(bioclim_bbs_data)=='try-error') { 
     #If erros on access the database, assume it's because the data just isn't there.
     #So load it from scratch, store it for future access, and return the newly process bioclim data
+    print("bioclim data table not found, processing from scratch. ")
     bioclim_bbs_data=process_bioclim_data()
     
     x=copy_to(database, bioclim_bbs_data, temporary = FALSE, 
