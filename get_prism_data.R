@@ -94,7 +94,7 @@ get_prism_data=function(){
     
     #Load the bbs data locations and convert them to a spatial object.
     #Stop here if bbs data isn't available. Could also make this query the DB as well.
-    bbs_data <- try(read.csv("data/bbs_djata.csv"))
+    bbs_data <- try(read.csv("data/bbs_data.csv"))
     if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv inside get_prism_data()")}
     locations <- unique(select(bbs_data, site_id, long, lat))
     coordinates(locations) <- c("long", "lat")
