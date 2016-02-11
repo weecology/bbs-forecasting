@@ -7,10 +7,21 @@ library(tidyr)
 library(stringr)
 options(prism.path = "./data/prismdata")
 
+#Years of prism data to 
 yearsToUse=1981:2014
+#Load the DB. create = TRUE does not seem 
+
+sqliteDBFile='./data/bbsforecasting.sqlite'
+if(file.exists(sqliteDBFile)){
+  database <- src_sqlite("./data/bbsforecasting.sqlite", create = FALSE)
+} else {
+  database <- src_sqlite("./data/bbsforecasting.sqlite", create = TRUE)
+}
+
 
 #######################################################
 #Downloads the raw prism rasters into the folder specified above. 
+#######################################################
 downloadPrism=function(){
   months <- c(1:12)
   clim_vars <- c("ppt", "tmin", "tmean", "tmax")
@@ -25,6 +36,7 @@ downloadPrism=function(){
 #########################################################
 #Pretty postgres isn't used anywhere after adding the raw prism to it,
 #so i'll just comment this out for now. 
+############################################################
 #datadirs = dir(datapath)
 #for (datadir in datadirs) {
 #  bil_file = paste(datadir, '.bil', sep = "")
@@ -38,6 +50,7 @@ downloadPrism=function(){
 ########################################################
 #Takes output of ls_prism_data() and makes sure all files
 #within a year range are there. 
+#########################################################
 check_If_Prism_Files_Present=function(prismLS, years){
   #Extract out all the variable names and dates
   prismLS = prismLS %>%
@@ -50,14 +63,13 @@ check_If_Prism_Files_Present=function(prismLS, years){
   toCheck=expand.grid(year=years, month=1:12, var=c('ppt','tmax','tmean','tmin'))
   
   #Left join on the toCheck DF puts present=1 wherever that var/year/month combo was in the prismLS DF.
-  #As long as all of present==1 in toCheck, then all prism rasters are accounted for.
+  #As long as all of present==1 in the toCheck DF, then all prism rasters are accounted for.
   toCheck=toCheck %>%
     left_join(prismLS, by=c('year','month','var'))
   
   if(sum(toCheck$present, na.rm=TRUE)==nrow(toCheck)){
     return(TRUE)
   } else {
-    
     return(FALSE)
   }
 }
@@ -65,9 +77,8 @@ check_If_Prism_Files_Present=function(prismLS, years){
 ########################################################
 #Return prism data for each site from the sqlite DB. If it's not loaded in
 #the DB, then extract values from the raw prism rasters, store in DB, and return them.
-
+########################################################
 get_prism_data=function(){
-  database <- src_sqlite("./data/bbsforecasting.sqlite", create = TRUE)
   #Query the prism data and check to see if it throws an error. 
   prism_bbs_data=try(collect(tbl(database, sql('SELECT * from prism_bbs_data'))))
   
@@ -80,7 +91,9 @@ get_prism_data=function(){
     #and need's to be created/loaded from raw prism data. 
     
     #Load the bbs data locations and convert them to a spatial object.
-    bbs_data <- read.csv("data/bbs_data.csv")
+    #Stop here if bbs data isn't available. Could also make this query the DB as well.
+    bbs_data <- try(read.csv("data/bbs_djata.csv"))
+    if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv inside get_prism_data()")}
     locations <- unique(select(bbs_data, site_id, long, lat))
     coordinates(locations) <- c("long", "lat")
     
@@ -123,7 +136,7 @@ get_prism_data=function(){
 #get_bioclim_data(), which will 1st try to load the data from the sdqlite
 #db before processing it all from scratch. 
 ###################################################################
-#A quick helper function to calculate some of the bioclim variables,
+#First a quick helper function to calculate some of the bioclim variables,
 #like "precip in coldest month"
 maxMinCombo=function(vec1,vec2,max=TRUE){
   #Return the value in vec1 in the position where
@@ -183,4 +196,37 @@ process_bioclim_data=function(){
     full_join(bioclimQuarterData, by=c('site_id','year'))
   
   return(bioclimData)
+}
+
+
+####################################################################
+#Load the bioclim variables from sqlite. if they aren't available,
+#load the prism data, process bioclim, load it in sqlite, then return 
+#bioclim as requested.
+
+#Possibly put a check here to make sure all years are accounted for?
+####################################################################
+
+get_bioclim_data=function(){
+  #Query the bioclim data and check to see if it throws an error. 
+  bioclim_bbs_data=try(collect(tbl(database, sql('SELECT * from bioclim_bbs_data'))))
+  
+  #If it works it should be of type list. If it doesn't then it should be of class 'try-error'
+  if(typeof(bioclim_bbs_data)=='list'){
+    #If no error, return the data. 
+    return(as.data.frame(bioclim_bbs_data))
+  } else if(class(bioclim_bbs_data)=='try-error') { 
+    #If erros on access the database, assume it's because the data just isn't there.
+    #So load it from scratch, store it for future access, and return the newly process bioclim data
+    bioclim_bbs_data=process_bioclim_data()
+    
+    x=copy_to(database, bioclim_bbs_data, temporary = FALSE, 
+              indexes = list(c('site_id','year')))
+     
+    return(bioclim_bbs_data)
+    
+  } else {
+    
+    stop('Im stopping because the sqlite query for bioclim_bbs data returned neither a data frame nor an error in get_bioclim_data()')
+  }
 }
