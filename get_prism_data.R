@@ -80,16 +80,12 @@ check_If_Prism_Files_Present=function(prismLS, years){
 #the DB, then extract values from the raw prism rasters, store in DB, and return them.
 ########################################################
 get_prism_data=function(){
-  #Query the prism data and check to see if it throws an error. 
-  prism_bbs_data=try(collect(tbl(database, sql('SELECT * from prism_bbs_data'))))
-  
-  #If it works it should be of type list. If it doesn't then it should be of class 'try-error'
-  if(typeof(prism_bbs_data)=='list'){
-    #If no error, return the data. 
-    return(as.data.frame(prism_bbs_data))
-  } else if(class(prism_bbs_data)=='try-error') { 
-    #If the query returned an error, assume it was because the table doesn't exist
-    #and need's to be created/loaded from raw prism data. 
+  #Query sqlite database for the prism_bbs_data table. If it exists, return it.
+  #Otherwise create it from the raw prism data.
+  if('prism_bbs_data' %in% src_tbls(database)){
+    return(collect(tbl(database, sql('SELECT * from prism_bbs_data'))))
+  } else { 
+    
     print('PRISM data table not found, processing raw data')
     
     #Load the bbs data locations and convert them to a spatial object.
