@@ -8,26 +8,26 @@ library(stringr)
 options(prism.path = "./data/prismdata")
 
 #Years of prism data to 
-yearsToUse=1981:2014
+years_to_use=1981:2014
 #Load the DB. create = TRUE does not seem 
 
-sqliteDBFile='./data/bbsforecasting.sqlite'
-if(file.exists(sqliteDBFile)){
-  database <- src_sqlite(sqliteDBFile, create = FALSE)
+sqlite_db_file='./data/bbsforecasting.sqlite'
+if(file.exists(sqlite_db_file)){
+  database <- src_sqlite(sqlite_db_file, create = FALSE)
 } else {
-  database <- src_sqlite(sqliteDBFile, create = TRUE)
+  database <- src_sqlite(sqlite_db_file, create = TRUE)
 }
 
 
 #######################################################
 #Downloads the raw prism rasters into the folder specified above. 
 #######################################################
-downloadPrism=function(){
+download_prism=function(){
   months <- c(1:12)
   clim_vars <- c("ppt", "tmin", "tmean", "tmax")
   for (month in months){
     for (clim_var in clim_vars){
-      get_prism_monthlys(type=clim_var, year = yearsToUse, month = month, keepZip=F)
+      get_prism_monthlys(type=clim_var, year = years_to_use, month = month, keepZip=F)
     }
   }
 }
@@ -52,23 +52,23 @@ downloadPrism=function(){
 #within a year range are there. ie. for all 12 months and 
 #all 4 variables. 
 #########################################################
-check_If_Prism_Files_Present=function(prismLS, years){
+check_if_prism_files_present=function(prism_ls, years){
   #Extract out all the variable names and dates
-  prismLS = prismLS %>%
+  prism_ls = prism_ls %>%
     rowwise() %>%
     mutate(var=strsplit(files, '_')[[1]][2], yearMonth=strsplit(files, '_')[[1]][5]) %>%
     mutate(year=as.integer(substr(yearMonth,1,4)), month=as.integer(substr(yearMonth, 5,6)), present=1) %>%
     select(-files, -yearMonth)
   
   #Setup a list of what should be there
-  toCheck=expand.grid(year=years, month=1:12, var=c('ppt','tmax','tmean','tmin'))
+  to_check=expand.grid(year=years, month=1:12, var=c('ppt','tmax','tmean','tmin'))
   
-  #Left join on the toCheck DF puts present=1 wherever that var/year/month combo was in the prismLS DF.
-  #As long as all of present==1 in the toCheck DF, then all prism rasters are accounted for.
-  toCheck=toCheck %>%
-    left_join(prismLS, by=c('year','month','var'))
+  #Left join on the to_check DF puts present=1 wherever that var/year/month combo was in the prism_ls DF.
+  #As long as all of present==1 in the to_check DF, then all prism rasters are accounted for.
+  to_check=to_check %>%
+    left_join(prism_ls, by=c('year','month','var'))
   
-  if(sum(toCheck$present, na.rm=TRUE)==nrow(toCheck)){
+  if(sum(to_check$present, na.rm=TRUE)==nrow(to_check)){
     return(TRUE)
   } else {
     return(FALSE)
@@ -98,8 +98,8 @@ get_prism_data=function(){
     #Check to see if all the raw data in the years specified are downloaded,
     #download everything again if not. (Getting only what is needed, say if a 
     #previous download failed, might be overly complicated)
-    if(!check_If_Prism_Files_Present(ls_prism_data(), yearsToUse)){
-      downloadPrism()
+    if(!check_if_prism_files_present(ls_prism_data(), years_to_use)){
+      download_prism()
     }
     
     #Load the prism data and extract using the bbs locations.
@@ -127,7 +127,7 @@ get_prism_data=function(){
 #Helper function to calculate some of the bioclim variables,
 #like "precip in coldest month"
 ###################################################################
-maxMinCombo=function(vec1,vec2,max=TRUE){
+max_min_combo=function(vec1,vec2,max=TRUE){
   #Return the value in vec1 in the position where
   #vec2 is either highest or lowest. But 1st check for na 
   #values. 
@@ -155,32 +155,32 @@ process_bioclim_data=function(){
     spread(clim_var, value)
   
   #Process the quarter ones first.
-  quarterInfo=data.frame(month=1:12, quarter=c(1,1,1,2,2,2,3,3,3,4,4,4))
-  bioclimQuarterData= prism_bbs_data %>%
-    left_join(quarterInfo, by='month') %>%
+  quarter_info=data.frame(month=1:12, quarter=c(1,1,1,2,2,2,3,3,3,4,4,4))
+  bioclim_quarter_data= prism_bbs_data %>%
+    left_join(quarter_info, by='month') %>%
     group_by(site_id, year, quarter) %>%
     summarize(precip=sum(ppt), temp=mean(tmean)) %>%
     ungroup() %>%
     group_by(site_id,year) %>%
-    summarize(bio8=maxMinCombo(temp, precip, max=TRUE),
-              bio9=maxMinCombo(temp, precip, max=FALSE),
+    summarize(bio8=max_min_combo(temp, precip, max=TRUE),
+              bio9=max_min_combo(temp, precip, max=FALSE),
               bio10=max(temp),
               bio11=min(temp),
               bio16=max(precip),
               bio17=min(precip),
-              bio18=maxMinCombo(precip, temp, max=TRUE),
-              bio19=maxMinCombo(precip, temp, max=FALSE)) %>%
+              bio18=max_min_combo(precip, temp, max=TRUE),
+              bio19=max_min_combo(precip, temp, max=FALSE)) %>%
     ungroup()
   
   #Next the yearly ones, joining the quartely ones  back in at the end. 
-  bioclimData=prism_bbs_data %>%
+  bioclim_data=prism_bbs_data %>%
     group_by(site_id, year) %>%
-    mutate(monthlyTempDiff=tmax-tmin) %>%
+    mutate(monthly_temp_diff=tmax-tmin) %>%
     summarize(bio1=mean(tmean),
-              bio2=mean(monthlyTempDiff),
+              bio2=mean(monthly_temp_diff),
               bio4=sd(tmean)*100,
-              bio5=maxMinCombo(tmax,tmean,max=TRUE),
-              bio6=maxMinCombo(tmin,tmean,max=FALSE),
+              bio5=max_min_combo(tmax,tmean,max=TRUE),
+              bio6=max_min_combo(tmin,tmean,max=FALSE),
               bio12=sum(ppt),
               bio13=max(ppt),
               bio14=min(ppt),
@@ -188,9 +188,9 @@ process_bioclim_data=function(){
     ungroup() %>%
     mutate(bio7=bio5-bio6,
            bio3=(bio2/bio7)*100) %>%
-    full_join(bioclimQuarterData, by=c('site_id','year'))
+    full_join(bioclim_quarter_data, by=c('site_id','year'))
   
-  return(bioclimData)
+  return(bioclim_data)
 }
 
 
