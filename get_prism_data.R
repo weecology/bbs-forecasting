@@ -120,11 +120,7 @@ get_prism_data=function(){
     #Now return the data as asked for
     return(prism_bbs_data)
     
-  } else {
-    
-    stop('Im stopping because the sqlite query for prism_bbs data returned neither a data frame nor an error in get_prism_data()')
   }
-  
 }
 
 ###################################################################
@@ -207,26 +203,18 @@ process_bioclim_data=function(){
 ####################################################################
 
 get_bioclim_data=function(){
-  #Query the bioclim data and check to see if it throws an error. 
-  bioclim_bbs_data=try(collect(tbl(database, sql('SELECT * from bioclim_bbs_data'))))
-  
-  #If it works it should be of type list. If it doesn't then it should be of class 'try-error'
-  if(typeof(bioclim_bbs_data)=='list'){
-    #If no error, return the data. 
-    return(as.data.frame(bioclim_bbs_data))
-  } else if(class(bioclim_bbs_data)=='try-error') { 
-    #If erros on access the database, assume it's because the data just isn't there.
-    #So load it from scratch, store it for future access, and return the newly process bioclim data
+  #Query sqlite database for the bioclim_bbs_data table. If it exists, return it.
+  #Otherwise create it from the raw prism data.
+  if('bioclim_bbs_data' %in% src_tbls(database)){
+    return(collect(tbl(database, sql('SELECT * from bioclim_bbs_data'))))
+  } else { 
     print("bioclim data table not found, processing from scratch. ")
     bioclim_bbs_data=process_bioclim_data()
     
-    x=copy_to(database, bioclim_bbs_data, temporary = FALSE, 
+    copy_to(database, bioclim_bbs_data, temporary = FALSE, 
               indexes = list(c('site_id','year')))
      
     return(bioclim_bbs_data)
     
-  } else {
-    
-    stop('Im stopping because the sqlite query for bioclim_bbs data returned neither a data frame nor an error in get_bioclim_data()')
-  }
+  } 
 }
