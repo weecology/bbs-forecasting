@@ -127,15 +127,10 @@ get_prism_data=function(){
   
 }
 
-
-#################################################################
-#From raw prism monthly values calculate all the bioclim variables.
-#You should not call this directly to load bioclim vars. Instead call
-#get_bioclim_data(), which will 1st try to load the data from the sdqlite
-#db before processing it all from scratch. 
 ###################################################################
-#First a quick helper function to calculate some of the bioclim variables,
+#Helper function to calculate some of the bioclim variables,
 #like "precip in coldest month"
+###################################################################
 maxMinCombo=function(vec1,vec2,max=TRUE){
   #Return the value in vec1 in the position where
   #vec2 is either highest or lowest. But 1st check for na 
@@ -149,8 +144,14 @@ maxMinCombo=function(vec1,vec2,max=TRUE){
   }
 }
 
+#################################################################
+#From raw prism monthly values calculate all the bioclim variables.
+#You should not call this directly to load bioclim vars. Instead call
+#get_bioclim_data(), which will 1st try to load the data from the sqlite
+#db before processing it all from scratch. 
+###################################################################
 process_bioclim_data=function(){
-  #Get the prism data. It's pulled from the sqlite DB or downloaded as needed.
+  #Get the prism data. 
   prism_bbs_data=get_prism_data()
   
   #Spread out the climate variables ppt, tmean, etc into columns
@@ -201,8 +202,8 @@ process_bioclim_data=function(){
 #Load the bioclim variables from sqlite. if they aren't available,
 #load the prism data, process bioclim, load it in sqlite, then return 
 #bioclim as requested.
-
-#Possibly put a check here to make sure all years are accounted for?
+#
+#TODO: Possibly put a check here to make sure all years are accounted for?
 ####################################################################
 
 get_bioclim_data=function(){
