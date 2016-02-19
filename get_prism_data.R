@@ -57,22 +57,19 @@ check_if_prism_files_present=function(prism_ls, years){
   prism_ls = prism_ls %>%
     rowwise() %>%
     mutate(var=strsplit(files, '_')[[1]][2], yearMonth=strsplit(files, '_')[[1]][5]) %>%
-    mutate(year=as.integer(substr(yearMonth,1,4)), month=as.integer(substr(yearMonth, 5,6)), present=1) %>%
-    select(-files, -yearMonth)
+    mutate(year=as.integer(substr(yearMonth,1,4)), month=as.integer(substr(yearMonth, 5,6))) %>%
+    dplyr::select(-files, -yearMonth) %>%
+    filter(year %in% years) %>%
+    arrange(var, year, month)
   
   #Setup a list of what should be there
-  to_check=expand.grid(year=years, month=1:12, var=c('ppt','tmax','tmean','tmin'))
+  to_check=expand.grid(var=c('ppt','tmax','tmean','tmin'), year=years, month=1:12, stringsAsFactors = FALSE) %>%
+    arrange(var,year,month)
   
-  #Left join on the to_check DF puts present=1 wherever that var/year/month combo was in the prism_ls DF.
-  #As long as all of present==1 in the to_check DF, then all prism rasters are accounted for.
-  to_check=to_check %>%
-    left_join(prism_ls, by=c('year','month','var'))
-  
-  if(sum(to_check$present, na.rm=TRUE)==nrow(to_check)){
-    return(TRUE)
-  } else {
-    return(FALSE)
-  }
+  #If these two data frames are equal, then all prism raster data in the years specified is present.
+  #all.equal returns TRUE if they are equal, and a description of the discrepency if they are not equal,
+  #hence the isTRUE wrapper. 
+  return(isTRUE(base::all.equal(to_check, prism_ls)))
 }
 
 ########################################################
@@ -92,7 +89,7 @@ get_prism_data=function(){
     #Stop here if bbs data isn't available. Could also make this query the DB as well.
     bbs_data <- try(read.csv("data/bbs_data.csv"))
     if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv inside get_prism_data()")}
-    locations <- unique(select(bbs_data, site_id, long, lat))
+    locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
     coordinates(locations) <- c("long", "lat")
     
     #Check to see if all the raw data in the years specified are downloaded,
