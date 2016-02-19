@@ -69,7 +69,7 @@ check_if_prism_files_present=function(prism_ls, years){
   #If these two data frames are equal, then all prism raster data in the years specified is present.
   #all.equal returns TRUE if they are equal, and a description of the discrepency if they are not equal,
   #hence the isTRUE wrapper. 
-  return(isTRUE(base::all.equal(to_check, prism_ls)))
+  return(isTRUE(base::all.equal(to_check, prism_ls, check.attributes=FALSE)))
 }
 
 ########################################################
