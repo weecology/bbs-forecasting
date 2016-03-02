@@ -54,6 +54,7 @@ download_prism=function(){
 #########################################################
 check_if_prism_files_present=function(prism_ls, years){
   #Extract out all the variable names and dates
+  if (length(prism_ls$files) == 0){return(FALSE)}
   prism_ls = prism_ls %>%
     rowwise() %>%
     mutate(var=strsplit(files, '_')[[1]][2], yearMonth=strsplit(files, '_')[[1]][5]) %>%
