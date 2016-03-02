@@ -27,7 +27,7 @@ download_prism=function(){
   clim_vars <- c("ppt", "tmin", "tmean", "tmax")
   for (month in months){
     for (clim_var in clim_vars){
-      get_prism_monthlys(type=clim_var, year = years_to_use, month = month, keepZip=F)
+      get_prism_monthlys(type=clim_var, year = years_to_use, mon = month, keepZip=F)
     }
   }
 }
