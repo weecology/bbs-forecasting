@@ -12,11 +12,7 @@ years_to_use=1981:2014
 #Load the DB. create = TRUE does not seem 
 
 sqlite_db_file='./data/bbsforecasting.sqlite'
-if(file.exists(sqlite_db_file)){
-  database <- src_sqlite(sqlite_db_file, create = FALSE)
-} else {
-  database <- src_sqlite(sqlite_db_file, create = TRUE)
-}
+database <- src_sqlite(sqlite_db_file, create = TRUE)
 
 
 #######################################################
@@ -32,20 +28,6 @@ download_prism=function(){
   }
 }
 
-
-#########################################################
-#Pretty sure postgres isn't used anywhere after adding the raw prism to it,
-#so i'll just comment this out for now. 
-############################################################
-#datadirs = dir(datapath)
-#for (datadir in datadirs) {
-#  bil_file = paste(datadir, '.bil', sep = "")
-#  bil_file_path = file.path(datapath, datadir, bil_file)
-#  sql_file = paste(datadir, ".sql", sep = "")
-#  sql_file_path = file.path(datapath, datadir, sql_file)
-#  system(paste("raster2pgsql -s 4326", bil_file_path, datadir, ">", sql_file_path))
-#  system(paste("psql -d bbsforecasting -f", sql_file_path))
-#}
 
 ########################################################
 #Takes output of ls_prism_data() and makes sure all files
