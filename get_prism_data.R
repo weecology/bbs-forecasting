@@ -12,11 +12,7 @@ years_to_use=1981:2014
 #Load the DB. create = TRUE does not seem 
 
 sqlite_db_file='./data/bbsforecasting.sqlite'
-if(file.exists(sqlite_db_file)){
-  database <- src_sqlite(sqlite_db_file, create = FALSE)
-} else {
-  database <- src_sqlite(sqlite_db_file, create = TRUE)
-}
+database <- src_sqlite(sqlite_db_file, create = TRUE)
 
 
 #######################################################
