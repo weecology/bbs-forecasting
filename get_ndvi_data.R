@@ -8,6 +8,7 @@ library(raster)
 sqlite_db_file='./data/bbsforecasting.sqlite'
 database <- src_sqlite(sqlite_db_file, create = TRUE)
 gimms_folder='./data/gimms_ndvi/'
+dir.create(gimms_folder, showWarnings = FALSE, recursive = TRUE)
 years_to_use=1981:2014
 
 #################################################
@@ -93,7 +94,7 @@ get_bbs_gimms_ndvi = function(){
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
     
-    file_status=check_if_gimms_files_present(gimms_folder)
+    file_status=check_if_gimms_files_present()
     if(!isTRUE(file_status)){
       print('Downloading GIMMS data')
       downloadGimms(x=file_status, dsn=gimms_folder)
