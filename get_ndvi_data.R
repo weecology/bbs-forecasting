@@ -18,15 +18,19 @@ years_to_use=1981:2014
 #files to download if any are missing.
 ##################################################
 check_if_gimms_files_present=function(){
-  available_files=sort(gimms::updateInventory()[1:3])
-  available_files=basename(available_files)
+  available_files_download_path=sort(gimms::updateInventory())
+  available_files_name=basename(available_files_download_path)
   
   files_present=sort(list.files(gimms_folder))
   #hdr files are created from some of the gimms processing that we don't want to
   #use here.
   files_present=files_present[!grepl('hdr', files_present)]
   
-  to_download=available_files[! available_files == files_present]
+  if(length(files_present)>0){
+    to_download=available_files_download_path[! available_files_name == files_present]
+  } else {
+    to_download=available_files_download_path
+  }
   
   if(length(to_download)==0){
     return(TRUE)
@@ -105,7 +109,7 @@ get_bbs_gimms_ndvi = function(){
     copy_to(database, gimms_ndvi_bbs_data, temporary = FALSE, 
             indexes = list(c('site_id','year','month','day')))
     
-    return(bioclim_bbs_data)
+    return(gimms_ndvi_bbs_data)
     
   }
 }
