@@ -1,3 +1,10 @@
+#Functions for retrieving and processing NDVI data for BBS route locations. Currently only GIMMS is suported, with years 1981-2013 available.
+#
+#GIMMS you just need to call get_bbs_gimms_ndvi() to retreive a dataframe of (site_id, year, month, ndvi). 
+#-It will take a while to download the 14gb of data and extract values the 1st time around. Results are stored in an sqlite db for quick access.
+#-To redo it just delete the database. 
+#-missing values are filled in with -99
+
 library(rgdal)
 library(gimms)
 library(dplyr)
