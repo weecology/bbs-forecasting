@@ -137,7 +137,7 @@ get_bbs_gimms_ndvi = function(){
     gimms_ndvi_bbs_data=filter_gimms_data(gimms_ndvi_bbs_data)
     
     copy_to(database, gimms_ndvi_bbs_data, temporary = FALSE, 
-            indexes = list(c('site_id','year','month','day')))
+            indexes = list(c('site_id','year','month')))
     
     return(gimms_ndvi_bbs_data)
     
