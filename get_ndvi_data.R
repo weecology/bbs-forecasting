@@ -1,6 +1,7 @@
 library(rgdal)
 library(gimms)
 library(dplyr)
+library(tidyr)
 library(sp)
 library(raster)
 #library(doParallel)
@@ -46,9 +47,9 @@ check_if_gimms_files_present=function(){
 extract_gimms_data=function(gimms_file_path, route_locations){
   #Have to load and extract twice. Once for the actual NDVI, once for the quality flag.
   gimmsRaster=rasterizeGimms(gimms_file_path, flag=FALSE)
-  ndvi=extract(gimmsRaster, route_locations)
+  ndvi=raster::extract(gimmsRaster, route_locations)
   gimmsRaster=rasterizeGimms(gimms_file_path, flag=TRUE)
-  flag=extract(gimmsRaster, route_locations)
+  flag=raster::extract(gimmsRaster, route_locations)
   
   year=as.numeric(substr(basename(gimms_file_path), 4,5))
   month=substr(basename(gimms_file_path), 6,8)
@@ -85,8 +86,35 @@ process_gimms_ndvi_bbs=function(){
       bind_rows(gimms_ndvi_bbs)
   }
   
+  
+  
   return(gimms_ndvi_bbs)
 }
+
+#################################################
+#Filter the quality flags that we don't want.
+#Average the bimonthly values into 1 value per month
+#and add in -99 for na
+#From the GIMMS readme:
+#FLAG = 7 (missing data)
+#FLAG = 6 (NDVI retrieved from average seasonal profile, possibly snow)
+#FLAG = 5 (NDVI retrieved from average seasonal profile)
+#FLAG = 4 (NDVI retrieved from spline interpolation, possibly snow)
+#FLAG = 3 (NDVI retrieved from spline interpolation)
+#FLAG = 2 (Good value)
+#FLAG = 1 (Good value)
+#################################################
+filter_gimms_data=function(df){
+  df=df %>%
+    filter(flag<=3) %>%
+    group_by(site_id, year, month) %>%
+    summarize(ndvi=mean(ndvi)) %>%
+    ungroup() %>%
+    right_join( expand(df, site_id, month, year)) %>%
+    replace_na(list(ndvi=-99))
+  return(df)
+}
+
 
 #################################################
 #Get the GIMMS AVHRR ndvi bi-monthly time series for every bbs site.
@@ -105,6 +133,8 @@ get_bbs_gimms_ndvi = function(){
     }
     
     gimms_ndvi_bbs_data=process_gimms_ndvi_bbs()
+    
+    gimms_ndvi_bbs_data=filter_gimms_data(gimms_ndvi_bbs_data)
     
     copy_to(database, gimms_ndvi_bbs_data, temporary = FALSE, 
             indexes = list(c('site_id','year','month','day')))
