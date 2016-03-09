@@ -21,32 +21,23 @@ years_to_use=1981:2014
 
 #################################################
 #This assumes we want all gimms files that are available. It queries for files
-#that are available for download and checks to see which, if any, are missing.
-#Returns TRUE if all files that are available are already present, and list of 
-#files to download if any are missing.
+#that are available for download and compares against files already in the gimms
+#data directory. 
+#Returns a list of files to download, which may be length 0. 
 ##################################################
-check_if_gimms_files_present=function(){
-  available_files_download_path=sort(gimms::updateInventory())
+get_gimms_download_list=function(){
+  available_files_download_path=gimms::updateInventory()
   available_files_name=basename(available_files_download_path)
   
-  files_present=sort(list.files(gimms_folder))
+  files_present=list.files(gimms_folder)
   #hdr files are created from some of the gimms processing that we don't want to
   #use here.
   files_present=files_present[!grepl('hdr', files_present)]
   
-  if(length(files_present)>0){
-    to_download=available_files_download_path[! available_files_name == files_present]
-  } else {
-    to_download=available_files_download_path
-  }
+  to_download=available_files_download_path[! available_files_name %in% files_present]
   
-  if(length(to_download)==0){
-    return(TRUE)
-  } else {
-    return(to_download)
-  }
+  return(to_download)
 }
-
 
 ################################################
 #Extract values from a single gimms file given a set of coordinates
@@ -133,10 +124,10 @@ get_bbs_gimms_ndvi = function(){
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
     
-    file_status=check_if_gimms_files_present()
-    if(!isTRUE(file_status)){
+    files_to_download=get_gimms_download_list()
+    if(length(files_to_download)>0){
       print('Downloading GIMMS data')
-      downloadGimms(x=file_status, dsn=gimms_folder)
+      downloadGimms(x=files_to_download, dsn=gimms_folder)
     }
     
     gimms_ndvi_bbs_data=process_gimms_ndvi_bbs()
@@ -147,6 +138,5 @@ get_bbs_gimms_ndvi = function(){
             indexes = list(c('site_id','year','month')))
     
     return(gimms_ndvi_bbs_data)
-    
   }
 }
