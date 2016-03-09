@@ -1,9 +1,9 @@
-#Functions for retrieving and processing NDVI data for BBS route locations. Currently only GIMMS is suported, with years 1981-2013 available.
+#Functions for retrieving and processing NDVI data for BBS route locations. Currently only GIMMS is supported, with years 1981-2013 available.
 #
-#GIMMS you just need to call get_bbs_gimms_ndvi() to retreive a dataframe of (site_id, year, month, ndvi). 
+#GIMMS: Call get_bbs_gimms_ndvi() to retrieve a dataframe of (site_id, year, month, ndvi). 
 #-It will take a while to download the 14gb of data and extract values the 1st time around. Results are stored in an sqlite db for quick access.
-#-To redo it just delete the database. 
-#-missing values are filled in with -99
+#-To redo it just delete the database file.  
+#-na values are due to missing periods from filtering out unwanted quality flags. 
 
 library(rgdal)
 library(gimms)
@@ -84,8 +84,6 @@ process_gimms_ndvi_bbs=function(){
       bind_rows(gimms_ndvi_bbs)
   }
   
-  
-  
   return(gimms_ndvi_bbs)
 }
 
@@ -108,15 +106,14 @@ filter_gimms_data=function(df){
     group_by(site_id, year, month) %>%
     summarize(ndvi=mean(ndvi)) %>%
     ungroup() %>%
-    right_join( expand(df, site_id, month, year)) %>%
-    replace_na(list(ndvi=-99))
+    right_join( expand(df, site_id, month, year)) 
   return(df)
 }
 
 
 #################################################
 #Get the GIMMS AVHRR ndvi bi-monthly time series for every bbs site.
-#Pulling from the sqlite DB or extracting it from raw gimms data
+#Pulling from the sqlite DB or extracting it from raw gimms data if needed. 
 #################################################
 get_bbs_gimms_ndvi = function(){
   if('gimms_ndvi_bbs_data' %in% src_tbls(database)){
