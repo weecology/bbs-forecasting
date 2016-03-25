@@ -99,31 +99,6 @@ get_popdyn_data_w_zeros <- function(commdyn_data, start_year, stop_year) {
   return(popdyn_data)
 }
 
-get_ndvi_ts_data <- function(tsdata, modis_data_location){
-  modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
-  if (length(modis_data_files) == 0){
-    tsdata_by_site_yr <- group_by(tsdata, site_id, lat, long, year)
-    richness_ndvi <- summarize(tsdata_by_site_yr, richness = n_distinct(species_id))
-    richness_ndvi$start.date <- paste(richness_ndvi$year, "-06-01", sep = "")
-    richness_ndvi$end.date <- paste(richness_ndvi$year, "-06-30", sep = "")
-
-    output <- capture.output(
-                 MODISSummaries(LoadDat = richness_ndvi, Dir = modis_data_location,
-                                Product = "MOD13Q1", Bands = c("250m_16_days_NDVI"),
-                                ValidRange = c(-2000,10000),
-                                NoDataFill = -3000, ScaleFactor = 0.0001, StartDate = TRUE)
-    )
-  }
-  modis_data_files <- list.files(modis_data_location, pattern = "MODIS_Data", full.names = TRUE)
-  richness_ndvi <- read.csv(modis_data_files[1])
-  richness_ndvi <- transmute(richness_ndvi, site_id = site_id, lat = lat, long = long,
-                             year = year, richness = richness, start.date = start.date,
-                             end.date = end.date, SubsetID = SubsetID,
-                             ndvi = rowMeans(richness_ndvi[9:ncol(richness_ndvi)], na.rm = TRUE))
-  return(richness_ndvi)
-}
-
-
 #' Cleanup output from multi-time-series forecasting into a simple data frame
 #'
 #' Takes the output of a dplyr based run of forecasting on multiple groups and
