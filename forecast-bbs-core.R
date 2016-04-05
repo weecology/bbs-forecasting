@@ -20,6 +20,25 @@ install_dataset <- function(dataset){
   ecoretriever::install(dataset, 'postgres', conn_file = 'postgres_conn_file.txt')
 }
 
+
+#' Filter poorly sampled BBS species
+#'
+#' Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
+#' dippers. These species are poorly sampled due to their aquatic or
+#' noctural nature.
+#'
+#' @param df dataframe containing an species_id column
+#'
+#' @return dataframe, filtered version of initial dataframe
+filter_species <- function(df){
+  bbs_data_filtered <- df %>%
+    filter(species_id > 2880) %>%
+    filter(species_id < 3650 | species_id > 3810) %>%
+    filter(species_id < 3900 | species_id > 3910) %>%
+    filter(species_id < 4160 | species_id > 4210) %>%
+    filter(species_id != 7010)
+}
+
 get_bbs_data <- function(){
   # Get the BBS data
 
@@ -46,7 +65,8 @@ get_bbs_data <- function(){
                            AND bbs.counts.route=bbs.routes.route
                          WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
     bbs_results <- dbSendQuery(con, bbs_query)
-    bbs_data <- dbFetch(bbs_results)
+    bbs_data <- dbFetch(bbs_results) %>%
+      filter_species()
     colnames(bbs_data)[3] <- "long"
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
