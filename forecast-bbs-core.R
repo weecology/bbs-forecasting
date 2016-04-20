@@ -4,6 +4,9 @@ library(broom)
 library(MODISTools)
 library(DBI)
 library(ecoretriever)
+source("get_ndvi_data.R")
+source("get_prism_data.R")
+source("get_elev_data.R")
 
 database_exists <- function(schema_name, con){
   # Check to see if a database exists
@@ -39,7 +42,7 @@ filter_species <- function(df){
     filter(species_id != 7010)
 }
 
-get_bbs_data <- function(){
+get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
   # Get the BBS data
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
@@ -52,7 +55,6 @@ get_bbs_data <- function(){
       install_dataset('bbs')
     }
 
-    #FIXME: This query doesn't currently deal with poorly sampled species (e.g., nocturnal)
     bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.lati as lat,
                         routes.loni as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
                           FROM bbs.counts JOIN bbs.weather
@@ -66,11 +68,107 @@ get_bbs_data <- function(){
                          WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
     bbs_results <- dbSendQuery(con, bbs_query)
     bbs_data <- dbFetch(bbs_results) %>%
-      filter_species()
+      filter_species() %>%
+      filter(year >= start_yr, year <= end_yr) %>%
+      group_by(site_id) %>%
+      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs)
     colnames(bbs_data)[3] <- "long"
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
   }
+}
+
+#' Get combined environmental data
+#'
+#' Master function for acquiring all environmental in a single table
+get_env_data <- function(){
+  bioclim_data <- get_bioclim_data()
+  elev_data <- get_elev_data()
+  ndvi_data_raw <- get_bbs_gimms_ndvi()
+
+  ndvi_data_summer <- ndvi_data_raw %>%
+    filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
+    group_by(site_id, year) %>%
+    summarize(ndvi_sum = mean(ndvi))
+  ndvi_data_winter <- ndvi_data_raw %>%
+    filter(!is.na(ndvi), month %in% c('dec', 'jan', 'feb'), year > 1981) %>%
+      group_by(site_id, year) %>%
+        summarize(ndvi_win = mean(ndvi))
+  ndvi_data_ann <- ndvi_data_raw %>%
+    filter(!is.na(ndvi), year > 1981) %>%
+    group_by(site_id, year) %>%
+    summarize(ndvi_ann = mean(ndvi))
+  ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
+  ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
+
+  env_data <- full_join(bioclim_data, ndvi_data, by = c('site_id', 'year'))
+  env_data <- full_join(env_data, elev_data, by = c('site_id'))
+}
+
+#' Get BBS population time-series data with environmental variables
+#'
+#' Selects sites with data spanning 1982 through 2013 containing at least 25
+#' samples during that period.
+#'
+#' Attaches associated environmental data
+#'
+#' @param start_yr num first year of time-series
+#' @param end_yr num last year of time-series
+#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#'
+#' @return dataframe with site_id, lat, long, year, species_id, and abundance
+get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
+  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  pop_ts_env_data <- bbs_data %>%
+    add_env_data() %>%
+    filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    dplyr::select(-lat, -long)
+}
+
+#' Get BBS richness time-series data with environmental variables
+#'
+#' @param start_yr num first year of time-series
+#' @param end_yr num last year of time-series
+#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#'
+#' @return dataframe with site_id, year, and richness
+get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
+  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  richness_data <- bbs_data %>%
+    group_by(site_id, year) %>%
+    summarise(richness = n_distinct(species_id)) %>%
+    ungroup() %>%
+    complete(site_id, year)
+  richness_ts_env_data <- richness_data %>%
+    add_env_data() %>%
+    filter_ts(start_yr, end_yr, min_num_yrs)
+}
+
+#' Add environmental data to BBS data frame
+#'
+#' @param bbs_data dataframe that contains BBS site_id and year columns
+#'
+#' @return dataframe with original data and associated environmental data
+add_env_data <- function(bbs_data){
+  env_data <- get_env_data()
+  bbs_data_w_env <- bbs_data %>%
+    inner_join(env_data, by = c("site_id", "year"), copy = TRUE)
+}
+
+#' Filter BBS to specified time series period and number of samples
+#'
+#' @param bbs_data dataframe that contains BBS site_id and year columns
+#' @param start_yr num first year of time-series
+#' @param end_yr num last year of time-series
+#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#'
+#' @return dataframe with original data and associated environmental data
+filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
+  filterd_data <- bbs_data %>%
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(ndvi_win), !is.na(elevs)) %>%
+    group_by(site_id) %>%
+    filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
+    ungroup()
 }
 
 get_longest_contig_ts <- function(df){
