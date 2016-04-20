@@ -55,8 +55,8 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
       install_dataset('bbs')
     }
 
-    bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.lati as lat,
-                        routes.loni as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
+    bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.latitude as lat,
+                        routes.longitude as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
                           FROM bbs.counts JOIN bbs.weather
                            ON bbs.counts.statenum=bbs.weather.statenum
                            AND bbs.counts.route=bbs.weather.route
