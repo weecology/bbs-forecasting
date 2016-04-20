@@ -139,7 +139,7 @@ process_bioclim_data=function(){
   bioclim_quarter_data= prism_bbs_data %>%
     left_join(quarter_info, by='month') %>%
     group_by(site_id, year, quarter) %>%
-    summarize(precip=sum(ppt), temp=mean(tmean)) %>%
+    dplyr::summarize(precip=sum(ppt), temp=mean(tmean)) %>%
     ungroup() %>%
     group_by(site_id,year) %>%
     summarize(bio8=max_min_combo(temp, precip, max=TRUE),

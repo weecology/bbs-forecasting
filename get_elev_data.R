@@ -12,9 +12,9 @@ library(dplyr)
 get_route_data <- function(projection){
   bbs_data <- try(read.csv("data/bbs_data.csv"))
   if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv")}
-  route_locations <- unique(select(bbs_data, site_id, long, lat))
+  route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
   spatial_routes <- route_locations %>%
-    select(long, lat) %>%
+    dplyr::select(long, lat) %>%
     SpatialPointsDataFrame(data=route_locations, proj4string=projection)
 }
 
