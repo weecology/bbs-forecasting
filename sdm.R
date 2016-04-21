@@ -1,14 +1,15 @@
-library(magrittr)
+library(gbm)
+library(viridis)
+
 # Parameters for spatial cross-validation
 n_clusters = 100
 n_folds = 10
 stopifnot(n_clusters %% n_folds == 0)
 
 
+
+# Load data ---------------------------------------------------------------
 occurrences = get_bbs_data()
-
-
-
 env = get_env_data() %>%
   filter_ts(start_yr, end_yr, min_num_yrs) %>% 
   inner_join(distinct(occurrences[ , c("site_id", "lat", "long")]), 
@@ -41,13 +42,43 @@ plot(
 # Determine presence-absence ----------------------------------------------
 
 sampling_events = tidyr::expand(occurrences, c(site_id, year)) %>%
-  left_join(env, by = c("site_id", "year"))
+  inner_join(env, by = c("site_id", "year"))
 
-x = 2890
 
-abundance = occurrences %>% 
-  filter(species_id == x) %>% 
-  dplyr::select(site_id, year, abundance) %>%
-  right_join(sampling_events, by = c("site_id", "year")) %>%
-  replace_na(list(abundance = 0))
+make_species_data = function(x){
+  occurrences %>% 
+    filter(species_id == x) %>% 
+    dplyr::select(site_id, year, abundance) %>%
+    right_join(sampling_events, by = c("site_id", "year")) %>%
+    replace_na(list(abundance = 0))
+}
 
+# fit gbm -----------------------------------------------------------------
+
+# NOTE: NOT USING THE CV FOLDS DEFINED ABOVE!
+
+data = make_species_data(x = 2890) %>%
+  mutate(presence = abundance > 0)
+g = gbm(
+  presence ~ .,
+  distribution = "bernoulli",
+  data = data %>% dplyr::select(-lat, -long, -site_id, -year, -abundance),
+  cv.folds = n_folds,
+  interaction.depth = 4,
+  n.trees = 1E3
+)
+
+p = predict(g, type = "response")
+plot(
+  jitter(data$lat, amount = 1/2) ~ jitter(data$long, amount = 1/2), 
+  col = rep(viridis(length(p) / 100), each = 100)[order(p)],
+  pch = ".",
+  cex = 8
+)
+
+counts = data%>% 
+  cbind(p) %>% 
+  dplyr::group_by(site_id, lat, long) %>% 
+  summarise(count = sum(presence), p = mean(p)) 
+
+ggplot(counts, aes(x = long, y = lat, color = count)) + geom_point(size = 4) + scale_color_viridis()
