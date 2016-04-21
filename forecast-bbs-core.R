@@ -89,15 +89,15 @@ get_env_data <- function(){
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
-    summarize(ndvi_sum = mean(ndvi))
+    dplyr::summarize(ndvi_sum = mean(ndvi))
   ndvi_data_winter <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('dec', 'jan', 'feb'), year > 1981) %>%
       group_by(site_id, year) %>%
-        summarize(ndvi_win = mean(ndvi))
+        dplyr::summarize(ndvi_win = mean(ndvi))
   ndvi_data_ann <- ndvi_data_raw %>%
     filter(!is.na(ndvi), year > 1981) %>%
     group_by(site_id, year) %>%
-    summarize(ndvi_ann = mean(ndvi))
+    dplyr::summarize(ndvi_ann = mean(ndvi))
   ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
   ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
 
@@ -182,7 +182,7 @@ get_filtered_ts <- function(df, min_ts_length){
   data_by_site <- group_by(df, site_id)
   contig_ts <- do(data_by_site, get_longest_contig_ts(.))
   contig_ts_by_site <- group_by(contig_ts, site_id)
-  contig_ts_length <- summarize(contig_ts_by_site, n_years = n_distinct(year))
+  contig_ts_length <- dplyr::summarize(contig_ts_by_site, n_years = n_distinct(year))
   long_ts <- filter(contig_ts_length, n_years >= min_ts_length)
   contig_ts_long <- semi_join(contig_ts, long_ts)
 }
