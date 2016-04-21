@@ -59,7 +59,7 @@ extract_gimms_data=function(gimms_file_path, route_locations){
   #Convert 2 digit year to 4 digit year
   year=ifelse(year>50, year+1900, year+2000)
   
-  return(data.frame(year=year, month=month, day=day, ndvi=ndvi, flag=flag, site_id=route_locations@data$site_id))
+  return(data.frame(year=year, month=month, day=day, ndvi=ndvi, flag=flag, site_id=route_locations@data$site_id, stringsAsFactors = FALSE))
 }
 
 ################################################

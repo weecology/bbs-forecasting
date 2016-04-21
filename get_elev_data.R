@@ -34,7 +34,7 @@ get_elev_data <- function(){
     elevation <- getData("alt", country="US")[[1]]
     elev_proj <- crs(elevation)
     route_locations <- get_route_data(elev_proj)
-    route_locations$elevs <- extract(elevation, route_locations,
+    route_locations$elevs <- raster::extract(elevation, route_locations,
                                      buffer=40000, fun=mean) #buffers are in meters
     route_locations <- as.data.frame(route_locations)
     elev_data <- dplyr::select(route_locations, site_id, elevs)
