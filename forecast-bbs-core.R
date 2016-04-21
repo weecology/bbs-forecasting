@@ -136,7 +136,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
   richness_data <- bbs_data %>%
     group_by(site_id, year) %>%
-    summarise(richness = n_distinct(species_id)) %>%
+    dplyr::summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
     complete(site_id, year)
   richness_ts_env_data <- richness_data %>%
