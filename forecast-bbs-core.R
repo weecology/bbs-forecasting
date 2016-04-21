@@ -28,18 +28,36 @@ install_dataset <- function(dataset){
 #'
 #' Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
 #' dippers. These species are poorly sampled due to their aquatic or
-#' noctural nature.
+#' noctural nature. Also removes taxa that were either partially unidentified 
+#' (e.g. "sp.") or were considered hybrids (e.g. "A x B").
 #'
 #' @param df dataframe containing an species_id column
 #'
 #' @return dataframe, filtered version of initial dataframe
 filter_species <- function(df){
-  bbs_data_filtered <- df %>%
+  
+  con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres', 
+                   host = "localhost", password = "p", user = "postgres")
+  species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
+  
+  
+  unidentified = function(names) {
+    grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
+  }
+  
+  identified_taxa = species_table %>%
+    filter(!unidentified(english_common_name)) %>%
+    filter(!unidentified(spanish_common_name)) %>%
+    magrittr::extract2("aou")
+  
+  
+  df %>%
     filter(species_id > 2880) %>%
     filter(species_id < 3650 | species_id > 3810) %>%
     filter(species_id < 3900 | species_id > 3910) %>%
     filter(species_id < 4160 | species_id > 4210) %>%
-    filter(species_id != 7010)
+    filter(species_id != 7010) %>%
+    filter(species_id %in% identified_taxa)
 }
 
 get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
