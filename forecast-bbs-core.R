@@ -36,8 +36,7 @@ install_dataset <- function(dataset){
 #' @return dataframe, filtered version of initial dataframe
 filter_species <- function(df){
   
-  con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres', 
-                   host = "localhost", password = "p", user = "postgres")
+  con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
   species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
   
   
