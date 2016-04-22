@@ -68,7 +68,7 @@ g = gbm(
   n.trees = 1E3
 )
 
-p = predict(g, type = "response")
+p = predict(g, type = "response", n.trees = g$n.trees)
 plot(
   jitter(data$lat, amount = 1/2) ~ jitter(data$long, amount = 1/2), 
   col = rep(viridis(length(p) / 100), each = 100)[order(p)],
@@ -76,9 +76,10 @@ plot(
   cex = 8
 )
 
-counts = data%>% 
-  cbind(p) %>% 
+results = data %>% 
+  cbind(p = p) %>% 
   dplyr::group_by(site_id, lat, long) %>% 
   summarise(count = sum(presence), p = mean(p)) 
 
-ggplot(counts, aes(x = long, y = lat, color = count)) + geom_point(size = 4) + scale_color_viridis()
+ggplot(results, aes(x = long, y = lat, color = count)) + geom_point(size = 4) + scale_color_viridis()
+ggplot(results, aes(x = long, y = lat, color = p)) + geom_point(size = 4) + scale_color_viridis()
