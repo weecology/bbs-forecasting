@@ -1,3 +1,25 @@
+# From forecasting-bbs-R.ipynb --------------------------------------------
+library(forecast)
+library(Hmisc)
+library(dplyr)
+library(broom)
+library(ggplot2)
+library(tidyr)
+library(mgcv)
+source("forecast-bbs-core.R")
+library(sp)
+library(raster)
+library(maptools)
+library(rgeos)
+library(rgdal)
+
+start_yr <- 1982
+end_yr <- 2013
+min_num_yrs <- 25
+
+
+# start SDM ---------------------------------------------------------------
+
 library(gbm)
 library(viridis)
 
@@ -65,7 +87,7 @@ g = gbm(
   data = data %>% dplyr::select(-lat, -long, -site_id, -year, -abundance),
   cv.folds = n_folds,
   interaction.depth = 4,
-  n.trees = 1E3
+  n.trees = 1E4
 )
 
 p = predict(g, type = "response", n.trees = g$n.trees)
