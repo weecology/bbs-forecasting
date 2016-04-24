@@ -35,28 +35,78 @@ install_dataset <- function(dataset){
 #'
 #' @return dataframe, filtered version of initial dataframe
 filter_species <- function(df){
+  species_table = get_species_data()
   
-  con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-  species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
-  
-  
-  unidentified = function(names) {
+  is_unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
   }
   
-  identified_taxa = species_table %>%
-    filter(!unidentified(english_common_name)) %>%
-    filter(!unidentified(spanish_common_name)) %>%
+  valid_taxa = species_table %>%
+    filter(!is_unidentified(english_common_name)) %>%
+    filter(!is_unidentified(spanish_common_name)) %>%
+    filter(aou > 2880) %>%
+    filter(aou < 3650 | aou > 3810) %>%
+    filter(aou < 3900 | aou > 3910) %>%
+    filter(aou < 4160 | aou > 4210) %>%
+    filter(aou != 7010)
+  
+  filter(df, species_id %in% valid_taxa$aou)
+}
+
+combine_subspecies = function(df){
+  
+  species_table = get_species_data()
+  
+  # Subspecies have two spaces separated by non-spaces
+  subspecies_names = species_table %>% 
+    filter(species_table$aou %in% unique(df$species_id)) %>%
+    magrittr::extract2("spanish_common_name") %>%
+    grep(" [^ ]+ ", ., value = TRUE)
+  
+  subspecies_ids = species_table %>%
+    filter(spanish_common_name %in% subspecies_names) %>%
     magrittr::extract2("aou")
   
+  # Drop the third word of the subspecies name to get the species name,
+  # then find the AOU code
+  new_subspecies_ids = species_table %>% 
+    slice(match(gsub(" [^ ]+$", "", subspecies_names), 
+                species_table$spanish_common_name)) %>%
+    magrittr::extract2("aou")
   
+  # replace the full subspecies names with species-level names
+  for (i in seq_along(subspecies_ids)) {
+    df$species_id[df$species_id == subspecies_ids[i]] = new_subspecies_ids[i]
+  }
+  
+  # Add the abundances for subspecies that co-occurred at the same site in the
+  # same year. Takes about 3 minutes on my laptop.
+  combine = function(x){
+    x$abundance = sum(x$abundance)
+    x[1, ]
+  }
+  fixed_subspecies = df %>% 
+    filter(species_id %in% new_subspecies_ids) %>%
+    group_by(site_id, year, species_id) %>%
+    do(combine(.)) %>%
+    ungroup()
+  
+  # bind the rows of the combined subspecies with the rows of everyone else
   df %>%
-    filter(species_id > 2880) %>%
-    filter(species_id < 3650 | species_id > 3810) %>%
-    filter(species_id < 3900 | species_id > 3910) %>%
-    filter(species_id < 4160 | species_id > 4210) %>%
-    filter(species_id != 7010) %>%
-    filter(species_id %in% identified_taxa)
+    filter(!(species_id %in% new_subspecies_ids)) %>%
+    bind_rows(fixed_subspecies)
+}
+
+get_species_data = function() {
+  data_path <- paste('./data/', 'bbs', '_species.csv', sep = "")
+  if (file.exists(data_path)) {
+    return(read.csv(data_path))
+  }else{
+    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
+    species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
+    write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
+    return(species_table)
+  }
 }
 
 get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
@@ -88,7 +138,8 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
       filter_species() %>%
       filter(year >= start_yr, year <= end_yr) %>%
       group_by(site_id) %>%
-      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs)
+      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
+      combine_subspecies()
     colnames(bbs_data)[3] <- "long"
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
