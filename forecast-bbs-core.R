@@ -138,7 +138,8 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
       filter_species() %>%
       filter(year >= start_yr, year <= end_yr) %>%
       group_by(site_id) %>%
-      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs)
+      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
+      combine_subspecies()
     colnames(bbs_data)[3] <- "long"
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
