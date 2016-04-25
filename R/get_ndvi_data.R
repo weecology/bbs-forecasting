@@ -11,7 +11,6 @@
 #data directory.
 #Returns a list of files to download, which may be length 0.
 ##################################################
-#' @export
 get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
   available_files_download_path=gimms::updateInventory()
   available_files_name=basename(available_files_download_path)
@@ -30,7 +29,6 @@ get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
 #Extract values from a single gimms file given a set of coordinates
 ################################################
 #' @importFrom gimms rasterizeGimms
-#' @export
 extract_gimms_data=function(gimms_file_path, route_locations){
   #Have to load and extract twice. Once for the actual NDVI, once for the quality flag.
   gimmsRaster=rasterizeGimms(gimms_file_path, flag=FALSE)
@@ -59,7 +57,6 @@ extract_gimms_data=function(gimms_file_path, route_locations){
 #' @importFrom dplyr bind_rows
 #' @importFrom dplyr %>%
 #' @importFrom sp coordinates<-
-#' @export
 process_gimms_ndvi_bbs=function(gimms_folder = './data/gimms_ndvi/'){
 
   bbs_data <- try(read.csv("data/bbs_data.csv"))
@@ -96,7 +93,6 @@ process_gimms_ndvi_bbs=function(gimms_folder = './data/gimms_ndvi/'){
 #################################################
 #' @importFrom tidyr expand
 #' @importFrom dplyr filter summarize group_by right_join ungroup
-#' @export
 filter_gimms_data=function(df){
   df=df %>%
     filter(flag<=3) %>%
@@ -114,7 +110,6 @@ filter_gimms_data=function(df){
 #################################################
 #' @importFrom dplyr sql src_sqlite src_tbls tbl copy_to collect
 #' @importFrom gimms downloadGimms
-#' @export
 get_bbs_gimms_ndvi = function(
   sqlite_db_file='./data/bbsforecasting.sqlite',
   database = src_sqlite(sqlite_db_file, create = TRUE),

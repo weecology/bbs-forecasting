@@ -41,5 +41,3 @@ get_elev_data <- function(){
     return(elev_data)
   }
 }
-
-get_elev_data()
