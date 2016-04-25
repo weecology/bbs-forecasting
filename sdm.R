@@ -21,6 +21,8 @@ min_num_yrs <- 25
 # start SDM ---------------------------------------------------------------
 
 n_test_years = 5
+interaction.depth = 6
+
 train_years = start_yr:(end_yr - n_test_years)
 test_years = (end_yr - n_test_years + 1):end_yr
 
@@ -81,40 +83,60 @@ plot(
 locations = cbind(locations, fold_id = fold_id)
 
 # fit gbm -----------------------------------------------------------------
-data = make_species_data(x = 7590) %>%
-  mutate(presence = abundance > 0)
-
-
-stopifnot(all(data$lat == sampling_events$lat))
-
-train_data = data %>% 
-  filter(year %in% train_years) %>%
-  inner_join(locations[ , c("fold_id", "site_id")], by = "site_id") %>%
-  dplyr::select(-lat, -long, -site_id, -year, -abundance)
-
-train_folds = train_data$fold_id
-
-train_data = dplyr::select(train_data, -fold_id)
-
-test_data = data %>% 
-  filter(year %in% test_years)
-
-cv_error = 0
-for (i in 1:n_folds) {
-  print(i)
-  # train on the k-1 folds that don't match i, validate on the 1 fold that does
-  fold_data = rbind(
-    train_data[i != train_folds, ], 
-    train_data[i == train_folds, ]
-  )
-  fold_model = gbm(
+fit_species = function(species_id){
+  
+  data = make_species_data(x = species_id) %>%
+    mutate(presence = abundance > 0)
+  
+  
+  stopifnot(all(data$lat == sampling_events$lat))
+  
+  train_data = data %>% 
+    filter(year %in% train_years) %>%
+    inner_join(locations[ , c("fold_id", "site_id")], by = "site_id") %>%
+    dplyr::select(-lat, -long, -site_id, -year, -abundance)
+  
+  train_folds = train_data$fold_id
+  
+  train_data = dplyr::select(train_data, -fold_id)
+  
+  test_data = data %>% 
+    filter(year %in% test_years)
+  
+  cv_error = numeric(n_folds)
+  for (i in 1:n_folds) {
+    print(i)
+    # train on the k-1 folds that don't match i, validate on the 1 fold that does
+    fold_data = rbind(
+      train_data[i != train_folds, ], 
+      train_data[i == train_folds, ]
+    )
+    fold_model = gbm(
+      presence ~ .,
+      distribution = "bernoulli",
+      data = fold_data,
+      cv.folds = 0,
+      train.fraction =  mean(i != train_folds),
+      interaction.depth = interaction.depth,
+      n.trees = 1E4
+    )
+    cv_error = cv_error + fold_model$valid.error / n_folds
+  }
+  
+  n.trees = which.min(cv_error)
+  
+  full_model = gbm(
     presence ~ .,
     distribution = "bernoulli",
-    data = fold_data,
+    data = train_data,
     cv.folds = 0,
-    train.fraction =  mean(i != train_folds),
-    interaction.depth = 6,
-    n.trees = 4E3
+    interaction.depth = interaction.depth,
+    n.trees = n.trees
   )
-  cv_error = cv_error + fold_model$valid.error / n_folds
+  
+  p = predict(full_model, newdata = test_data, n.trees = n.trees, 
+              type = "response")
+  
+  list(p = p, n.trees = n.trees)
 }
+
