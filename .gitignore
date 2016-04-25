@@ -10,3 +10,4 @@ data/Land_Cover_2005v2_TIFF/
 data/*.rds
 data/bbs_data.csv
 data/bbsforecasting.sqlite
+.RData

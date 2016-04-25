@@ -1,13 +1,4 @@
-library(forecast)
-library(dplyr)
-library(broom)
-library(MODISTools)
-library(DBI)
-library(ecoretriever)
-source("get_ndvi_data.R")
-source("get_prism_data.R")
-source("get_elev_data.R")
-
+#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect
 database_exists <- function(schema_name, con){
   # Check to see if a database exists
   res <- dbSendQuery(con, "SELECT schema_name FROM information_schema.schemata")
@@ -28,28 +19,29 @@ install_dataset <- function(dataset){
 #'
 #' Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
 #' dippers. These species are poorly sampled due to their aquatic or
-#' noctural nature. Also removes taxa that were either partially unidentified 
+#' noctural nature. Also removes taxa that were either partially unidentified
 #' (e.g. "sp.") or were considered hybrids (e.g. "A x B").
 #'
 #' @param df dataframe containing an species_id column
 #'
 #' @return dataframe, filtered version of initial dataframe
+#' @importFrom dplyr %>% inner_join do rowwise select filter group_by ungroup full_join n_distinct semi_join left_join
 filter_species <- function(df){
-  
+
   con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
   species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
-  
-  
+
+
   unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
   }
-  
+
   identified_taxa = species_table %>%
     filter(!unidentified(english_common_name)) %>%
     filter(!unidentified(spanish_common_name)) %>%
     magrittr::extract2("aou")
-  
-  
+
+
   df %>%
     filter(species_id > 2880) %>%
     filter(species_id < 3650 | species_id > 3810) %>%
@@ -290,6 +282,7 @@ cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
 #'
 #' TODO: separate time-steps to hold out from fitting from time-steps to
 #'       forecast, since when not hindcasting these may be different
+#' @importFrom forecast auto.arima forecast meanf naive
 get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
   do(grouped_tsdata,
      timeperiod = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
