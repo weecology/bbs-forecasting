@@ -1,17 +1,8 @@
 # From forecasting-bbs-R.ipynb --------------------------------------------
-library(forecast)
-library(Hmisc)
 library(dplyr)
 library(broom)
-library(ggplot2)
 library(tidyr)
-library(mgcv)
 source("forecast-bbs-core.R")
-library(sp)
-library(raster)
-library(maptools)
-library(rgeos)
-library(rgdal)
 
 start_yr <- 1982
 end_yr <- 2013
@@ -19,7 +10,7 @@ min_num_yrs <- 25
 
 
 # start SDM ---------------------------------------------------------------
-
+mc.cores = 8
 n_test_years = 5
 interaction.depth = 8
 n.trees = 1E4
@@ -29,6 +20,7 @@ test_years = (end_yr - n_test_years + 1):end_yr
 
 library(gbm)
 library(viridis)
+library(parallel)
 
 # Parameters for spatial cross-validation
 n_clusters = 100
@@ -58,7 +50,8 @@ make_species_data = function(x){
 
 
 
-# Generate fold_id --------------------------------------------------------
+
+# Spatial cross validation ------------------------------------------------
 
 set.seed(0)
 
@@ -66,22 +59,20 @@ locations = sampling_events %>%
   distinct(site_id) %>%
   dplyr::select(site_id, lat, long)
 
+# assign many clusters of routes that are close in lat/long
 cluster_id = kmeans(locations[ , 2:3], n_clusters, nstart = 100)$cluster
 
+# Randomly combine the clusters to make the cross-validation folds
 fold_matrix = matrix(sample(1:n_clusters), ncol = n_folds)
-
 fold_id = numeric(nrow(locations))
 for (i in 1:n_folds) {
   fold_id = fold_id + i * (cluster_id %in% fold_matrix[, i])
 }
 
-plot(
-  locations[,3:2],
-  col = fold_id,
-  pch = 16
-)
-
 locations = cbind(locations, fold_id = fold_id)
+
+# Optionally, view the cross-validation folds
+# with `plot(locations[,3:2], col = fold_id, pch = 16)`
 
 # fit gbm -----------------------------------------------------------------
 fit_species = function(species_id){
@@ -106,7 +97,6 @@ fit_species = function(species_id){
 
   cv_error = numeric(n_folds)
   for (i in 1:n_folds) {
-    print(i)
     # train on the k-1 folds that don't match i, validate on the 1 fold that does
     fold_data = rbind(
       train_data[i != train_folds, ],
@@ -138,6 +128,15 @@ fit_species = function(species_id){
   p = predict(full_model, newdata = test_data, n.trees = n.trees,
               type = "response")
 
-  list(p = p, n.trees = n.trees)
+  list(species_id = species_id, p = p, n.trees = n.trees,
+       site_id = test_data$site_id, year = test_data$year)
 }
 
+
+# Run ---------------------------------------------------------------------
+
+sdm_fits = mclapply(unique(occurrences$species_id),
+                    fit_species,
+                    mc.preschedule = FALSE,
+                    mc.cores = mc.cores)
+saveRDS(sdm_fits, file = "data/sdm_fits.Rdata")
