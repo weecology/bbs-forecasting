@@ -40,8 +40,9 @@ filter_species <- function(df){
     filter(aou < 3650 | aou > 3810) %>%
     filter(aou < 3900 | aou > 3910) %>%
     filter(aou < 4160 | aou > 4210) %>%
-    filter(aou != 7010) %>%
-    filter(df, species_id %in% valid_taxa$aou)
+    filter(aou != 7010)
+
+  filter(df, species_id %in% valid_taxa$aou)
   }
 
 combine_subspecies = function(df){
