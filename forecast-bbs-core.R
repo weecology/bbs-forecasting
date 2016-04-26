@@ -28,7 +28,7 @@ install_dataset <- function(dataset){
 #'
 #' Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
 #' dippers. These species are poorly sampled due to their aquatic or
-#' noctural nature. Also removes taxa that were either partially unidentified 
+#' noctural nature. Also removes taxa that were either partially unidentified
 #' (e.g. "sp.") or were considered hybrids (e.g. "A x B").
 #'
 #' @param df dataframe containing an species_id column
@@ -36,11 +36,11 @@ install_dataset <- function(dataset){
 #' @return dataframe, filtered version of initial dataframe
 filter_species <- function(df){
   species_table = get_species_data()
-  
+
   is_unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
   }
-  
+
   valid_taxa = species_table %>%
     filter(!is_unidentified(english_common_name)) %>%
     filter(!is_unidentified(spanish_common_name)) %>%
@@ -49,52 +49,42 @@ filter_species <- function(df){
     filter(aou < 3900 | aou > 3910) %>%
     filter(aou < 4160 | aou > 4210) %>%
     filter(aou != 7010)
-  
+
   filter(df, species_id %in% valid_taxa$aou)
 }
 
 combine_subspecies = function(df){
-  
+
   species_table = get_species_data()
-  
+
   # Subspecies have two spaces separated by non-spaces
-  subspecies_names = species_table %>% 
+  subspecies_names = species_table %>%
     filter(species_table$aou %in% unique(df$species_id)) %>%
     magrittr::extract2("spanish_common_name") %>%
     grep(" [^ ]+ ", ., value = TRUE)
-  
+
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
     magrittr::extract2("aou")
-  
+
   # Drop the third word of the subspecies name to get the species name,
   # then find the AOU code
-  new_subspecies_ids = species_table %>% 
-    slice(match(gsub(" [^ ]+$", "", subspecies_names), 
+  new_subspecies_ids = species_table %>%
+    slice(match(gsub(" [^ ]+$", "", subspecies_names),
                 species_table$spanish_common_name)) %>%
     magrittr::extract2("aou")
-  
+
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
     df$species_id[df$species_id == subspecies_ids[i]] = new_subspecies_ids[i]
   }
-  
-  # Add the abundances for subspecies that co-occurred at the same site in the
-  # same year. Takes about 3 minutes on my laptop.
-  combine = function(x){
-    x$abundance = sum(x$abundance)
-    x[1, ]
-  }
-  fixed_subspecies = df %>% 
+
+  df %>%
     filter(species_id %in% new_subspecies_ids) %>%
     group_by(site_id, year, species_id) %>%
-    do(combine(.)) %>%
-    ungroup()
-  
-  # bind the rows of the combined subspecies with the rows of everyone else
-  df %>%
-    filter(!(species_id %in% new_subspecies_ids)) %>%
-    bind_rows(fixed_subspecies)
+    summarize(abundance = sum(abundance)) %>%
+    left_join(dplyr::select(df, -abundance),
+              by = c("site_id", "year", "species_id"))
 }
 
 get_species_data = function() {
