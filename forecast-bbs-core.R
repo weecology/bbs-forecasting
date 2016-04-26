@@ -80,11 +80,9 @@ combine_subspecies = function(df){
   }
 
   df %>%
-    filter(species_id %in% new_subspecies_ids) %>%
-    group_by(site_id, year, species_id) %>%
+    group_by(site_id, year, species_id, lat, long) %>%
     summarize(abundance = sum(abundance)) %>%
-    left_join(dplyr::select(df, -abundance),
-              by = c("site_id", "year", "species_id"))
+    ungroup()
 }
 
 get_species_data = function() {
