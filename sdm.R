@@ -10,6 +10,9 @@ min_num_yrs <- 25
 
 
 # start SDM ---------------------------------------------------------------
+library(gbm)
+library(parallel)
+
 mc.cores = 8
 n_test_years = 5
 interaction.depth = 8
@@ -17,10 +20,6 @@ n.trees = 1E4
 
 train_years = start_yr:(end_yr - n_test_years)
 test_years = (end_yr - n_test_years + 1):end_yr
-
-library(gbm)
-library(viridis)
-library(parallel)
 
 # Parameters for spatial cross-validation
 n_clusters = 100
@@ -72,14 +71,16 @@ for (i in 1:n_folds) {
 locations = cbind(locations, fold_id = fold_id)
 
 # Optionally, view the cross-validation folds
-# with `plot(locations[,3:2], col = fold_id, pch = 16)`
+# using `plot(locations[,3:2], col = fold_id, pch = fold_id)`
 
 # fit gbm -----------------------------------------------------------------
+
+# Function to cross-validate a GBM model with different numbers of trees, then
+# fit the optimal model size to the full training set.
 fit_species = function(species_id){
 
   data = make_species_data(x = species_id) %>%
     mutate(presence = abundance > 0)
-
 
   stopifnot(all(data$lat == sampling_events$lat))
 
@@ -95,13 +96,18 @@ fit_species = function(species_id){
   test_data = data %>%
     filter(year %in% test_years)
 
-  cv_error = numeric(n_folds)
+  # Allocate an empty vector for cross-validation error
+  cv_error = numeric(n.trees)
   for (i in 1:n_folds) {
-    # train on the k-1 folds that don't match i, validate on the 1 fold that does
+    # train on the k-1 folds that don't match i, validate on the 1 fold that
+    # does (gbm uses the first `train.fraction` proportion as training and the
+    # remainder for validation)
     fold_data = rbind(
       train_data[i != train_folds, ],
       train_data[i == train_folds, ]
     )
+
+    # Fit
     fold_model = gbm(
       presence ~ .,
       distribution = "bernoulli",
@@ -114,21 +120,24 @@ fit_species = function(species_id){
     cv_error = cv_error + fold_model$valid.error / n_folds
   }
 
-  n.trees = which.min(cv_error)
+  # Find the best number of trees, averaged across the folds
+  n_trees_final = which.min(cv_error)
 
+  # Use n.trees to fit a new model to the full training set
   full_model = gbm(
     presence ~ .,
     distribution = "bernoulli",
     data = train_data,
     cv.folds = 0,
     interaction.depth = interaction.depth,
-    n.trees = n.trees
+    n.trees = n_trees_final
   )
 
-  p = predict(full_model, newdata = test_data, n.trees = n.trees,
+  p = predict(full_model, newdata = test_data, n.trees = n_trees_final,
               type = "response")
 
-  list(species_id = species_id, p = p, n.trees = n.trees,
+  # Save probabilities and some metadata
+  list(species_id = species_id, p = p, n.trees = n_trees_final,
        site_id = test_data$site_id, year = test_data$year)
 }
 
