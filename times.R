@@ -2,6 +2,7 @@ library(rgdal)
 library(sp)
 library(dplyr)
 library(lubridate)
+library(maptools)
 source("forecast-bbs-core.R")
 
 
@@ -47,3 +48,17 @@ events = get_bbs_data() %>%
   do(add_times(.)) %>%
   ungroup() %>%
   dplyr::select(-start_time, -time_zone, -month, -day)
+
+# From the crepuscule help:
+# > Input can consist of one location and at least one POSIXct times, or one
+# > POSIXct time and at least one location. solarDep is recycled as needed.
+# Does that mean one of them needs to be a scalar??
+# solarDep==6 is for "civil dawn", sun 6 degrees below horizon
+x = crepuscule(
+  cbind(events$long, events$lat),
+  events$date_time,
+  solarDep = 6,
+  direction = "dawn",
+  POSIXct.out = TRUE
+) %>%
+  dplyr::arrange(time)
