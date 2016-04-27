@@ -84,9 +84,10 @@ combine_subspecies = function(df){
     summarize(abundance = sum(abundance)) %>%
     ungroup() %>%
     left_join(
-      distinct(dplyr::select(df, -abundance, -species_id)),
+      distinct(dplyr::select(ungroup(df), -abundance, -species_id)),
       by = c("site_id", "year")
-    )
+    ) %>%
+    ungroup()
 }
 
 get_species_data = function() {
@@ -132,6 +133,7 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
       filter(year >= start_yr, year <= end_yr) %>%
       group_by(site_id) %>%
       filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
+      ungroup() %>%
       combine_subspecies() %>%
       dplyr::rename(long = lon)
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
