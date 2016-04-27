@@ -1,11 +1,10 @@
 library(rgdal)
 library(sp)
 library(dplyr)
+library(lubridate)
 source("forecast-bbs-core.R")
 
-locations = get_bbs_data() %>%
-  dplyr::select(site_id, lat, long, year) %>%
-  distinct()
+
 
 #' @importFrom rgdal readOGR
 #' @importFrom sp over SpatialPoints
@@ -18,11 +17,29 @@ get_time_zones = function() {
 }
 
 add_time_zones = function(locations){
-  boundaries = get_tz()
+  boundaries = get_time_zones()
   time_zone = over(
     SpatialPoints(locations[, c("long", "lat")],
                   proj4string = CRS(proj4string(boundaries))),
     boundaries
   )
-  cbind(locations, time_zone = time_zone[[1]])
+  out = cbind(locations, time_zone = time_zone[[1]])
+  out$time_zone = as.character(out$time_zone)
+  out
 }
+
+add_times = function(df){
+  df %>%
+    mutate(date_time = paste(year, month, day, start_time %/% 100, start_time %% 100, sep = "-")) %>%
+    mutate(date_time = ymd_hm(date_time, tz = time_zone[1])) %>%
+    dplyr::select(-start_time, -time_zone, -month, -day)
+}
+
+events = get_bbs_data() %>%
+  dplyr::select(site_id, lat, long, year, month, day, start_time) %>%
+  distinct() %>%
+  add_time_zones() %>%
+  na.omit() %>%
+  group_by(time_zone) %>%
+  do(add_times(.)) %>%
+  ungroup()
