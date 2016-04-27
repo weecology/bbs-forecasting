@@ -29,10 +29,13 @@ add_time_zones = function(locations){
 }
 
 add_times = function(df){
+  # BBS reports times as integers in HMM format.  So "855" is "08:55 AM"
+  # Here, I record the time in the original time zone, then convert to UTC.
+  # So the outputted times should be late morning or early afternoon in UTC time.
   df %>%
     mutate(date_time = paste(year, month, day, start_time %/% 100, start_time %% 100, sep = "-")) %>%
     mutate(date_time = ymd_hm(date_time, tz = time_zone[1])) %>%
-    dplyr::select(-start_time, -time_zone, -month, -day)
+    mutate(date_time = with_tz(date_time, tzone = "UTC"))
 }
 
 events = get_bbs_data() %>%
@@ -42,4 +45,5 @@ events = get_bbs_data() %>%
   na.omit() %>%
   group_by(time_zone) %>%
   do(add_times(.)) %>%
-  ungroup()
+  ungroup() %>%
+  dplyr::select(-start_time, -time_zone, -month, -day)
