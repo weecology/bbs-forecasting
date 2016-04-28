@@ -1,19 +1,18 @@
 # From forecasting-bbs-R.ipynb --------------------------------------------
-library(dplyr)
-library(broom)
-library(tidyr)
-source("forecast-bbs-core.R")
-
+devtools::load_all()
 start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
 
-
 # start SDM ---------------------------------------------------------------
 library(gbm)
 library(parallel)
+library(dplyr)
+library(broom)
+library(tidyr)
 
-mc.cores = 8
+set.seed(0)
+mc.cores = 2
 n_test_years = 5
 interaction.depth = 8
 n.trees = 1E4
@@ -27,43 +26,30 @@ n_folds = 10
 stopifnot(n_clusters %% n_folds == 0)
 
 # Load data ---------------------------------------------------------------
-occurrences = get_bbs_data()
+occurrences = get_bbs_data(start_yr = 1982, end_yr = 2013, min_num_yrs = 25)
+
 env = get_env_data() %>%
   filter_ts(start_yr, end_yr, min_num_yrs) %>%
-  inner_join(distinct(occurrences[ , c("site_id", "lat", "long")]),
-             by = "site_id")
+  inner_join(distinct(occurrences, site_id, lat, long, year),
+             by = c("site_id", "year"))
 
 # Determine presence-absence ----------------------------------------------
 
-sampling_events = tidyr::expand(occurrences, c(site_id, year)) %>%
-  inner_join(env, by = c("site_id", "year"))
+x = tidyr::expand(occurrences, site_id, year) %>%
+  inner_join(env, by = c("site_id", "year")) %>%
+  arrange(year, site_id)
 
+locations = distinct(x, site_id, lat, long)
 
-make_species_data = function(x){
-  out = occurrences %>%
-    filter(species_id == x) %>%
-    dplyr::select(site_id, year, abundance) %>%
-    right_join(sampling_events, by = c("site_id", "year")) %>%
-    replace_na(list(abundance = 0))
-
-  if (sum(out$abundance) == 0){
-    stop(paste("species", x, "doesn't exist"))
-  } else {
-    out
-  }
-}
-
-
+y = distinct(occurrences, year, species_id, site_id, .keep_all = TRUE) %>%
+  inner_join(select(x, year, site_id), c("year", "site_id")) %>%
+  mutate(presence = abundance > 0) %>%
+  select(-abundance, lat, long, start_time, month, day) %>%
+  spread(key = species_id, value = presence, fill = 0) %>%
+  arrange(year, site_id)
 
 
 # Spatial cross validation ------------------------------------------------
-
-set.seed(0)
-
-locations = sampling_events %>%
-  distinct(site_id, .keep_all = TRUE) %>%
-  dplyr::select(site_id, lat, long)
-
 # assign many clusters of routes that are close in lat/long
 cluster_id = kmeans(locations[ , 2:3], n_clusters, nstart = 100)$cluster
 
@@ -74,54 +60,51 @@ for (i in 1:n_folds) {
   fold_id = fold_id + i * (cluster_id %in% fold_matrix[, i])
 }
 
-locations = cbind(locations, fold_id = fold_id)
+x = x %>%
+  inner_join(
+    data_frame(site_id = locations$site_id, fold_id = fold_id),
+    "site_id"
+  )
 
-# Optionally, view the cross-validation folds
-# using `plot(locations[,3:2], col = fold_id, pch = fold_id)`
+stopifnot(x$site_id == y$site_id, x$year == y$year)
 
+train_x = filter(x, year %in% train_years)
+test_x = filter(x, !(year %in% train_years))
+train_y = filter(y, year %in% train_years)
+test_y = filter(y, !(year %in% train_years))
+
+fold_ids = train_x$fold_id  #plot(locations[,3:2], col = fold_ids, pch = fold_id)
+
+cv_train_rows = function(i){
+  i != fold_ids
+}
+cv_test_rows = function(i){
+  i == fold_ids
+}
 # fit gbm -----------------------------------------------------------------
 
 # Function to cross-validate a GBM model with different numbers of trees, then
 # fit the optimal model size to the full training set.
 fit_species = function(species_id){
-
-  data = make_species_data(x = species_id) %>%
-    mutate(presence = abundance > 0)
-
-  stopifnot(all(data$lat == sampling_events$lat))
-
-  train_data = data %>%
-    filter(year %in% train_years) %>%
-    inner_join(locations[ , c("fold_id", "site_id")], by = "site_id") %>%
-    dplyr::select(-lat, -long, -site_id, -year, -abundance)
-
-  train_folds = train_data$fold_id
-
-  # Don't want to use fold_id as a predictor variable below
-  train_data = dplyr::select(train_data, -fold_id)
-
-  test_data = data %>%
-    filter(year %in% test_years)
+  species_id = as.character(species_id)
+  train_data = cbind(train_x, y = train_y[[species_id]]) %>%
+    select(-site_id, -year, -lat, -long, -fold_id)
 
   # Allocate an empty vector for cross-validation error
   cv_error = numeric(n.trees)
   for (i in 1:n_folds) {
-    # train on the k-1 folds that don't match i, validate on the 1 fold that
-    # does (gbm uses the first `train.fraction` proportion as training and the
-    # remainder for validation)
     fold_data = rbind(
-      train_data[i != train_folds, ],
-      train_data[i == train_folds, ]
+      train_data[cv_train_rows(i), ],
+      train_data[cv_test_rows(i), ]
     )
 
-    if (var(train_data[i != train_folds, "presence"]) > 0) {
-      # Fit
+    if (var(train_data[cv_train_rows(i), "y"]) > 0) {
       fold_model = gbm(
-        presence ~ .,
+        y ~ .,
         distribution = "bernoulli",
         data = fold_data,
         cv.folds = 0,
-        train.fraction =  mean(i != train_folds),
+        train.fraction =  mean(cv_train_rows(i)),
         interaction.depth = interaction.depth,
         n.trees = n.trees
       )
@@ -134,7 +117,7 @@ fit_species = function(species_id){
 
   # Use n.trees to fit a new model to the full training set
   full_model = gbm(
-    presence ~ .,
+    y ~ .,
     distribution = "bernoulli",
     data = train_data,
     cv.folds = 0,
@@ -142,19 +125,22 @@ fit_species = function(species_id){
     n.trees = n_trees_final
   )
 
-  p = predict(full_model, newdata = test_data, n.trees = n_trees_final,
+  p = predict(full_model, newdata = test_x, n.trees = n_trees_final,
               type = "response")
 
   # Save probabilities and some metadata
-  list(species_id = species_id, p = p, n.trees = n_trees_final,
-       site_id = test_data$site_id, year = test_data$year)
+  data.frame(species_id = species_id, p = p, n.trees = n_trees_final,
+             site_id = test_x$site_id, year = test_x$year)
 }
 
 
 # Run ---------------------------------------------------------------------
 
-sdm_fits = mclapply(unique(occurrences$species_id),
-                    fit_species,
-                    mc.preschedule = FALSE,
-                    mc.cores = mc.cores)
+sdm_fits = mclapply(
+  unique(occurrences$species_id)[1:2],
+  fit_species,
+  mc.preschedule = FALSE,
+  mc.cores = mc.cores
+) %>%
+  bind_rows()
 saveRDS(sdm_fits, file = "data/sdm_fits.Rdata")
