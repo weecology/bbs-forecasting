@@ -1,0 +1,19 @@
+Package: BBSforecasting
+Title: What the Package Does (one line, title case)
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+Depends:
+    R (>= 3.2.4)
+Imports:
+    dplyr (>= 0.4.3),
+    tidyr (>= 0.3.1),
+    gimms (>= 0.5.1),
+    sp (>= 1.2-1),
+    raster (>= 2.4-20),
+    prism (>= 0.0.7),
+    ecoretriever (>= 0.2.1),
+    forecast (>= 7.1)
+License: What license is it under?
+LazyData: true
+RoxygenNote: 5.0.1
