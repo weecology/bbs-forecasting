@@ -119,7 +119,8 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
                          JOIN bbs.routes
                            ON bbs.counts.statenum=bbs.routes.statenum
                            AND bbs.counts.route=bbs.routes.route
-                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
+                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101
+                           AND bbs.weather.statenum!=3 AND bbs.weather.countrynum=840;"
     bbs_results <- dbSendQuery(con, bbs_query)
     bbs_data <- dbFetch(bbs_results) %>%
       filter_species() %>%
