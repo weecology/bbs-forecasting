@@ -1,5 +1,5 @@
 # From forecasting-bbs-R.ipynb --------------------------------------------
-devtools::load_all()
+sapply(dir("R", full.names = TRUE), source)
 start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
@@ -8,11 +8,10 @@ min_num_yrs <- 25
 library(gbm)
 library(parallel)
 library(dplyr)
-library(broom)
 library(tidyr)
 
 set.seed(0)
-mc.cores = 2
+mc.cores = 16
 n_test_years = 5
 interaction.depth = 8
 n.trees = 1E4
@@ -129,7 +128,7 @@ fit_species = function(species_id){
               type = "response")
 
   # Save probabilities and some metadata
-  data.frame(species_id = species_id, p = p, n.trees = n_trees_final,
+  data_frame(species_id = species_id, p = p, n.trees = n_trees_final,
              site_id = test_x$site_id, year = test_x$year)
 }
 
@@ -137,10 +136,12 @@ fit_species = function(species_id){
 # Run ---------------------------------------------------------------------
 
 sdm_fits = mclapply(
-  unique(occurrences$species_id)[1:2],
+  unique(occurrences$species_id),
   fit_species,
   mc.preschedule = FALSE,
   mc.cores = mc.cores
 ) %>%
   bind_rows()
-saveRDS(sdm_fits, file = "results/sdm_fits.rds")
+
+dir.create("results", FALSE)
+write.csv(sdm_fits, file = "results/sdm_fits.csv")
