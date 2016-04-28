@@ -118,7 +118,7 @@ get_bbs_gimms_ndvi = function(
   dir.create(gimms_folder, showWarnings = FALSE, recursive = TRUE)
 
   if('gimms_ndvi_bbs_data' %in% src_tbls(database)){
-    return(collect(tbl(database, sql('SELECT * from gimms_ndvi_bbs_data'))))
+    return(collect(tbl(database, sql('SELECT * from gimms_ndvi_bbs_data')), n = Inf))
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
 
