@@ -68,7 +68,12 @@ x = crepuscule(
   mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
   select(-day_frac, -time, -date_time)
 
-# * Site 35039 is always off by almost exactly an hour 22 times & is right by an intra-state time zone change.
-#
-# * Site 35031 is also off by almot exactly an hour one time, and it's in Indiana, which
-#   has super-complicated time zones & DST (https://en.wikipedia.org/wiki/Time_in_Indiana).
+# Site 35039 is always off by almost exactly an hour 22 times & is right by an
+# intra-state time zone change.
+is_hour_early = x$site_id == 35039 & x$min_post_dawn < -30
+x[is_hour_early, "min_post_dawn"] = x[is_hour_early, "min_post_dawn"] + 60
+
+# Site 35031 is off by almost exactly an hour, & is in Indiana, which has
+# messy timezones/DST https://en.wikipedia.org/wiki/Time_in_Indiana
+is_hour_late = x$site_id == 35031 & x$min_post_dawn > 30
+x[is_hour_late, "min_post_dawn"] = x[is_hour_late, "min_post_dawn"] - 60
