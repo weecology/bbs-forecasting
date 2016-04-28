@@ -8,7 +8,6 @@ devtools::load_all()
 
 
 #' @importFrom rgdal readOGR
-#' @importFrom sp over SpatialPoints
 get_time_zones = function() {
   if(!file.exists("data/tz_us.zip")) {
     download.file("http://efele.net/maps/tz/us/tz_us.zip", "data/tz_us.zip")
@@ -17,6 +16,7 @@ get_time_zones = function() {
   readOGR("data/tz_us/us/" ,"tz_us", verbose = FALSE)
 }
 
+#' @importFrom sp proj4string SpatialPoints CRS over
 add_time_zones = function(locations){
   boundaries = get_time_zones()
   time_zone = over(
@@ -32,6 +32,7 @@ add_time_zones = function(locations){
   out
 }
 
+#' @importFrom lubridate yday day month year ymd_hm
 add_times = function(df){
   # BBS reports times as integers in HMM format.  So "855" is "08:55 AM"
   # Here, I record the time in the original time zone, then convert to UTC.
@@ -42,38 +43,40 @@ add_times = function(df){
     mutate(date_time = with_tz(date_time, tzone = "UTC"))
 }
 
-events = get_bbs_data() %>%
-  dplyr::select(site_id, lat, long, year, month, day, start_time) %>%
-  distinct() %>%
-  add_time_zones() %>%
-  group_by(time_zone) %>%
-  do(add_times(.)) %>%
-  ungroup() %>%
-  mutate(yday = yday(date_time)) %>%
-  dplyr::select(-start_time, -time_zone, -month, -day)
+#' @importFrom dplyr bind_cols do
+#' @importFrom maptools crepuscule
+get_temporal_data = function(start_yr, end_yr, min_num_yrs){
+  events = get_bbs_data(start_yr = start_yr, end_yr = end_yr, min_num_yrs = min_num_yrs) %>%
+    select(site_id, lat, long, year, month, day, start_time) %>%
+    distinct() %>%
+    add_time_zones() %>%
+    group_by(time_zone) %>%
+    do(add_times(.)) %>%
+    ungroup() %>%
+    mutate(yday = yday(date_time)) %>%
+    dplyr::select(-start_time, -time_zone, -month, -day)
 
-# From the crepuscule help:
-# > Input can consist of one location and at least one POSIXct times, or one
-# > POSIXct time and at least one location. solarDep is recycled as needed.
-# Does that mean one of them needs to be a scalar??
-# solarDep==6 is for "civil dawn", sun 6 degrees below horizon
-x = crepuscule(
-  cbind(events$long, events$lat),
-  events$date_time,
-  solarDep = 6,
-  direction = "dawn",
-  POSIXct.out = TRUE
-) %>%
-  bind_cols(events) %>%
-  mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
-  select(-day_frac, -time, -date_time)
+  # solarDep==6 is for "civil dawn", sun 6 degrees below horizon
+  out = crepuscule(
+    cbind(events$long, events$lat),
+    events$date_time,
+    solarDep = 6,
+    direction = "dawn",
+    POSIXct.out = TRUE
+  ) %>%
+    bind_cols(events) %>%
+    mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
+    select(-day_frac, -time, -date_time)
 
-# Site 35039 is always off by almost exactly an hour 22 times & is right by an
-# intra-state time zone change.
-is_hour_early = x$site_id == 35039 & x$min_post_dawn < -30
-x[is_hour_early, "min_post_dawn"] = x[is_hour_early, "min_post_dawn"] + 60
+  # Site 35039 is off by almost exactly an hour 22 times & is right by an
+  # intra-state time zone change.
+  is_hour_early = out$site_id == 35039 & out$min_post_dawn < -30
+  out[is_hour_early, "min_post_dawn"] = out[is_hour_early, "min_post_dawn"] + 60
 
-# Site 35031 is off by almost exactly an hour, & is in Indiana, which has
-# messy timezones/DST https://en.wikipedia.org/wiki/Time_in_Indiana
-is_hour_late = x$site_id == 35031 & x$min_post_dawn > 30
-x[is_hour_late, "min_post_dawn"] = x[is_hour_late, "min_post_dawn"] - 60
+  # Site 35031 is off by almost exactly an hour, & is in Indiana, which has
+  # messy timezones/DST https://en.wikipedia.org/wiki/Time_in_Indiana
+  is_hour_late = out$site_id == 35031 & out$min_post_dawn > 30
+  out[is_hour_late, "min_post_dawn"] = out[is_hour_late, "min_post_dawn"] - 60
+
+  out
+}
