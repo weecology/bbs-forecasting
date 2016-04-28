@@ -65,3 +65,8 @@ x = crepuscule(
   bind_cols(events) %>%
   mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
   select(-day_frac, -time, -date_time)
+
+# * Site 35039 is always off by almost exactly an hour 22 times & is right by an intra-state time zone change.
+#
+# * Site 35031 is also off by almot exactly an hour one time, and it's in Indiana, which
+#   has super-complicated time zones & DST (https://en.wikipedia.org/wiki/Time_in_Indiana).
