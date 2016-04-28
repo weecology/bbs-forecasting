@@ -143,4 +143,4 @@ sdm_fits = mclapply(
   mc.cores = mc.cores
 ) %>%
   bind_rows()
-saveRDS(sdm_fits, file = "data/sdm_fits.Rdata")
+saveRDS(sdm_fits, file = "results/sdm_fits.rds")
