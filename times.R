@@ -26,6 +26,9 @@ add_time_zones = function(locations){
   )
   out = cbind(locations, time_zone = time_zone[[1]])
   out$time_zone = as.character(out$time_zone)
+
+  # Fix two coastal routes that were misclassified as NA
+  out$time_zone[out$site_id %in% c(47007, 88029)] = "America/New_York"
   out
 }
 
@@ -43,7 +46,6 @@ events = get_bbs_data() %>%
   dplyr::select(site_id, lat, long, year, month, day, start_time) %>%
   distinct() %>%
   add_time_zones() %>%
-  na.omit() %>%
   group_by(time_zone) %>%
   do(add_times(.)) %>%
   ungroup() %>%
