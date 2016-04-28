@@ -1,12 +1,3 @@
-library(rgdal)
-library(sp)
-library(dplyr)
-library(lubridate)
-library(maptools)
-devtools::load_all()
-
-
-
 #' @importFrom rgdal readOGR
 get_time_zones = function() {
   if(!file.exists("data/tz_us.zip")) {
@@ -43,7 +34,7 @@ add_times = function(df){
     mutate(date_time = with_tz(date_time, tzone = "UTC"))
 }
 
-#' @importFrom dplyr bind_cols do
+#' @importFrom dplyr bind_cols do distinct
 #' @importFrom maptools crepuscule
 get_temporal_data = function(start_yr, end_yr, min_num_yrs){
   events = get_bbs_data(start_yr = start_yr, end_yr = end_yr, min_num_yrs = min_num_yrs) %>%
