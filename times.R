@@ -3,7 +3,7 @@ library(sp)
 library(dplyr)
 library(lubridate)
 library(maptools)
-source("forecast-bbs-core.R")
+devtools::load_all()
 
 
 
@@ -47,6 +47,7 @@ events = get_bbs_data() %>%
   group_by(time_zone) %>%
   do(add_times(.)) %>%
   ungroup() %>%
+  mutate(yday = yday(date_time)) %>%
   dplyr::select(-start_time, -time_zone, -month, -day)
 
 # From the crepuscule help:
@@ -61,4 +62,6 @@ x = crepuscule(
   direction = "dawn",
   POSIXct.out = TRUE
 ) %>%
-  dplyr::arrange(time)
+  bind_cols(events) %>%
+  mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
+  select(-day_frac, -time, -date_time)
