@@ -40,11 +40,17 @@ sampling_events = tidyr::expand(occurrences, c(site_id, year)) %>%
 
 
 make_species_data = function(x){
-  occurrences %>%
+  out = occurrences %>%
     filter(species_id == x) %>%
     dplyr::select(site_id, year, abundance) %>%
     right_join(sampling_events, by = c("site_id", "year")) %>%
     replace_na(list(abundance = 0))
+
+  if (sum(out$abundance) == 0){
+    stop(paste("species", x, "doesn't exist"))
+  } else {
+    out
+  }
 }
 
 
@@ -55,7 +61,7 @@ make_species_data = function(x){
 set.seed(0)
 
 locations = sampling_events %>%
-  distinct(site_id) %>%
+  distinct(site_id, .keep_all = TRUE) %>%
   dplyr::select(site_id, lat, long)
 
 # assign many clusters of routes that are close in lat/long
@@ -91,6 +97,7 @@ fit_species = function(species_id){
 
   train_folds = train_data$fold_id
 
+  # Don't want to use fold_id as a predictor variable below
   train_data = dplyr::select(train_data, -fold_id)
 
   test_data = data %>%
@@ -107,17 +114,19 @@ fit_species = function(species_id){
       train_data[i == train_folds, ]
     )
 
-    # Fit
-    fold_model = gbm(
-      presence ~ .,
-      distribution = "bernoulli",
-      data = fold_data,
-      cv.folds = 0,
-      train.fraction =  mean(i != train_folds),
-      interaction.depth = interaction.depth,
-      n.trees = n.trees
-    )
-    cv_error = cv_error + fold_model$valid.error / n_folds
+    if (var(train_data[i != train_folds, "presence"]) > 0) {
+      # Fit
+      fold_model = gbm(
+        presence ~ .,
+        distribution = "bernoulli",
+        data = fold_data,
+        cv.folds = 0,
+        train.fraction =  mean(i != train_folds),
+        interaction.depth = interaction.depth,
+        n.trees = n.trees
+      )
+      cv_error = cv_error + fold_model$valid.error
+    }
   }
 
   # Find the best number of trees, averaged across the folds
