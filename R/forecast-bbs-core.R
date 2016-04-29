@@ -328,13 +328,16 @@ cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
 #'       forecast, since when not hindcasting these may be different
 #' @importFrom forecast auto.arima forecast meanf naive
 #' @export
-get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, lag = 1){
+get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag = 1){
+  get_train_data <- function(df, colname) df[[colname]][1:(nrow(df) - lag)]
+  get_test_data <- function(df, colname) df[[colname]][(nrow(df) - lag + 1):nrow(df)]
   do(grouped_tsdata,
-     timeperiod = .[[timecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])],
-     cast_naive = naive(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], lag),
-     cast_avg = meanf(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], lag),
-     cast_arima = forecast(auto.arima(.[[responsecol]][1:(length(.[[responsecol]]) - lag)], seasonal = FALSE), h = lag),
-     test_set = (.[[responsecol]][(length(.[[responsecol]]) - lag + 1):length(.[[responsecol]])])
+     timeperiod = get_test_data(., timecol),
+     cast_naive = naive(get_train_data(., responsecol), lag),
+     cast_avg = meanf(get_train_data(., responsecol), lag),
+     cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag),
+     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol)),
+     test_set = get_test_data(., responsecol)
   )
 }
 
