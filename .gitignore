@@ -10,4 +10,10 @@ data/Land_Cover_2005v2_TIFF/
 data/*.rds
 data/bbs_data.csv
 data/bbsforecasting.sqlite
-.RData
+data/tz_us.zip
+data/tz_us/us/index.html
+data/tz_us/us/tz_us.dbf
+data/tz_us/us/tz_us.png
+data/tz_us/us/tz_us.prj
+data/tz_us/us/tz_us.shp
+data/tz_us/us/tz_us.shx

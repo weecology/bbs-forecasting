@@ -72,8 +72,13 @@ combine_subspecies = function(df){
   }
 
   df %>%
-    group_by(site_id, year, species_id, lat, long) %>%
+    group_by(site_id, year, species_id) %>%
     summarize(abundance = sum(abundance)) %>%
+    ungroup() %>%
+    left_join(
+      distinct(dplyr::select(ungroup(df), -abundance, -species_id)),
+      by = c("site_id", "year")
+    ) %>%
     ungroup()
 }
 
@@ -104,7 +109,8 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
     }
 
     bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.latitude as lat,
-                        routes.longitude as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
+                        routes.longitude as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance,
+                        weather.starttime AS start_time, weather.month, weather.day
                           FROM bbs.counts JOIN bbs.weather
                            ON bbs.counts.statenum=bbs.weather.statenum
                            AND bbs.counts.route=bbs.weather.route
@@ -113,15 +119,17 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
                          JOIN bbs.routes
                            ON bbs.counts.statenum=bbs.routes.statenum
                            AND bbs.counts.route=bbs.routes.route
-                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
+                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101
+                           AND bbs.weather.statenum!=3 AND bbs.weather.countrynum=840;"
     bbs_results <- dbSendQuery(con, bbs_query)
     bbs_data <- dbFetch(bbs_results) %>%
       filter_species() %>%
       filter(year >= start_yr, year <= end_yr) %>%
       group_by(site_id) %>%
       filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
-      combine_subspecies()
-    colnames(bbs_data)[3] <- "long"
+      ungroup() %>%
+      combine_subspecies() %>%
+      dplyr::rename(long = lon)
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
   }

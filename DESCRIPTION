@@ -6,8 +6,8 @@ Description: What the package does (one paragraph).
 Depends:
     R (>= 3.2.4)
 Imports:
-    dplyr (>= 0.4.3),
-    tidyr (>= 0.3.1),
+    dplyr (>= 0.4.3.9001),
+    tidyr (>= 0.4.1.9000),
     gimms (>= 0.5.1),
     sp (>= 1.2-1),
     raster (>= 2.4-20),
