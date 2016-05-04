@@ -104,7 +104,7 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
     }
 
     bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.latitude as lat,
-                        routes.longitude as lon, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
+                        routes.longitude as long, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
                           FROM bbs.counts JOIN bbs.weather
                            ON bbs.counts.statenum=bbs.weather.statenum
                            AND bbs.counts.route=bbs.weather.route
@@ -121,7 +121,6 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
       group_by(site_id) %>%
       filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
       combine_subspecies()
-    colnames(bbs_data)[3] <- "long"
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
   }
