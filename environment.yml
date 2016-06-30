@@ -1,0 +1,23 @@
+name: bbs-forecasting
+channels:
+  - r
+dependencies:
+  - r
+  - python=3
+  - jupyter
+  - r-dplyr
+  - r-forecast
+  - r-devtools
+  - r-ggplot2
+  - r-hmisc
+  - r-tidyr
+  - r-mgcv
+  - r-sp
+  - r-raster
+  - r-maptools
+  - r-doparallel
+  - r-stringr
+  - netcdf4
+  - gdal
+  - r-irkernel
+  - r-rcurl
