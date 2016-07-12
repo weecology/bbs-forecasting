@@ -330,7 +330,7 @@ cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
 get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag = 1){
   get_train_data <- function(df, colname) df[[colname]][1:(nrow(df) - lag)]
   get_test_data <- function(df, colname) df[[colname]][(nrow(df) - lag + 1):nrow(df)]
-  do(grouped_tsdata,
+  tsmodel_forecasts <- do(grouped_tsdata,
      timeperiod = get_test_data(., timecol),
      cast_naive = naive(get_train_data(., responsecol), lag),
      cast_avg = meanf(get_train_data(., responsecol), lag),
@@ -338,6 +338,55 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag 
      cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol)),
      test_set = get_test_data(., responsecol)
   )
+  cleanup_ts_forecasts(tsmodel_forecasts)
+}
+
+#' Cleanup time-series forecast output
+#'
+#' Transforms a data frame with one row per for each site and columns
+#' with cells containing full forecast output a number of different forecasts,
+#' into one where each row contains the point forecast and forecast intervals
+#' for a single site, time period, model combination.
+#'
+#' @param ts_model_forecasts dataframe with site_id, timeperiod, cast_naive,
+#'   cast_arima, cast_exog_arima, and test_set columns. Each cast_ column
+#'   contains the full forecast object for each year of the forecast
+#'
+#' @return data.frame
+
+cleanup_ts_forecasts <- function(tsmodel_forecasts){
+  tsmodel_forecasts %>%
+    do(
+       {timeperiod <- as.data.frame(.$timeperiod)
+        colnames(timeperiod) <- c('timeperiod')
+        naive <- as.data.frame(.$cast_naive)
+        colnames(naive) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        naive <- cbind(timeperiod, naive)
+        naive$model <- 'naive'
+        naive$site_id <- .$site
+        naive$obs <- .$test_set
+        avg <- as.data.frame(.$cast_avg)
+        colnames(avg) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        avg <-cbind(timeperiod, avg)
+        avg$model <- 'avg'
+        avg$site_id <- .$site
+        avg$obs <- .$test_set
+        arima <- as.data.frame(.$cast_arima)
+        colnames(arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        arima <- cbind(timeperiod, arima)
+        arima$model <- 'arima'
+        arima$site_id <- .$site
+        arima$obs <- .$test_set
+        exog_arima <- as.data.frame(.$cast_exog_arima)
+        colnames(exog_arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        exog_arima <- cbind(timeperiod, exog_arima)
+        exog_arima$model <- 'exog_arima'
+        exog_arima$site_id <- .$site
+        exog_arima$obs <- .$test_set
+        df <- rbind(naive, avg, arima, exog_arima)
+        df %>% dplyr::select(site_id, model, timeperiod, obs, everything())
+       }
+      )
 }
 
 #' @export
