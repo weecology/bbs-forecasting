@@ -412,6 +412,9 @@ viz_forecast <- function(data, forecasts, focal_site){
   train_set <- filter(data, site_id == focal_site, year < min(forecasts$timeperiod))
   test_set <- filter(data, site_id == focal_site, year >= min(forecasts$timeperiod))
 
+  cbPalette <- c("#F0E442", "#D55E00", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#999999", "#CC79A7")
+  # rearranged from http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/#a-colorblind-friendly-palette
+
   examp_fcasts <- ggplot(train_set, aes(year, richness)) +
     geom_point(size = 2) +
     geom_line(size = 0.75) +
