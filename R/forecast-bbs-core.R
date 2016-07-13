@@ -402,3 +402,35 @@ get_error_measures <- function(obs, pred){
   colnames(results) <- c('ME', 'RMSE', 'MAE', 'MPE', 'MAPE')
   results
 }
+
+#' Visualize a forecast
+#'
+#' Visualizes a forecast for a single focal site from a group of forecasts
+#'
+viz_forecast <- function(data, forecasts, focal_site){
+  forecasts_focal <- filter(forecasts, site_id == focal_site)
+  train_set <- filter(data, site_id == focal_site, year < min(forecasts$timeperiod))
+  test_set <- filter(data, site_id == focal_site, year >= min(forecasts$timeperiod))
+
+  examp_fcasts <- ggplot(train_set, aes(year, richness)) +
+    geom_point(size = 2) +
+    geom_line(size = 0.75) +
+    geom_point(data = test_set, size = 2) +
+    geom_line(data = test_set, linetype = "dashed", size = 0.75) +
+    geom_line(data = forecasts_focal,
+              aes(x = timeperiod, y = pt_fcast, color = model, linetype = model),
+              size = 1) +
+
+    # Initial order is alphabetical: arima, avg, exog_arima, naive, spat_env
+    # This order is the one associated with `values` and `labels` below and
+    # `breaks` then reorganizes the legend
+    scale_color_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
+                       values = c(cbPalette[2], cbPalette[4], cbPalette[1], cbPalette[5], cbPalette[3]),
+                       labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
+    scale_linetype_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
+                          values=c("solid", "dashed", "solid", "dashed", "solid"),
+                          labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
+    labs(x = "Year", y = "Diversity")
+
+  examp_fcasts
+}
