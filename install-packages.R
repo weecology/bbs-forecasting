@@ -9,7 +9,7 @@ pacman::p_load(dplyr, forecast, ggplot2, Hmisc, tidyr, mgcv, sp, raster,
                maptools, doParallel, stringr, RCurl, roxygen2,
 	       broom, devtools, doParallel, dplyr, forecast, ggplot2,
 	       gimms, Hmisc, maptools, mgcv, prism, raster, stringr, sp,
-	       tidyr, rgdal, rgeos, DBI, RSQLite)
+	       tidyr, rgdal, rgeos, DBI, RSQLite, lme4, caret)
 pacman::p_load_gh('seantuck12/MODISTools', 'ropensci/ecoretriever')
 
 
