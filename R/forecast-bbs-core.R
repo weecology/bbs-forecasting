@@ -330,7 +330,7 @@ cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
 get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag = 1){
   get_train_data <- function(df, colname) df[[colname]][1:(nrow(df) - lag)]
   get_test_data <- function(df, colname) df[[colname]][(nrow(df) - lag + 1):nrow(df)]
-  do(grouped_tsdata,
+  tsmodel_forecasts <- do(grouped_tsdata,
      timeperiod = get_test_data(., timecol),
      cast_naive = naive(get_train_data(., responsecol), lag),
      cast_avg = meanf(get_train_data(., responsecol), lag),
@@ -338,6 +338,55 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag 
      cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol)),
      test_set = get_test_data(., responsecol)
   )
+  cleanup_ts_forecasts(tsmodel_forecasts)
+}
+
+#' Cleanup time-series forecast output
+#'
+#' Transforms a data frame with one row per for each site and columns
+#' with cells containing full forecast output a number of different forecasts,
+#' into one where each row contains the point forecast and forecast intervals
+#' for a single site, time period, model combination.
+#'
+#' @param ts_model_forecasts dataframe with site_id, timeperiod, cast_naive,
+#'   cast_arima, cast_exog_arima, and test_set columns. Each cast_ column
+#'   contains the full forecast object for each year of the forecast
+#'
+#' @return data.frame
+
+cleanup_ts_forecasts <- function(tsmodel_forecasts){
+  tsmodel_forecasts %>%
+    do(
+       {timeperiod <- as.data.frame(.$timeperiod)
+        colnames(timeperiod) <- c('timeperiod')
+        naive <- as.data.frame(.$cast_naive)
+        colnames(naive) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        naive <- cbind(timeperiod, naive)
+        naive$model <- 'naive'
+        naive$site_id <- .$site
+        naive$obs <- .$test_set
+        avg <- as.data.frame(.$cast_avg)
+        colnames(avg) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        avg <-cbind(timeperiod, avg)
+        avg$model <- 'avg'
+        avg$site_id <- .$site
+        avg$obs <- .$test_set
+        arima <- as.data.frame(.$cast_arima)
+        colnames(arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        arima <- cbind(timeperiod, arima)
+        arima$model <- 'arima'
+        arima$site_id <- .$site
+        arima$obs <- .$test_set
+        exog_arima <- as.data.frame(.$cast_exog_arima)
+        colnames(exog_arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
+        exog_arima <- cbind(timeperiod, exog_arima)
+        exog_arima$model <- 'exog_arima'
+        exog_arima$site_id <- .$site
+        exog_arima$obs <- .$test_set
+        df <- rbind(naive, avg, arima, exog_arima)
+        df %>% dplyr::select(site_id, model, timeperiod, obs, everything())
+       }
+      )
 }
 
 #' @export
@@ -352,4 +401,39 @@ get_error_measures <- function(obs, pred){
   results <- data.frame(t(unlist(c(me, rmse, mae, mpe, mape))))
   colnames(results) <- c('ME', 'RMSE', 'MAE', 'MPE', 'MAPE')
   results
+}
+
+#' Visualize a forecast
+#'
+#' Visualizes a forecast for a single focal site from a group of forecasts
+#'
+viz_forecast <- function(data, forecasts, focal_site){
+  forecasts_focal <- filter(forecasts, site_id == focal_site)
+  train_set <- filter(data, site_id == focal_site, year < min(forecasts$timeperiod))
+  test_set <- filter(data, site_id == focal_site, year >= min(forecasts$timeperiod))
+
+  cbPalette <- c("#F0E442", "#D55E00", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#999999", "#CC79A7")
+  # rearranged from http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/#a-colorblind-friendly-palette
+
+  examp_fcasts <- ggplot(train_set, aes(year, richness)) +
+    geom_point(size = 2) +
+    geom_line(size = 0.75) +
+    geom_point(data = test_set, size = 2) +
+    geom_line(data = test_set, linetype = "dashed", size = 0.75) +
+    geom_line(data = forecasts_focal,
+              aes(x = timeperiod, y = pt_fcast, color = model, linetype = model),
+              size = 1) +
+
+    # Initial order is alphabetical: arima, avg, exog_arima, naive, spat_env
+    # This order is the one associated with `values` and `labels` below and
+    # `breaks` then reorganizes the legend
+    scale_color_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
+                       values = c(cbPalette[2], cbPalette[4], cbPalette[1], cbPalette[5], cbPalette[3]),
+                       labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
+    scale_linetype_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
+                          values=c("solid", "dashed", "solid", "dashed", "solid"),
+                          labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
+    labs(x = "Year", y = "Diversity")
+
+  examp_fcasts
 }
