@@ -186,7 +186,7 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
   richness_data <- bbs_data %>%
-    group_by(site_id, year) %>%
+    group_by(site_id, year, lat, long) %>%
     dplyr::summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
     complete(site_id, year)
@@ -412,27 +412,15 @@ viz_forecast <- function(data, forecasts, focal_site){
   train_set <- filter(data, site_id == focal_site, year < min(forecasts$timeperiod))
   test_set <- filter(data, site_id == focal_site, year >= min(forecasts$timeperiod))
 
-  cbPalette <- c("#F0E442", "#D55E00", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#999999", "#CC79A7")
-  # rearranged from http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/#a-colorblind-friendly-palette
-
   examp_fcasts <- ggplot(train_set, aes(year, richness)) +
     geom_point(size = 2) +
     geom_line(size = 0.75) +
     geom_point(data = test_set, size = 2) +
     geom_line(data = test_set, linetype = "dashed", size = 0.75) +
     geom_line(data = forecasts_focal,
-              aes(x = timeperiod, y = pt_fcast, color = model, linetype = model),
+              aes(x = timeperiod, y = pt_fcast, color = model),
               size = 1) +
-
-    # Initial order is alphabetical: arima, avg, exog_arima, naive, spat_env
-    # This order is the one associated with `values` and `labels` below and
-    # `breaks` then reorganizes the legend
-    scale_color_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
-                       values = c(cbPalette[2], cbPalette[4], cbPalette[1], cbPalette[5], cbPalette[3]),
-                       labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
-    scale_linetype_manual(breaks=c("arima", "exog_arima", "spat_env", "avg", "naive"),
-                          values=c("solid", "dashed", "solid", "dashed", "solid"),
-                          labels=c("ARIMA", "Temporal Env", "Spatial Env", "Average", "Naive")) +
+    scale_color_brewer(palette = "Dark2") +
     labs(x = "Year", y = "Diversity")
 
   examp_fcasts
