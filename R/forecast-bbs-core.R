@@ -268,45 +268,6 @@ get_popdyn_data_w_zeros <- function(commdyn_data, start_year, stop_year) {
   return(popdyn_data)
 }
 
-#' Cleanup output from multi-time-series forecasting into a simple data frame
-#'
-#' Takes the output of a dplyr based run of forecasting on multiple groups and
-#' makes it into a simple data frame for further analysis. Currently this is
-#' specific to the form of data produce insdie of get_ts_forecasts.
-#'
-#' @param ts_forecast_df data.frame containing year, site, cast_naive, cast_avg,
-#'   and cast_arima columns
-#'
-#' @return data.frame
-#' @export
-cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
-  cleaned <-
-    ts_forecast_df %>%
-    rowwise() %>%
-    do(
-      {timeperiod <- as.data.frame(.$timeperiod)
-      testset <- as.data.frame(.$test_set)
-      colnames(timeperiod) <- c('timeperiod')
-      colnames(testset) <- c('obs')
-      naive <- as.data.frame(.$cast_naive)
-      colnames(naive) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
-      naive$model <- 'naive'
-      naive <- cbind(timeperiod, naive, testset)
-      avg <- as.data.frame(.$cast_avg)
-      colnames(avg) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
-      avg$model <- 'avg'
-      avg <-cbind(timeperiod, avg, testset)
-      arima <- as.data.frame(.$cast_arima)
-      colnames(arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
-      arima$model <- 'arima'
-      arima <- cbind(timeperiod, arima, testset)
-      df <- rbind(naive, avg, arima)
-      for (group in groups) {df[[group]] <- .[[group]]}
-      df %>% select(model, timeperiod, obs, everything())
-      }
-    )
-  return(cleaned)
-}
 
 #' Perform a suite of time-series only forecasts
 #'
@@ -327,18 +288,20 @@ cleanup_multi_ts_forecasts <- function(ts_forecast_df, groups){
 #'       forecast, since when not hindcasting these may be different
 #' @importFrom forecast auto.arima forecast meanf naive
 #' @export
-get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag = 1){
+get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol,
+                             lag = 1, pred_int_levels = c(80, 95)){
   get_train_data <- function(df, colname) df[[colname]][1:(nrow(df) - lag)]
   get_test_data <- function(df, colname) df[[colname]][(nrow(df) - lag + 1):nrow(df)]
   tsmodel_forecasts <- do(grouped_tsdata,
      timeperiod = get_test_data(., timecol),
-     cast_naive = naive(get_train_data(., responsecol), lag),
-     cast_avg = meanf(get_train_data(., responsecol), lag),
-     cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag),
-     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol)),
+     cast_naive = naive(get_train_data(., responsecol), lag, level = pred_int_levels),
+     cast_avg = meanf(get_train_data(., responsecol), lag, level = pred_int_levels),
+     cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag, level = pred_int_levels),
+     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol), level = pred_int_levels),
      test_set = get_test_data(., responsecol)
   )
-  cleanup_ts_forecasts(tsmodel_forecasts)
+  cleaned_ts_model_forecasts <- cleanup_ts_forecasts(tsmodel_forecasts)
+  ts_fcasts <- restruct_ts_forecasts(cleaned_ts_model_forecasts)
 }
 
 #' Cleanup time-series forecast output
@@ -353,32 +316,28 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol, lag 
 #'   contains the full forecast object for each year of the forecast
 #'
 #' @return data.frame
-
 cleanup_ts_forecasts <- function(tsmodel_forecasts){
+  column_names <- 
   tsmodel_forecasts %>%
     do(
        {timeperiod <- as.data.frame(.$timeperiod)
         colnames(timeperiod) <- c('timeperiod')
         naive <- as.data.frame(.$cast_naive)
-        colnames(naive) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
         naive <- cbind(timeperiod, naive)
         naive$model <- 'naive'
         naive$site_id <- .$site
         naive$obs <- .$test_set
         avg <- as.data.frame(.$cast_avg)
-        colnames(avg) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
         avg <-cbind(timeperiod, avg)
         avg$model <- 'avg'
         avg$site_id <- .$site
         avg$obs <- .$test_set
         arima <- as.data.frame(.$cast_arima)
-        colnames(arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
         arima <- cbind(timeperiod, arima)
         arima$model <- 'arima'
         arima$site_id <- .$site
         arima$obs <- .$test_set
         exog_arima <- as.data.frame(.$cast_exog_arima)
-        colnames(exog_arima) <- c('pt_fcast', 'lo80', 'hi80', 'lo95', 'hi95')
         exog_arima <- cbind(timeperiod, exog_arima)
         exog_arima$model <- 'exog_arima'
         exog_arima$site_id <- .$site
@@ -388,6 +347,28 @@ cleanup_ts_forecasts <- function(tsmodel_forecasts){
        }
       )
 }
+
+#' Split time-series forecasts into point forecast and prediction interval dfs
+#'
+#' @param cleaned_ts_model_forecasts dataframe with site_id, model, timeperiod,
+#'   obs, pt_fcast, and Lo and Hi columns for each level of prediction interval
+#'
+#' @return list of data.frames. The first value is the pt_fcast part of the
+#'   input data frame. The second value is a long version of the full data.frame
+#'   with columns for the level and interval characterizing each prediction
+#'   interval
+restruct_ts_forecasts <- function(cleaned_ts_model_fcasts){
+  cleaned_ts_model_fcasts <- dplyr::rename(cleaned_ts_model_fcasts, pt_fcast = `Point Forecast`)
+  ts_pt_fcasts <- dplyr::select(cleaned_ts_model_fcasts, site_id:pt_fcast)
+  ts_fcasts_pred_int <- cleaned_ts_model_fcasts %>%
+    tidyr::gather(level, interval_edge, -site_id, -model, -timeperiod, -obs, -pt_fcast) %>%
+    tidyr::separate(level, into = c("hilo", "levels")) %>%
+    dplyr::group_by(site_id, model, timeperiod, obs, pt_fcast, levels) %>%
+    dplyr::summarize(lo = min(interval_edge), hi = max(interval_edge))
+  ts_fcasts_pred_int$levels <- as.numeric(ts_fcasts_pred_int$levels)
+  ts_fcasts <- list(pt_est = ts_pt_fcasts, intervals = ts_fcasts_pred_int)
+}
+
 
 #' @export
 get_error_measures <- function(obs, pred){
