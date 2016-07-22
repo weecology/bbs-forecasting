@@ -298,6 +298,7 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol,
      cast_avg = meanf(get_train_data(., responsecol), lag, level = pred_int_levels),
      cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag, level = pred_int_levels),
      cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol), level = pred_int_levels),
+     cast_ets = forecast(ets(get_train_data(., responsecol)), lag, level = pred_int_levels),
      test_set = get_test_data(., responsecol)
   )
   cleaned_ts_model_forecasts <- cleanup_ts_forecasts(tsmodel_forecasts)
@@ -342,7 +343,12 @@ cleanup_ts_forecasts <- function(tsmodel_forecasts){
         exog_arima$model <- 'exog_arima'
         exog_arima$site_id <- .$site
         exog_arima$obs <- .$test_set
-        df <- rbind(naive, avg, arima, exog_arima)
+	ets <- as.data.frame(.$cast_ets)
+        ets <- cbind(timeperiod, ets)
+        ets$model <- 'ets'
+        ets$site_id <- .$site
+        ets$obs <- .$test_set
+        df <- rbind(naive, avg, arima, exog_arima, ets)
         df %>% dplyr::select(site_id, model, timeperiod, obs, everything())
        }
       )
