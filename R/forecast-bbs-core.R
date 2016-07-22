@@ -288,16 +288,16 @@ get_popdyn_data_w_zeros <- function(commdyn_data, start_year, stop_year) {
 #'       forecast, since when not hindcasting these may be different
 #' @importFrom forecast auto.arima forecast meanf naive
 #' @export
-get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcol,
+get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
                              lag = 1, pred_int_levels = c(80, 95)){
-  get_train_data <- function(df, colname) df[[colname]][1:(nrow(df) - lag)]
-  get_test_data <- function(df, colname) df[[colname]][(nrow(df) - lag + 1):nrow(df)]
+  get_train_data <- function(df, colnames) as.matrix(df[, colnames])[1:(nrow(df) - lag),]
+  get_test_data <- function(df, colnames) as.matrix(df[, colnames])[(nrow(df) - lag + 1):nrow(df),]
   tsmodel_forecasts <- do(grouped_tsdata,
      timeperiod = get_test_data(., timecol),
      cast_naive = naive(get_train_data(., responsecol), lag, level = pred_int_levels),
      cast_avg = meanf(get_train_data(., responsecol), lag, level = pred_int_levels),
      cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag, level = pred_int_levels),
-     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcol), seasonal = FALSE), xreg = get_test_data(., exogcol), level = pred_int_levels),
+     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcols), seasonal = FALSE), xreg = get_test_data(., exogcols), level = pred_int_levels),
      cast_ets = forecast(ets(get_train_data(., responsecol)), lag, level = pred_int_levels),
      test_set = get_test_data(., responsecol)
   )
@@ -407,7 +407,7 @@ viz_forecast <- function(data, forecasts, focal_site){
     geom_line(data = forecasts_focal,
               aes(x = timeperiod, y = pt_fcast, color = model),
               size = 1) +
-    scale_color_brewer(palette = "Dark2") +
+    scale_color_brewer(palette = "Set3") +
     labs(x = "Year", y = "Diversity")
 
   examp_fcasts
