@@ -62,32 +62,37 @@ model = sampling(m, data = data, control = list(adapt_delta = 0.8))
 
 extracted = rstan::extract(model)
 
-stop()
+k = sample.int(ncol(y1), 1)
 
-final_values = extracted$y[ , , dim(extracted$y)[3]]
 N2 = 25
-CIs = lapply(
-  1:N2,
-  function(i){
-    samples = structure(
-      rnorm(length(final_values), mean = final_values, sd = sqrt(extracted$sigma^2 * i + extracted$nugget^2)),
-      dim = dim(final_values)
-    )
-    out = cbind(
-      tbl_df(t(apply(samples, 2, quantile, c(.025, .5, .975)))),
-      site_num = 1:ncol(samples)
-    )
-    cbind(
-      gather(out, key = "interval_type", value = value, -site_num),
-      t_plus = i
-    )
-  }
-) %>% bind_rows()
+x = extracted$y[, k, nrow(y1)]
+xx = matrix(x, 4000, N2)
+mu = sigma = numeric(N2)
+for(i in 1:N2){
+  x = x * c(extracted$beta) + c(extracted$sigma) * rt(4000, extracted$nu)
+  xx[,i] = x
+  mu[i] = mean(x)
+  sigma[i] = sd(x)
+}
 
-N1 = nrow(x)
+unscale = function(x){
+  x * 9.5 + 55
+}
 
-i = sample.int(ncol(x), 1)
-ggplot() +
-  geom_point(data = data.frame(x = 1:N1, y = x[,i]), aes(x, y)) +
-  geom_line(data = filter(CIs, site_num == i), aes(x = I(N1 + t_plus), y = value, group = interval_type)) +
-  ylim(0, 100)
+add_nugget = function(x){
+  out = rnorm(prod(length(x)), x, extracted$nugget)
+  dim(out) = dim(x)
+  out
+}
+
+N1 = nrow(y1)
+N = N1 + N2
+
+
+matplot(unscale(t(extracted$y[1:1000,k,])), col = "#00000020", xlim = c(1, N), ylim = range(arima_data, na.rm = TRUE), type = "n", lty = 1, ylab = "richness", xlab = "years")
+points(unscale(y1[,k]), type = "o", pch = 16, lwd = 2, cex = 3/4, col = 2)
+matlines(seq(1, N), t(apply(unscale(cbind(extracted$y[ ,k , ], xx)), 2, quantile, c(.025, .975))), col = 1, lty = 1, lwd = 2)
+matlines(seq(N1 + 1, N), t(apply(unscale(add_nugget(xx)), 2, quantile, c(.025, .975))), col = 2, lty = 2, lwd = 2)
+matlines(seq(N1 + 1, N), t(apply(unscale(add_nugget(xx)), 2, quantile, c(.005, .995))), col = 2, lty = 3, lwd = 2)
+# legend("topleft", c("95% CI (\"true\")", "95% CI (observed)", "99% CI (observed)"), col = c(1, 2, 2),
+#        lty = 1:3, lwd = 2)
