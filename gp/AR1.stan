@@ -1,7 +1,8 @@
 data {
-  int<lower=0> N1;
+  int<lower=0> N1; // Number of training years
+  int<lower=0> N2; // Number of test years
   int<lower=0> N_sites;
-  vector[N1] y1[N_sites];
+  vector[N1] observed[N_sites];
 }
 parameters {
   // scalars //
@@ -32,6 +33,25 @@ model {
     tail(y[i], N1 - 1) ~ student_t(nu, beta * head(y[i], N1 - 1), sigma);
 
     // Observation noise //
-    y1[i] ~ normal(y[i], nugget);
+    observed[i] ~ normal(y[i], nugget);
+  }
+}
+generated quantities {
+  vector[N2] future_y[N_sites];
+  vector[N2] future_observed[N_sites];
+
+  for (i in 1:N_sites) {
+    for (j in 1:N2) {
+      if (j == 1) {
+        // First prediction depends on final year of y
+        future_y[i][1] = student_t_rng(nu, beta * y[i][N1], sigma);
+      } else {
+        // Subsequent predictions depend on preceding year //
+        future_y[i][j] = student_t_rng(nu, beta * future_y[i][j-1], sigma);
+      }
+
+      // Observation noise //
+      future_observed[i][j] = normal_rng(future_y[i][j], nugget);
+    }
   }
 }

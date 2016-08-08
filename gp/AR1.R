@@ -45,9 +45,8 @@ summary(model)
 
 # Stan --------------------------------------------------------------------
 
-y1 = (x - mean(x)) / sd(x)
-# Consider standardizing y1
-data = list(N1 = nrow(y1), y1 = t(y1), N_sites = ncol(y1), N2 = 20)
+observed = (x - mean(x)) / sd(x)
+data = list(N1 = nrow(observed), observed = t(observed), N_sites = ncol(observed), N2 = N2)
 
 m = stan_model(
   "gp/AR1.stan"
@@ -62,37 +61,29 @@ model = sampling(m, data = data, control = list(adapt_delta = 0.8))
 
 extracted = rstan::extract(model)
 
-k = sample.int(ncol(y1), 1)
-
-N2 = 25
-x = extracted$y[, k, nrow(y1)]
-xx = matrix(x, 4000, N2)
-mu = sigma = numeric(N2)
-for(i in 1:N2){
-  x = x * c(extracted$beta) + c(extracted$sigma) * rt(4000, extracted$nu)
-  xx[,i] = x
-  mu[i] = mean(x)
-  sigma[i] = sd(x)
+unscale = function(data){
+  data * sd(x) + mean(x)
 }
 
-unscale = function(x){
-  x * 9.5 + 55
-}
-
-add_nugget = function(x){
-  out = rnorm(prod(length(x)), x, extracted$nugget)
-  dim(out) = dim(x)
-  out
-}
-
-N1 = nrow(y1)
-N = N1 + N2
-
-
-matplot(unscale(t(extracted$y[1:1000,k,])), col = "#00000020", xlim = c(1, N), ylim = range(arima_data, na.rm = TRUE), type = "n", lty = 1, ylab = "richness", xlab = "years")
-points(unscale(y1[,k]), type = "o", pch = 16, lwd = 2, cex = 3/4, col = 2)
-matlines(seq(1, N), t(apply(unscale(cbind(extracted$y[ ,k , ], xx)), 2, quantile, c(.025, .975))), col = 1, lty = 1, lwd = 2)
-matlines(seq(N1 + 1, N), t(apply(unscale(add_nugget(xx)), 2, quantile, c(.025, .975))), col = 2, lty = 2, lwd = 2)
-matlines(seq(N1 + 1, N), t(apply(unscale(add_nugget(xx)), 2, quantile, c(.005, .995))), col = 2, lty = 3, lwd = 2)
-# legend("topleft", c("95% CI (\"true\")", "95% CI (observed)", "99% CI (observed)"), col = c(1, 2, 2),
-#        lty = 1:3, lwd = 2)
+k = sample.int(ncol(x), 1)
+matplot(
+  seq(N1 + 1, N1+N2),
+  unscale(t(apply(extracted$future_observed[,k,], 2, quantile, c(.005, .025, .975, .995)))),
+  type = "l",
+  lty = c(3, 2, 2, 3),
+  col = 2,
+  xlim = c(1, N1 + N2),
+  ylim = range(x),
+  ylab = "richness",
+  xlab = "year",
+  las = 1,
+  lwd = 2
+)
+matlines(
+  unscale(t(apply(cbind(extracted$y[,k,], extracted$future_y[,k,]), 2, quantile, c(.025, .975)))),
+  col = "#00000070",
+  lty = 1,
+  lwd = 2
+)
+abline(v = N1 + 0.5, lty = 2, col = "#00000080", lwd = 2)
+points(unscale(observed[, k]), cex = 3/4, pch = 16)
