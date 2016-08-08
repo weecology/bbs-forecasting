@@ -1,9 +1,6 @@
-library(forecast)
-library(lme4)
-library(rstan)
-library(mvtnorm)
-library(tidyr)
 library(dplyr)
+library(tidyr)
+library(rstan)
 devtools::load_all()
 
 start_yr <- 1982
@@ -23,30 +20,30 @@ arima_data = richness_w_env %>%
 colnames(arima_data) = arima_data[1, ]
 arima_data = arima_data[-1, ]
 
-x = as.matrix(arima_data[ , 0 == colSums(is.na(arima_data))])
+# one long vector of non-NA observations
+observed = as.matrix(arima_data)[!is.na(arima_data)]
 
-indices = combn(1:20, 2)
+# sites associated with each value of `observed`
+site_id = c(col(arima_data)[!is.na(arima_data)])
 
-z = t(
-  sapply(1:ncol(indices),
-         function(i){
-           c(abs(indices[ , i][2] - indices[, i][1]), mean((x[indices[,i][1], ] - x[indices[,i][2], ])^2))
-         }
-  )
-)
-model = lm(z[,2] ~ z[,1])
+# Number of observations assocaited with each site
+site_length = rle(site_id)$lengths
 
-plot(z, xlim = c(0, nrow(x)))
-abline(model)
-points(0, mean(apply(x, 2, var)), pch = 16)
+# Which values are not missing?
+index = seq(1, prod(dim(arima_data)))[!is.na(arima_data)]
 
-summary(model)
-
+stop()
 
 # Stan --------------------------------------------------------------------
 
-observed = (x - mean(x)) / sd(x)
-data = list(N1 = nrow(observed), observed = t(observed), N_sites = ncol(observed), N2 = N2)
+data = list(
+  N_obs = length(observed),
+  N1 = length(start_yr:last_training_year),
+  N2 = length(seq(last_training_year + 1, end_yr)),
+  N_sites = ncol(arima_data),
+  index = index,
+  observed = c(scale(observed))
+)
 
 m = stan_model(
   "gp/AR1.stan"
