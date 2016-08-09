@@ -52,7 +52,7 @@ m = stan_model(
 )
 
 model = sampling(m, data = data, control = list(adapt_delta = 0.8))
-
+saveRDS(model, file = "stan-models/model-object.RDS")
 
 
 # extract model estimates -------------------------------------------------
@@ -146,13 +146,23 @@ plot(
 abline(0, 1, col = "#00000050")
 
 # save output -------------------------------------------------------------
-out = data_frame(
-  site_id = colnames(arima_data)[c(col(predicted_means))],
-  year = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
-  point_estimate = c(predicted_means),
-  lower_CI = c(lower_CIs),
-  upper_CI = c(upper_CIs),
-  quantile = c(quantiles)
+out = list(
+  pt_est = data_frame(
+    site_id = colnames(arima_data)[c(col(predicted_means))],
+    model = "AR1SS",
+    timeperiod = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
+    obs = unlist(testing_observations),
+    pt_fcast = c(predicted_means)
+  ),
+  intervals = data_frame(
+    site_id = colnames(arima_data)[c(col(predicted_means))],
+    model = "AR1SS",
+    timeperiod = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
+    obs = unlist(testing_observations),
+    pt_fcast = c(predicted_means),
+    lo = c(lower_CIs),
+    hi = c(upper_CIs)
+  ),
+  quantiles = c(quantiles)
 )
-
-write.csv(out, "stan-models/output.csv")
+saveRDS(out, "stan-models/output.RDS")
