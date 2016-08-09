@@ -170,8 +170,9 @@ get_env_data <- function(){
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
   pop_ts_env_data <- bbs_data %>%
-    add_env_data() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    add_env_data() %>%
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
     dplyr::select(-lat, -long)
 }
 
@@ -189,10 +190,12 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     group_by(site_id, year, lat, long) %>%
     dplyr::summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
+    filter_ts(start_yr, end_yr, min_num_yrs) %>%
     complete(site_id, year)
+  
   richness_ts_env_data <- richness_data %>%
     add_env_data() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs)
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs))
 }
 
 #' Add environmental data to BBS data frame
@@ -215,11 +218,16 @@ add_env_data <- function(bbs_data){
 #'
 #' @return dataframe with original data and associated environmental data
 filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
-  filterd_data <- bbs_data %>%
-    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(ndvi_win), !is.na(elevs)) %>%
+  sites_to_keep = bbs_data %>%
+    filter(year >= start_yr, year <= end_yr) %>%
     group_by(site_id) %>%
-    filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
-    ungroup()
+    summarise(num_years=length(unique(year))) %>%
+    ungroup() %>%
+    filter(num_years >= min_num_yrs)
+  
+  filterd_data <- bbs_data %>%
+    filter(year >= start_yr, year <= end_yr) %>%
+    filter(site_id %in% sites_to_keep$site_id)
 }
 
 get_longest_contig_ts <- function(df){
