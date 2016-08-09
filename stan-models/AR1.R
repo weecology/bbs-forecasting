@@ -119,3 +119,40 @@ mean(diffs^2, na.rm = TRUE)
 # Proportion outside the confidence interval (should each be close to 0.025)
 mean(testing_observations < lower_CIs, na.rm = TRUE) # below lower
 mean(testing_observations > upper_CIs, na.rm = TRUE) # above upper
+
+# Proportion of observations that were greater than predicted
+quantiles = sapply(
+  1:ncol(testing_observations),
+  function(i){
+    rowMeans(
+      testing_observations[[i]] > unscale(t(future_observed[,,i])),
+      na.rm = TRUE
+    )
+  }
+)
+
+# Observed versus nominal quantiles (should be on the 1:1 line)
+plot(
+  seq(0, 1, length = 101),
+  sapply(seq(0, 1, length = 101),
+         function(x) mean(quantiles < x, na.rm = TRUE)),
+  type = "l",
+  col = "purple",
+  xlab = "nominal quantiles",
+  ylab = "observed quantiles",
+  xaxs = "i",
+  yaxs = "i"
+)
+abline(0, 1, col = "#00000050")
+
+# save output -------------------------------------------------------------
+out = data_frame(
+  site_id = colnames(arima_data)[c(col(predicted_means))],
+  year = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
+  point_estimate = c(predicted_means),
+  lower_CI = c(lower_CIs),
+  upper_CI = c(upper_CIs),
+  quantile = c(quantiles)
+)
+
+write.csv(out, "stan-models/output.csv")
