@@ -25,16 +25,16 @@ training_observations = arima_data[1:length(start_yr:last_training_year), ]
 testing_observations = arima_data[-(1:length(start_yr:last_training_year)), ]
 
 # one long vector of non-NA observations
-observed = as.matrix(arima_data)[!is.na(arima_data)]
+observed = as.matrix(training_observations)[!is.na(training_observations)]
 
 # sites associated with each value of `observed`
-site_id = c(col(arima_data)[!is.na(arima_data)])
+site_id = c(col(training_observations)[!is.na(training_observations)])
 
 # Number of observations assocaited with each site
 site_length = rle(site_id)$lengths
 
 # Which values are not missing?
-index = seq(1, prod(dim(arima_data)))[!is.na(arima_data)]
+index = seq(1, prod(dim(training_observations)))[!is.na(training_observations)]
 
 # Stan --------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ data = list(
   N_obs = length(observed),
   N1 = length(start_yr:last_training_year),
   N2 = length(seq(last_training_year + 1, end_yr)),
-  N_sites = ncol(arima_data),
+  N_sites = ncol(training_observations),
   index = index,
   observed = c(scale(observed))
 )
@@ -65,7 +65,7 @@ get_quantiles = function(x, q = c(.025, .975)){
 
 extracted = rstan::extract(model)
 
-y = array(extracted$y, dim = c(nrow(extracted$y), dim(arima_data)))
+y = array(extracted$y, dim = c(nrow(extracted$y), dim(training_observations)))
 future_y = array(extracted$future_y, dim = c(nrow(extracted$future_y), data$N2, data$N_sites))
 future_observed = array(extracted$future_observed, dim = c(nrow(extracted$future_y), data$N2, data$N_sites))
 
@@ -85,23 +85,27 @@ plot_site = function(k){
     xlim = c(1, data$N1 + data$N2),
     xlab = "year",
     ylab = "species richness",
-    las = 1,
     lwd = 2,
-    ylim = range(observed)
+    ylim = range(observed),
+    axes = FALSE
   )
+  fives = seq(start_yr-10, end_yr + 10) %% 5 == 0
+  axis(1, seq(1 - 10, data$N1 + data$N2 + 10)[fives], seq(start_yr-10, end_yr+10)[fives])
+  axis(2, seq(0, 200, 20), las = 1)
   matlines(
     unscale(get_quantiles(cbind(y[,,k], future_y[,,k]))),
     lty = 1,
     lwd = 2,
     col = "#00000060"
   )
-  points(arima_data[ , k], pch = 16, cex = 0.75)
+  points(training_observations[[k]], pch = 16, cex = 0.75)
+  points(seq(data$N1 + 1, data$N1 + data$N2),testing_observations[[k]], pch = 16, cex = 0.75, col = "purple")
   abline(v = data$N1 + 1/2, col = "#00000060", lty = 2, lwd = 2)
   lines(unscale(colMeans(cbind(y[,,k], future_y[,,k]))))
 }
 
 par(mfrow = c(2, 2))
-sapply(sample.int(ncol(arima_data), 4), plot_site)
+sapply(sample.int(ncol(training_observations), 4), plot_site)
 par(mfrow = c(1, 1))
 
 
@@ -110,7 +114,7 @@ par(mfrow = c(1, 1))
 diffs = as.matrix(predicted_means - testing_observations)
 
 # RMSE
-hist(diffs)
+mean(diffs^2, na.rm = TRUE)
 
 # Proportion outside the confidence interval (should each be close to 0.025)
 mean(testing_observations < lower_CIs, na.rm = TRUE) # below lower
