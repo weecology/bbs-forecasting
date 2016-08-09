@@ -37,29 +37,34 @@ model {
     start = (i - 1) * N1 + 1;
     stop = i * N1;
 
-    // Autoregressive //
     y[(start+1):stop] ~ student_t(nu, beta * y[start:(stop-1)], sigma);
   }
 
-  // Observation noise //
   observed ~ normal(y[index], nugget);
 }
-// generated quantities {
-//   vector[N2] future_y[N_sites];
-//   vector[N2] future_observed[N_sites];
-//
-//   for (i in 1:N_sites) {
-//     for (j in 1:N2) {
-//       if (j == 1) {
-//         // First prediction depends on final year of y
-//         future_y[i][1] = student_t_rng(nu, beta * y[i][N1], sigma);
-//       } else {
-//         // Subsequent predictions depend on preceding year //
-//         future_y[i][j] = student_t_rng(nu, beta * future_y[i][j-1], sigma);
-//       }
-//
-//       // Observation noise //
-//       future_observed[i][j] = normal_rng(future_y[i][j], nugget);
-//     }
-//   }
-// }
+generated quantities {
+  vector[N2 * N_sites] future_y;
+  vector[N2 * N_sites] future_observed;
+
+  for (i in 1:N_sites){
+    int start;
+    start = (i - 1) * N2 + 1;
+
+    for(j in 1:N2){
+      real mu_temp;
+      int to_update;
+      to_update = start + j - 1;
+
+      if (j == 1){
+        // First prediction is based on last value of future_y
+        mu_temp = beta * y[i * N1];
+      } else{
+        // subsequent predictions are based on previous value of future_y
+        mu_temp = beta * future_y[to_update - 1];
+      }
+
+      future_y[to_update] = student_t_rng(nu, mu_temp, sigma);
+      future_observed[to_update] = normal_rng(future_y[to_update], nugget);
+    }
+  }
+}
