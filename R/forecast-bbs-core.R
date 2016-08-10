@@ -184,13 +184,19 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @export
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  
+  site_lat_long = bbs_data %>%
+    dplyr::select(site_id, lat, long) %>%
+    distinct()
+  
   richness_data <- bbs_data %>%
-    group_by(site_id, year, lat, long) %>%
+    group_by(site_id, year) %>%
     dplyr::summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
-    complete(site_id, year)
-  
+    complete(site_id, year) %>%
+    left_join(site_lat_long, by='site_id')
+
   richness_ts_env_data <- richness_data %>%
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs))
