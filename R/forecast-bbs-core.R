@@ -174,7 +174,9 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     dplyr::select(-lat, -long)
 }
 
-#' Get BBS richness time-series data with environmental variables
+#' Get BBS richness time-series data with environmental variables. Will
+#' fill in NA values for richness in missing years as long as a site 
+#' meets the year requirments and has environmental data.
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
