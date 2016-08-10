@@ -90,7 +90,7 @@ get_species_data = function() {
 }
 
 #' @export
-get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
+get_bbs_data <- function(){
   # Get the BBS data
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
@@ -166,7 +166,7 @@ get_env_data <- function(){
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  bbs_data <- get_bbs_data()
   pop_ts_env_data <- bbs_data %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
     add_env_data() %>%
@@ -185,7 +185,7 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @return dataframe with site_id, year, and richness
 #' @export
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  bbs_data <- get_bbs_data()
   
   site_lat_long = bbs_data %>%
     dplyr::select(site_id, lat, long) %>%
