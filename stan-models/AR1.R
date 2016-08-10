@@ -48,7 +48,7 @@ data = list(
 )
 
 m = stan_model(
-  "gp/AR1.stan"
+  "stan-models/AR1.stan"
 )
 
 model = sampling(m, data = data, control = list(adapt_delta = 0.8))
