@@ -90,7 +90,7 @@ get_species_data = function() {
 }
 
 #' @export
-get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
+get_bbs_data <- function(){
   # Get the BBS data
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
@@ -117,9 +117,7 @@ get_bbs_data <- function(start_yr, end_yr, min_num_yrs){
     bbs_results <- dbSendQuery(con, bbs_query)
     bbs_data <- dbFetch(bbs_results) %>%
       filter_species() %>%
-      filter(year >= start_yr, year <= end_yr) %>%
       group_by(site_id) %>%
-      filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
       combine_subspecies()
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
@@ -168,14 +166,17 @@ get_env_data <- function(){
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  bbs_data <- get_bbs_data()
   pop_ts_env_data <- bbs_data %>%
-    add_env_data() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    add_env_data() %>%
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
     dplyr::select(-lat, -long)
 }
 
-#' Get BBS richness time-series data with environmental variables
+#' Get BBS richness time-series data with environmental variables. Will
+#' fill in NA values for richness in missing years as long as a site 
+#' meets the year requirments and has environmental data.
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
@@ -184,15 +185,23 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @return dataframe with site_id, year, and richness
 #' @export
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data(start_yr, end_yr, min_num_yrs)
+  bbs_data <- get_bbs_data()
+  
+  site_lat_long = bbs_data %>%
+    dplyr::select(site_id, lat, long) %>%
+    distinct()
+  
   richness_data <- bbs_data %>%
-    group_by(site_id, year, lat, long) %>%
+    group_by(site_id, year) %>%
     dplyr::summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
-    complete(site_id, year)
+    filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    complete(site_id, year) %>%
+    left_join(site_lat_long, by='site_id')
+
   richness_ts_env_data <- richness_data %>%
     add_env_data() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs)
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs))
 }
 
 #' Add environmental data to BBS data frame
@@ -215,11 +224,16 @@ add_env_data <- function(bbs_data){
 #'
 #' @return dataframe with original data and associated environmental data
 filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
-  filterd_data <- bbs_data %>%
-    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(ndvi_win), !is.na(elevs)) %>%
+  sites_to_keep = bbs_data %>%
+    filter(year >= start_yr, year <= end_yr) %>%
     group_by(site_id) %>%
-    filter(min(year) == start_yr, max(year) == end_yr, length(unique(year)) >= min_num_yrs) %>%
-    ungroup()
+    summarise(num_years=length(unique(year))) %>%
+    ungroup() %>%
+    filter(num_years >= min_num_yrs)
+  
+  filterd_data <- bbs_data %>%
+    filter(year >= start_yr, year <= end_yr) %>%
+    filter(site_id %in% sites_to_keep$site_id)
 }
 
 get_longest_contig_ts <- function(df){
