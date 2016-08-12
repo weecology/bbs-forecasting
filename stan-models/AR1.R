@@ -51,7 +51,12 @@ m = stan_model(
   "stan-models/AR1.stan"
 )
 
-model = sampling(m, data = data, control = list(adapt_delta = 0.8))
+# Check the number of physicsl cores on the machine. If there's only
+# one, then
+cores = ifelse(parallel::detectCores(logical = FALSE) == 2, 1, parallel::detectCores(logical = FALSE))
+
+model = sampling(m, data = data, control = list(adapt_delta = 0.8),
+                 cores = cores)
 saveRDS(model, file = "stan-models/model-object.RDS")
 
 
@@ -114,7 +119,7 @@ par(mfrow = c(1, 1))
 diffs = as.matrix(predicted_means - testing_observations)
 
 # RMSE
-mean(diffs^2, na.rm = TRUE)
+sqrt(mean(diffs^2, na.rm = TRUE))
 
 # Proportion outside the confidence interval (should each be close to 0.025)
 mean(testing_observations < lower_CIs, na.rm = TRUE) # below lower
