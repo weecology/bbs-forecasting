@@ -122,6 +122,12 @@ get_bbs_gimms_ndvi = function(
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
 
+    repo_object = git2r::repository(".")
+    sink("data/gimms-status.txt")
+    print(repo_object)
+    print(git2r::status(git2r::repository(".")))
+    sink(NULL)
+
     files_to_download=get_gimms_download_list()
     if(length(files_to_download)>0){
       print('Downloading GIMMS data')
