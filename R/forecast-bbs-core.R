@@ -66,8 +66,7 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
 #' @return dataframe, filtered version of initial dataframe
 #' @importFrom dplyr "%>%" inner_join do rowwise select filter group_by ungroup full_join n_distinct semi_join left_join
 filter_species <- function(df){
-  species_table = get_species_data() %>%
-    dplyr::rename(aou=AOU)
+  species_table = get_species_data()
 
   is_unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
@@ -87,8 +86,7 @@ filter_species <- function(df){
 
 combine_subspecies = function(df){
 
-  species_table = get_species_data() %>%
-    dplyr::rename(aou=AOU)
+  species_table = get_species_data()
 
   # Subspecies have two spaces separated by non-spaces
   subspecies_names = species_table %>%
