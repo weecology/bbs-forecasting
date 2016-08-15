@@ -1,19 +1,58 @@
-#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect
-database_exists <- function(schema_name, con){
-  # Check to see if a database exists
-  res <- dbSendQuery(con, "SELECT schema_name FROM information_schema.schemata")
-  schema <- dbFetch(res)
-  dbClearResult((res))
-  return(schema_name %in% schema$schema_name)
-}
-
+#' Install a particular dataset via Ecodata Retriever
+#' 
+#' @param dataset name
 install_dataset <- function(dataset){
   # Install a dataset using the ecoretriever
 
   #ecoretriever currently not working in RStudio, issue filed
-  ecoretriever::install(dataset, 'postgres', conn_file = 'postgres_conn_file.txt')
+  ecoretriever::install(dataset, 'sqlite', db_file='./data/bbsforecasting.sqlite')
 }
 
+#' Single wrapper for all database actions
+#' 
+#' We require only a few simple sql methods. They are 1. Writing an entire dataframe
+#' directly to a database as it's own table, 2. Reading the same tables as dataframes, 
+#' possibly with some modification using SQL statements, 3. Checking to see if a 
+#' table exists. If a particular table does it exists it's assumed it has all data
+#' required. 
+#' 
+#' read returns a dataframe
+#' write returns nothing
+#' check returns boolean
+#' 
+#' @param action Action to perform in db call. Either read, write, or check
+#' @param db name of database. A file if using sqlite
+#' @param sql_query SQL statement if action is read
+#' @param df Dataframe of data if action is write. Will copy the dataframe verbatim to it's own table with name new_table_name
+#' @param new_table_name Table name for new data being written
+#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect
+
+db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
+                   df=NULL, new_table_name=NULL, table_to_check=NULL){
+  
+  con <- dbConnect(RSQLite::SQLite(), db)
+  
+  if(action=='read'){
+    query_result <- dbSendQuery(con, sql_query)
+    return(dbFetch(query_result, n=-1) )
+    
+  } else if(action=='write') {
+    dplyr::copy_to(con, df, name=new_table_name, temporary = FALSE,
+            indexes = list(c('site_id','year','month')))
+    
+  } else if(action=='check') {
+    #Only works with sqlite for now.
+    table_names=dbFetch(dbSendQuery(con, "SELECT name FROM sqlite_master WHERE type='table'"))
+    if(tolower(table_to_check) %in% tolower(table_names$name)){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+    
+  } else {
+    stop(paste0('DB action: ',action,' not found'))
+  }
+}
 
 #' Filter poorly sampled BBS species
 #'
@@ -27,7 +66,8 @@ install_dataset <- function(dataset){
 #' @return dataframe, filtered version of initial dataframe
 #' @importFrom dplyr "%>%" inner_join do rowwise select filter group_by ungroup full_join n_distinct semi_join left_join
 filter_species <- function(df){
-  species_table = get_species_data()
+  species_table = get_species_data() %>%
+    dplyr::rename(aou=AOU)
 
   is_unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
@@ -47,7 +87,8 @@ filter_species <- function(df){
 
 combine_subspecies = function(df){
 
-  species_table = get_species_data()
+  species_table = get_species_data() %>%
+    dplyr::rename(aou=AOU)
 
   # Subspecies have two spaces separated by non-spaces
   subspecies_names = species_table %>%
@@ -82,40 +123,49 @@ get_species_data = function() {
   if (file.exists(data_path)) {
     return(read.csv(data_path))
   }else{
-    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-    species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
+    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species;')
     write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
     return(species_table)
   }
 }
 
+#' Get the primary bbs data file which compiles the counts, route info, and weather
+#' data. Install it via ecodataretriever if needed. 
+#' 
 #' @export
 get_bbs_data <- function(){
-  # Get the BBS data
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
     return(read.csv(data_path))
   }
   else{
-    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-    if (!database_exists('bbs', con)){
+    
+    if (!db_engine(action='check', table_to_check = 'bbs_counts')){
       install_dataset('bbs')
     }
 
-    bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.latitude as lat,
-                        routes.longitude as long, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
-                          FROM bbs.counts JOIN bbs.weather
-                           ON bbs.counts.statenum=bbs.weather.statenum
-                           AND bbs.counts.route=bbs.weather.route
-                           AND bbs.counts.rpid=bbs.weather.rpid
-                           AND bbs.counts.year=bbs.weather.year
-                         JOIN bbs.routes
-                           ON bbs.counts.statenum=bbs.routes.statenum
-                           AND bbs.counts.route=bbs.routes.route
-                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
-    bbs_results <- dbSendQuery(con, bbs_query)
-    bbs_data <- dbFetch(bbs_results) %>%
+    #Primary BBS dataframe
+    bbs_query ="SELECT 
+          		    (counts.statenum*1000) + counts.Route AS site_id,
+          		    lati AS lat,
+          		    loni AS long,
+          		    Aou AS species_id,
+                  counts.Year AS year, 
+          		    speciestotal AS abundance
+                FROM 
+                  bbs_counts AS counts
+                  JOIN bbs_weather 
+                    ON counts.statenum=bbs_weather.statenum
+                    AND counts.route=bbs_weather.route
+                    AND counts.rpid=bbs_weather.rpid
+                    AND counts.year=bbs_weather.year
+                  JOIN bbs_routes
+                    ON counts.statenum=bbs_routes.statenum
+                    AND counts.route=bbs_routes.route
+                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101;"
+    
+    bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
       group_by(site_id) %>%
       combine_subspecies()
