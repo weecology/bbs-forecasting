@@ -148,8 +148,8 @@ get_bbs_data <- function(){
     #Primary BBS dataframe
     bbs_query ="SELECT 
           		    (counts.statenum*1000) + counts.Route AS site_id,
-          		    lati AS lat,
-          		    loni AS long,
+          		    Latitude AS lat,
+          		    Longitude AS long,
           		    Aou AS species_id,
                   counts.Year AS year, 
           		    speciestotal AS abundance
