@@ -145,12 +145,12 @@ get_bbs_data <- function(){
 
     #Primary BBS dataframe
     bbs_query ="SELECT 
-          		    (counts.statenum*1000) + counts.Route AS site_id,
-          		    Latitude AS lat,
-          		    Longitude AS long,
-          		    Aou AS species_id,
+                  (counts.statenum*1000) + counts.Route AS site_id,
+                  Latitude AS lat,
+                  Longitude AS long,
+                  Aou AS species_id,
                   counts.Year AS year, 
-          		    speciestotal AS abundance
+                  speciestotal AS abundance
                 FROM 
                   bbs_counts AS counts
                   JOIN bbs_weather 
