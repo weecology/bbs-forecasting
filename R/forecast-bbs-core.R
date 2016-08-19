@@ -40,14 +40,11 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
     dplyr::copy_to(con, df, name=new_table_name, temporary = FALSE,
             indexes = list(c('site_id','year','month')))
     to_return=NA
+    
   } else if(action=='check') {
     #Only works with sqlite for now.
     table_names=dbFetch(dbSendQuery(con, "SELECT name FROM sqlite_master WHERE type='table'"))
-    if(tolower(table_to_check) %in% tolower(table_names$name)){
-      to_return=TRUE
-    } else {
-      to_return=FALSE
-    }
+    to_return = tolower(table_to_check) %in% tolower(table_names$name)
     
   } else {
     stop(paste0('DB action: ',action,' not found'))
