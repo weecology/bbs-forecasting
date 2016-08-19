@@ -25,6 +25,7 @@ install_dataset <- function(dataset){
 #' @param sql_query SQL statement if action is read
 #' @param df Dataframe of data if action is write. Will copy the dataframe verbatim to it's own table with name new_table_name
 #' @param new_table_name Table name for new data being written
+#' @param table_to_check Table name to check if it exists for when action is check
 #' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect dbDisconnect
 
 db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
