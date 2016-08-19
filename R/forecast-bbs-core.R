@@ -84,6 +84,10 @@ filter_species <- function(df){
   filter(df, species_id %in% valid_taxa$aou)
   }
 
+#' Combine subspecies into their common species
+#'
+#' @importFrom dplyr "%>%" filter slice group_by summarise ungroup
+#' @importFrom magrittr extract2
 combine_subspecies = function(df){
 
   species_table = get_species_data()
@@ -96,14 +100,14 @@ combine_subspecies = function(df){
 
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
-    magrittr::extract2("aou")
+    extract2("aou")
 
   # Drop the third word of the subspecies name to get the species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(gsub(" [^ ]+$", "", subspecies_names),
                 species_table$spanish_common_name)) %>%
-    magrittr::extract2("aou")
+    extract2("aou")
 
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
@@ -112,7 +116,7 @@ combine_subspecies = function(df){
 
   df %>%
     group_by(site_id, year, species_id, lat, long) %>%
-    summarize(abundance = sum(abundance)) %>%
+    summarise(abundance = sum(abundance)) %>%
     ungroup()
 }
 
@@ -131,6 +135,7 @@ get_species_data = function() {
 #' data. Install it via ecodataretriever if needed. 
 #' 
 #' @export
+#' @importFrom dplyr "%>%" group_by
 get_bbs_data <- function(){
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
@@ -176,6 +181,8 @@ get_bbs_data <- function(){
 #'
 #' Master function for acquiring all environmental in a single table
 #' @export
+#' @importFrom dplyr "%>%" filter group_by summarise ungroup inner_join full_join
+
 get_env_data <- function(){
   bioclim_data <- get_bioclim_data()
   elev_data <- get_elev_data()
@@ -184,15 +191,18 @@ get_env_data <- function(){
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
-    dplyr::summarize(ndvi_sum = mean(ndvi))
+    summarise(ndvi_sum = mean(ndvi)) %>%
+    ungroup()
   ndvi_data_winter <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('dec', 'jan', 'feb'), year > 1981) %>%
-      group_by(site_id, year) %>%
-        dplyr::summarize(ndvi_win = mean(ndvi))
+    group_by(site_id, year) %>%
+    summarise(ndvi_win = mean(ndvi)) %>%
+    ungroup()
   ndvi_data_ann <- ndvi_data_raw %>%
     filter(!is.na(ndvi), year > 1981) %>%
     group_by(site_id, year) %>%
-    dplyr::summarize(ndvi_ann = mean(ndvi))
+    summarise(ndvi_ann = mean(ndvi)) %>%
+    ungroup()
   ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
   ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
 
@@ -213,13 +223,14 @@ get_env_data <- function(){
 #'
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
+#' @importFrom dplyr "%>%" filter select
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data()
   pop_ts_env_data <- bbs_data %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
-    dplyr::select(-lat, -long)
+    select(-lat, -long)
 }
 
 #' Get BBS richness time-series data with environmental variables. Will
@@ -232,16 +243,18 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #'
 #' @return dataframe with site_id, year, and richness
 #' @export
+#' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
+#' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data()
   
   site_lat_long = bbs_data %>%
-    dplyr::select(site_id, lat, long) %>%
+    select(site_id, lat, long) %>%
     distinct()
   
   richness_data <- bbs_data %>%
     group_by(site_id, year) %>%
-    dplyr::summarise(richness = n_distinct(species_id)) %>%
+    summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
     complete(site_id, year) %>%
@@ -257,6 +270,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #'
 #' @return dataframe with original data and associated environmental data
+#' @importFrom dplyr "%>%" inner_join
 add_env_data <- function(bbs_data){
   env_data <- get_env_data()
   bbs_data_w_env <- bbs_data %>%
@@ -271,6 +285,7 @@ add_env_data <- function(bbs_data){
 #' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
 #'
 #' @return dataframe with original data and associated environmental data
+#' @importFrom dplyr "%>%" filter group_by summarise ungroup
 filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
   sites_to_keep = bbs_data %>%
     filter(year >= start_yr, year <= end_yr) %>%

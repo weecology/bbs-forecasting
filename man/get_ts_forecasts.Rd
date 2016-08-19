@@ -4,7 +4,8 @@
 \alias{get_ts_forecasts}
 \title{Perform a suite of time-series only forecasts}
 \usage{
-get_ts_forecasts(grouped_tsdata, timecol, responsecol, lag = 1)
+get_ts_forecasts(grouped_tsdata, timecol, responsecol, exogcols, lag = 1,
+  pred_int_levels = c(80, 95))
 }
 \arguments{
 \item{grouped_tsdata}{data.frame is a grouped data frame where the group
