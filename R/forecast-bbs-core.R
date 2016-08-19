@@ -25,7 +25,7 @@ install_dataset <- function(dataset){
 #' @param sql_query SQL statement if action is read
 #' @param df Dataframe of data if action is write. Will copy the dataframe verbatim to it's own table with name new_table_name
 #' @param new_table_name Table name for new data being written
-#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect
+#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect dbDisconnect
 
 db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
                    df=NULL, new_table_name=NULL, table_to_check=NULL){
@@ -34,24 +34,28 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
   
   if(action=='read'){
     query_result <- dbSendQuery(con, sql_query)
-    return(dbFetch(query_result, n=-1) )
+    to_return=dbFetch(query_result, n=-1)
     
   } else if(action=='write') {
     dplyr::copy_to(con, df, name=new_table_name, temporary = FALSE,
             indexes = list(c('site_id','year','month')))
-    
+    to_return=NA
   } else if(action=='check') {
     #Only works with sqlite for now.
     table_names=dbFetch(dbSendQuery(con, "SELECT name FROM sqlite_master WHERE type='table'"))
     if(tolower(table_to_check) %in% tolower(table_names$name)){
-      return(TRUE)
+      to_return=TRUE
     } else {
-      return(FALSE)
+      to_return=FALSE
     }
     
   } else {
     stop(paste0('DB action: ',action,' not found'))
   }
+  
+  #Close the connection before returning results
+  dbDisconnect(con)
+  return(to_return)
 }
 
 #' Filter poorly sampled BBS species
