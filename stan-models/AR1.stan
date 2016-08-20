@@ -12,6 +12,7 @@ parameters {
   real<lower=0> sigma;
   real<lower=0> nugget;
   real<lower=0> nu_minus_two; // see transformed parameters
+  vector[N_sites] alpha;
   real beta;
 
   // Latent variables //
@@ -28,6 +29,7 @@ model {
   nugget ~ gamma(3, 0.1);
   nu_minus_two ~ gamma(3, 0.1);
 
+  alpha ~ normal(0, 1);
   beta ~ normal(0, 1);
 
   // likelihood //
@@ -37,7 +39,11 @@ model {
     start = (i - 1) * N1 + 1;
     stop = i * N1;
 
-    y[(start+1):stop] ~ student_t(nu, beta * y[start:(stop-1)], sigma);
+    y[(start+1):stop] ~ student_t(
+      nu,
+      alpha[i] + beta * y[start:(stop-1)],
+      sigma
+    );
   }
 
   observed ~ normal(y[index], nugget);
@@ -57,10 +63,10 @@ generated quantities {
 
       if (j == 1){
         // First prediction is based on last value of future_y
-        mu_temp = beta * y[i * N1];
+        mu_temp = alpha[i] + beta * y[i * N1];
       } else{
         // subsequent predictions are based on previous value of future_y
-        mu_temp = beta * future_y[to_update - 1];
+        mu_temp = alpha[i] + beta * future_y[to_update - 1];
       }
 
       future_y[to_update] = student_t_rng(nu, mu_temp, sigma);

@@ -7,8 +7,22 @@ start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
 last_training_year <- 2003
-richness_w_env <- get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
-  na.omit()
+# richness_w_env <- get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+#   na.omit()
+
+bbs_data <- get_bbs_data()
+
+site_lat_long = bbs_data %>%
+  dplyr::select(site_id, lat, long) %>%
+  distinct()
+
+richness_w_env <- bbs_data %>%
+  group_by(site_id, year) %>%
+  dplyr::summarise(richness = n_distinct(species_id)) %>%
+  ungroup() %>%
+  filter_ts(start_yr, end_yr, min_num_yrs) %>%
+  complete(site_id, year) %>%
+  left_join(site_lat_long, by='site_id')
 
 arima_data = richness_w_env %>%
   dplyr::select(site_id, year, richness) %>%
