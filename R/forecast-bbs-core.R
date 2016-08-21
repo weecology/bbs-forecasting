@@ -138,11 +138,12 @@ get_species_data = function() {
 #' 
 #' @export
 #' @importFrom dplyr "%>%" group_by
+#' @importFrom readr read_csv
 get_bbs_data <- function(){
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
-    return(read.csv(data_path))
+    return(read_csv(data_path))
   }
   else{
     
