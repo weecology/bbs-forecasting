@@ -53,21 +53,14 @@ check_if_prism_files_present=function(prism_ls, years){
 ########################################################
 #' @importFrom tidyr gather spread
 get_prism_data=function(){
-  sqlite_db_file='./data/bbsforecasting.sqlite'
-  database <- src_sqlite(sqlite_db_file, create = TRUE)
-
   #Query sqlite database for the prism_bbs_data table. If it exists, return it.
   #Otherwise create it from the raw prism data.
-  if('prism_bbs_data' %in% src_tbls(database)){
-    return(collect(tbl(database, sql('SELECT * from prism_bbs_data'))))
+  if(db_engine(action='check', table_to_check = 'prism_bbs_data')){
+    return(db_engine(action = 'read', sql_query='SELECT * from prism_bbs_data'))
   } else {
-
     print('PRISM data table not found, processing raw data')
 
-    #Load the bbs data locations and convert them to a spatial object.
-    #Stop here if bbs data isn't available. Could also make this query the DB as well.
-    bbs_data <- try(read.csv("data/bbs_data.csv"))
-    if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv inside get_prism_data()")}
+    bbs_data <- get_bbs_data()
     locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
     coordinates(locations) <- c("long", "lat")
 
@@ -90,9 +83,9 @@ get_prism_data=function(){
     #Format the data a little and load into the sqlite database.
     prism_bbs_data$year <- as.numeric(prism_bbs_data$year)
     prism_bbs_data$month <- as.numeric(prism_bbs_data$month)
-    mydata <- copy_to(database, prism_bbs_data, temporary = FALSE,
-                      indexes = list(c("site_id", "year", "month")))
-
+    
+    db_engine(action='write', df=prism_bbs_data, new_table_name = 'prism_bbs_data')
+    
     #Now return the data as asked for
     return(prism_bbs_data)
 
@@ -180,20 +173,14 @@ process_bioclim_data=function(){
 ####################################################################
 
 get_bioclim_data=function(){
-  sqlite_db_file='./data/bbsforecasting.sqlite'
-  database <- src_sqlite(sqlite_db_file, create = TRUE)
-
-  #Query sqlite database for the bioclim_bbs_data table. If it exists, return it.
-  #Otherwise create it from the raw prism data.
-  if('bioclim_bbs_data' %in% src_tbls(database)){
-    return(collect(tbl(database, sql('SELECT * from bioclim_bbs_data')), n = Inf))
+  if(db_engine(action='check', table_to_check = 'bioclim_bbs_data')){
+    return(db_engine(action = 'read', sql_query='SELECT * from bioclim_bbs_data'))
   } else {
     print("bioclim data table not found, processing from scratch. ")
     bioclim_bbs_data=process_bioclim_data()
 
-    copy_to(database, bioclim_bbs_data, temporary = FALSE,
-              indexes = list(c('site_id','year')))
-
+    db_engine(action='write', df=bioclim_bbs_data, new_table_name = 'bioclim_bbs_data')
+    
     return(bioclim_bbs_data)
 
   }

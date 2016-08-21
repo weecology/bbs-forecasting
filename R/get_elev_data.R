@@ -8,8 +8,7 @@
 #' @importFrom sp SpatialPointsDataFrame
 #' @importFrom dplyr collect copy_to src_sqlite src_tbls tbl %>%
 get_route_data <- function(projection){
-  bbs_data <- try(read.csv("data/bbs_data.csv"))
-  if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv")}
+  bbs_data <- get_bbs_data()
   route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
   spatial_routes <- route_locations %>%
     dplyr::select(long, lat) %>%
@@ -25,10 +24,8 @@ get_route_data <- function(projection){
 #' @return a data frame including site_id and elevs columns
 #' @importFrom raster crs getData
 get_elev_data <- function(){
-  sqlite_db_file='./data/bbsforecasting.sqlite'
-  database <- src_sqlite(sqlite_db_file, create=TRUE)
-  if('elev_data' %in% src_tbls(database)){
-    return(data.frame(collect(tbl(database, "elev_data"))))
+  if (db_engine(action='check', table_to_check = 'elev_data')){
+    return(db_engine(action='read', sql_query='SELECT * from elev_data'))
   } else {
     elevation <- getData("alt", country="US")[[1]]
     elev_proj <- crs(elevation)
@@ -37,7 +34,7 @@ get_elev_data <- function(){
                                      buffer=40000, fun=mean) #buffers are in meters
     route_locations <- as.data.frame(route_locations)
     elev_data <- dplyr::select(route_locations, site_id, elevs)
-    copy_to(database, elev_data, temporary=FALSE, indexes = list(c("site_id")))
+    db_engine(action='write', df=elev_data, new_table_name = 'elev_data')
     return(elev_data)
   }
 }
