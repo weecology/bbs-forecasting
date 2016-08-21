@@ -26,33 +26,30 @@ install_dataset <- function(dataset){
 #' @param df Dataframe of data if action is write. Will copy the dataframe verbatim to it's own table with name new_table_name
 #' @param new_table_name Table name for new data being written
 #' @param table_to_check Table name to check if it exists for when action is check
-#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect dbDisconnect
+#' @importFrom dplyr copy_to src_sqlite src_tbls collect tbl
 
 db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
                    df=NULL, new_table_name=NULL, table_to_check=NULL){
   
-  con <- dbConnect(RSQLite::SQLite(), db)
+  con <- src_sqlite(db, create=TRUE)
   
   if(action=='read'){
-    query_result <- dbSendQuery(con, sql_query)
-    to_return=dbFetch(query_result, n=-1)
+    to_return=collect(tbl(con, sql(sql_query)))
     
   } else if(action=='write') {
-    dplyr::copy_to(con, df, name=new_table_name, temporary = FALSE,
-            indexes = list(c('site_id','year','month')))
+    copy_to(con, df, name=new_table_name, temporary = FALSE)
     to_return=NA
     
   } else if(action=='check') {
     #Only works with sqlite for now.
-    table_names=dbFetch(dbSendQuery(con, "SELECT name FROM sqlite_master WHERE type='table'"))
-    to_return = tolower(table_to_check) %in% tolower(table_names$name)
+    to_return=tolower(table_to_check) %in% tolower(src_tbls(con))
     
   } else {
     stop(paste0('DB action: ',action,' not found'))
   }
   
-  #Close the connection before returning results
-  dbDisconnect(con)
+  #Close the connection before returning results. 
+  rm(con)
   return(to_return)
 }
 
@@ -127,7 +124,7 @@ get_species_data = function() {
   if (file.exists(data_path)) {
     return(read.csv(data_path))
   }else{
-    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species;')
+    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species')
     write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
     return(species_table)
   }
@@ -169,7 +166,7 @@ get_bbs_data <- function(){
                   JOIN bbs_routes
                     ON counts.statenum=bbs_routes.statenum
                     AND counts.route=bbs_routes.route
-                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101;"
+                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
     
     bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
