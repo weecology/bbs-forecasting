@@ -31,6 +31,8 @@ install_dataset <- function(dataset){
 db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
                    df=NULL, new_table_name=NULL, table_to_check=NULL){
   
+  if(!dir.exists("data")){dir.create("data")}
+  
   con <- src_sqlite(db, create=TRUE)
   
   if(action=='read'){
