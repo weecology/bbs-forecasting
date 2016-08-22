@@ -232,6 +232,10 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
+    group_by(site_id) %>%
+    #Filter min_num_years again after accounting for missing environmental data
+    filter(length(unique(year)) >= min_num_yrs) %>%
+    ungroup() %>%
     select(-lat, -long)
 }
 
@@ -262,9 +266,13 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     complete(site_id, year) %>%
     left_join(site_lat_long, by='site_id')
 
+  #Filter min_num_years again after accounting for missing environmental data
   richness_ts_env_data <- richness_data %>%
     add_env_data() %>%
-    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs))
+    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
+    group_by(site_id) %>%
+    filter(length(unique(year)) >= min_num_yrs) %>%
+    ungroup()
 }
 
 #' Add environmental data to BBS data frame
