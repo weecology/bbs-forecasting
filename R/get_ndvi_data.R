@@ -59,8 +59,7 @@ extract_gimms_data=function(gimms_file_path, route_locations){
 #' @importFrom sp coordinates<-
 process_gimms_ndvi_bbs=function(gimms_folder = './data/gimms_ndvi/'){
 
-  bbs_data <- try(read.csv("data/bbs_data.csv"))
-  if(class(bbs_data)=='try-error'){stop("Can't load bbs_data.csv inside process_gimms_ndvi_bbs()")}
+  bbs_data <- get_bbs_data()
   route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
   coordinates(route_locations) <- c("long", "lat")
 
@@ -110,15 +109,11 @@ filter_gimms_data=function(df){
 #################################################
 #' @importFrom dplyr sql src_sqlite src_tbls tbl copy_to collect
 #' @importFrom gimms downloadGimms
-get_bbs_gimms_ndvi = function(
-  sqlite_db_file='./data/bbsforecasting.sqlite',
-  database = src_sqlite(sqlite_db_file, create = TRUE),
-  gimms_folder = './data/gimms_ndvi/'
-){
+get_bbs_gimms_ndvi = function(gimms_folder = './data/gimms_ndvi/'){
   dir.create(gimms_folder, showWarnings = FALSE, recursive = TRUE)
 
-  if('gimms_ndvi_bbs_data' %in% src_tbls(database)){
-    return(collect(tbl(database, sql('SELECT * from gimms_ndvi_bbs_data')), n = Inf))
+  if (db_engine(action='check', table_to_check = 'gimms_ndvi_bbs_data')){
+    return(db_engine(action='read', sql_query='SELECT * from gimms_ndvi_bbs_data'))
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
 
@@ -138,9 +133,8 @@ get_bbs_gimms_ndvi = function(
 
     gimms_ndvi_bbs_data=filter_gimms_data(gimms_ndvi_bbs_data)
 
-    copy_to(database, gimms_ndvi_bbs_data, temporary = FALSE,
-            indexes = list(c('site_id','year','month')))
-
+    db_engine(action='write', df=gimms_ndvi_bbs_data, new_table_name = 'gimms_ndvi_bbs_data')
+    
     return(gimms_ndvi_bbs_data)
   }
 }
