@@ -36,7 +36,7 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
   con <- src_sqlite(db, create=TRUE)
   
   if(action=='read'){
-    to_return=collect(tbl(con, sql(sql_query)))
+    to_return=collect(tbl(con, sql(sql_query)), n=Inf)
     
   } else if(action=='write') {
     copy_to(con, df, name=new_table_name, temporary = FALSE)
