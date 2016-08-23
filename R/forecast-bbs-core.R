@@ -273,6 +273,9 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     group_by(site_id) %>%
     filter(length(unique(year)) >= min_num_yrs) %>%
     ungroup()
+  
+  richness_ts_env_data=richness_ts_env_data %>%
+    add_observers()
 }
 
 #' Add environmental data to BBS data frame
@@ -286,6 +289,28 @@ add_env_data <- function(bbs_data){
   bbs_data_w_env <- bbs_data %>%
     inner_join(env_data, by = c("site_id", "year"), copy = TRUE)
 }
+
+
+#' Add observer ID's to data
+#' @param bbs_data dataframe that contains BBS site_id and year columns
+#' @importFrom dplyr %>% left_join
+add_observers=function(bbs_data){
+  observer_query='SELECT
+                    bbs_weather.obsn as observer_id,
+                    year,
+                    (statenum*1000)+route as site_id
+                  FROM 
+                    bbs_weather
+                  WHERE 
+                    runtype=1 AND rpid=101'
+  
+  observer_info=db_engine(action = 'read', sql_query = observer_query)
+  
+  bbs_data %>%
+    left_join(observer_info, by=c('site_id','year'))
+}
+
+
 
 #' Filter BBS to specified time series period and number of samples
 #'
