@@ -1,19 +1,59 @@
-#' @importFrom DBI dbClearResult dbFetch dbSendQuery dbConnect
-database_exists <- function(schema_name, con){
-  # Check to see if a database exists
-  res <- dbSendQuery(con, "SELECT schema_name FROM information_schema.schemata")
-  schema <- dbFetch(res)
-  dbClearResult((res))
-  return(schema_name %in% schema$schema_name)
-}
-
+#' Install a particular dataset via Ecodata Retriever
+#' 
+#' @param dataset name
 install_dataset <- function(dataset){
   # Install a dataset using the ecoretriever
 
   #ecoretriever currently not working in RStudio, issue filed
-  ecoretriever::install(dataset, 'postgres', conn_file = 'postgres_conn_file.txt')
+  ecoretriever::install(dataset, 'sqlite', db_file='./data/bbsforecasting.sqlite')
 }
 
+#' Single wrapper for all database actions
+#' 
+#' We require only a few simple sql methods. They are 1. Writing an entire dataframe
+#' directly to a database as it's own table, 2. Reading the same tables as dataframes, 
+#' possibly with some modification using SQL statements, 3. Checking to see if a 
+#' table exists. If a particular table does it exists it's assumed it has all data
+#' required. 
+#' 
+#' read returns a dataframe
+#' write returns nothing
+#' check returns boolean
+#' 
+#' @param action Action to perform in db call. Either read, write, or check
+#' @param db name of database. A file if using sqlite
+#' @param sql_query SQL statement if action is read
+#' @param df Dataframe of data if action is write. Will copy the dataframe verbatim to it's own table with name new_table_name
+#' @param new_table_name Table name for new data being written
+#' @param table_to_check Table name to check if it exists for when action is check
+#' @importFrom dplyr copy_to src_sqlite src_tbls collect tbl
+
+db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
+                   df=NULL, new_table_name=NULL, table_to_check=NULL){
+  
+  if(!dir.exists("data")){dir.create("data")}
+  
+  con <- src_sqlite(db, create=TRUE)
+  
+  if(action=='read'){
+    to_return=collect(tbl(con, sql(sql_query)), n=Inf)
+    
+  } else if(action=='write') {
+    copy_to(con, df, name=new_table_name, temporary = FALSE)
+    to_return=NA
+    
+  } else if(action=='check') {
+    #Only works with sqlite for now.
+    to_return=tolower(table_to_check) %in% tolower(src_tbls(con))
+    
+  } else {
+    stop(paste0('DB action: ',action,' not found'))
+  }
+  
+  #Close the connection before returning results. 
+  rm(con)
+  return(to_return)
+}
 
 #' Filter poorly sampled BBS species
 #'
@@ -45,6 +85,10 @@ filter_species <- function(df){
   filter(df, species_id %in% valid_taxa$aou)
   }
 
+#' Combine subspecies into their common species
+#'
+#' @importFrom dplyr "%>%" filter slice group_by summarise ungroup
+#' @importFrom magrittr extract2
 combine_subspecies = function(df){
 
   species_table = get_species_data()
@@ -57,14 +101,14 @@ combine_subspecies = function(df){
 
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
-    magrittr::extract2("aou")
+    extract2("aou")
 
   # Drop the third word of the subspecies name to get the species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(gsub(" [^ ]+$", "", subspecies_names),
                 species_table$spanish_common_name)) %>%
-    magrittr::extract2("aou")
+    extract2("aou")
 
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
@@ -73,7 +117,7 @@ combine_subspecies = function(df){
 
   df %>%
     group_by(site_id, year, species_id, lat, long) %>%
-    summarize(abundance = sum(abundance)) %>%
+    summarise(abundance = sum(abundance)) %>%
     ungroup()
 }
 
@@ -82,40 +126,51 @@ get_species_data = function() {
   if (file.exists(data_path)) {
     return(read.csv(data_path))
   }else{
-    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-    species_table = dbFetch(dbSendQuery(con, "SELECT * FROM bbs.species;"))
+    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species')
     write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
     return(species_table)
   }
 }
 
+#' Get the primary bbs data file which compiles the counts, route info, and weather
+#' data. Install it via ecodataretriever if needed. 
+#' 
 #' @export
+#' @importFrom dplyr "%>%" group_by
+#' @importFrom readr read_csv
 get_bbs_data <- function(){
-  # Get the BBS data
 
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
-    return(read.csv(data_path))
+    return(read_csv(data_path))
   }
   else{
-    con <- dbConnect(RPostgres::Postgres(), dbname = 'postgres')
-    if (!database_exists('bbs', con)){
+    
+    if (!db_engine(action='check', table_to_check = 'bbs_counts')){
       install_dataset('bbs')
     }
 
-    bbs_query = "SELECT (counts.statenum * 1000) + counts.route AS site_id, routes.latitude as lat,
-                        routes.longitude as long, counts.year, counts.aou AS species_id, counts.speciestotal AS abundance
-                          FROM bbs.counts JOIN bbs.weather
-                           ON bbs.counts.statenum=bbs.weather.statenum
-                           AND bbs.counts.route=bbs.weather.route
-                           AND bbs.counts.rpid=bbs.weather.rpid
-                           AND bbs.counts.year=bbs.weather.year
-                         JOIN bbs.routes
-                           ON bbs.counts.statenum=bbs.routes.statenum
-                           AND bbs.counts.route=bbs.routes.route
-                         WHERE bbs.weather.runtype=1 AND bbs.weather.rpid=101;"
-    bbs_results <- dbSendQuery(con, bbs_query)
-    bbs_data <- dbFetch(bbs_results) %>%
+    #Primary BBS dataframe
+    bbs_query ="SELECT 
+                  (counts.statenum*1000) + counts.Route AS site_id,
+                  Latitude AS lat,
+                  Longitude AS long,
+                  Aou AS species_id,
+                  counts.Year AS year, 
+                  speciestotal AS abundance
+                FROM 
+                  bbs_counts AS counts
+                  JOIN bbs_weather 
+                    ON counts.statenum=bbs_weather.statenum
+                    AND counts.route=bbs_weather.route
+                    AND counts.rpid=bbs_weather.rpid
+                    AND counts.year=bbs_weather.year
+                  JOIN bbs_routes
+                    ON counts.statenum=bbs_routes.statenum
+                    AND counts.route=bbs_routes.route
+                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
+    
+    bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
       group_by(site_id) %>%
       combine_subspecies()
@@ -128,6 +183,8 @@ get_bbs_data <- function(){
 #'
 #' Master function for acquiring all environmental in a single table
 #' @export
+#' @importFrom dplyr "%>%" filter group_by summarise ungroup inner_join full_join
+
 get_env_data <- function(){
   bioclim_data <- get_bioclim_data()
   elev_data <- get_elev_data()
@@ -136,15 +193,18 @@ get_env_data <- function(){
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
-    dplyr::summarize(ndvi_sum = mean(ndvi))
+    summarise(ndvi_sum = mean(ndvi)) %>%
+    ungroup()
   ndvi_data_winter <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('dec', 'jan', 'feb'), year > 1981) %>%
-      group_by(site_id, year) %>%
-        dplyr::summarize(ndvi_win = mean(ndvi))
+    group_by(site_id, year) %>%
+    summarise(ndvi_win = mean(ndvi)) %>%
+    ungroup()
   ndvi_data_ann <- ndvi_data_raw %>%
     filter(!is.na(ndvi), year > 1981) %>%
     group_by(site_id, year) %>%
-    dplyr::summarize(ndvi_ann = mean(ndvi))
+    summarise(ndvi_ann = mean(ndvi)) %>%
+    ungroup()
   ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
   ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
 
@@ -165,6 +225,7 @@ get_env_data <- function(){
 #'
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
+#' @importFrom dplyr "%>%" filter select
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data()
   pop_ts_env_data <- bbs_data %>%
@@ -175,7 +236,7 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     #Filter min_num_years again after accounting for missing environmental data
     filter(length(unique(year)) >= min_num_yrs) %>%
     ungroup() %>%
-    dplyr::select(-lat, -long)
+    select(-lat, -long)
 }
 
 #' Get BBS richness time-series data with environmental variables. Will
@@ -188,16 +249,18 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #'
 #' @return dataframe with site_id, year, and richness
 #' @export
+#' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
+#' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data()
   
   site_lat_long = bbs_data %>%
-    dplyr::select(site_id, lat, long) %>%
+    select(site_id, lat, long) %>%
     distinct()
   
   richness_data <- bbs_data %>%
     group_by(site_id, year) %>%
-    dplyr::summarise(richness = n_distinct(species_id)) %>%
+    summarise(richness = n_distinct(species_id)) %>%
     ungroup() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
     complete(site_id, year) %>%
@@ -217,6 +280,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #'
 #' @return dataframe with original data and associated environmental data
+#' @importFrom dplyr "%>%" inner_join
 add_env_data <- function(bbs_data){
   env_data <- get_env_data()
   bbs_data_w_env <- bbs_data %>%
@@ -231,6 +295,7 @@ add_env_data <- function(bbs_data){
 #' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
 #'
 #' @return dataframe with original data and associated environmental data
+#' @importFrom dplyr "%>%" filter group_by summarise ungroup
 filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
   sites_to_keep = bbs_data %>%
     filter(year >= start_yr, year <= end_yr) %>%
