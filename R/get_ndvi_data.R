@@ -73,7 +73,7 @@ process_gimms_ndvi_bbs=function(gimms_folder = './data/gimms_ndvi/'){
     gimms_ndvi_bbs=extract_gimms_data(file_path, route_locations) %>%
       bind_rows(gimms_ndvi_bbs)
   }
-
+  save_provenance(gimms_ndvi_bbs)
   return(gimms_ndvi_bbs)
 }
 
@@ -117,12 +117,6 @@ get_bbs_gimms_ndvi = function(gimms_folder = './data/gimms_ndvi/'){
   } else {
     print('Gimms NDVI bbs data not found, processing from scratch')
 
-    repo_object = git2r::repository(".")
-    sink("data/gimms-status.txt")
-    print(repo_object)
-    print(git2r::status(git2r::repository(".")))
-    sink(NULL)
-
     files_to_download=get_gimms_download_list()
     if(length(files_to_download)>0){
       print('Downloading GIMMS data')
@@ -134,7 +128,7 @@ get_bbs_gimms_ndvi = function(gimms_folder = './data/gimms_ndvi/'){
     gimms_ndvi_bbs_data=filter_gimms_data(gimms_ndvi_bbs_data)
 
     db_engine(action='write', df=gimms_ndvi_bbs_data, new_table_name = 'gimms_ndvi_bbs_data')
-    
+
     return(gimms_ndvi_bbs_data)
   }
 }

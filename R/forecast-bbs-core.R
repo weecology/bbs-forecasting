@@ -1,5 +1,5 @@
 #' Install a particular dataset via Ecodata Retriever
-#' 
+#'
 #' @param dataset name
 install_dataset <- function(dataset){
   # Install a dataset using the ecoretriever
@@ -9,17 +9,17 @@ install_dataset <- function(dataset){
 }
 
 #' Single wrapper for all database actions
-#' 
+#'
 #' We require only a few simple sql methods. They are 1. Writing an entire dataframe
-#' directly to a database as it's own table, 2. Reading the same tables as dataframes, 
-#' possibly with some modification using SQL statements, 3. Checking to see if a 
+#' directly to a database as it's own table, 2. Reading the same tables as dataframes,
+#' possibly with some modification using SQL statements, 3. Checking to see if a
 #' table exists. If a particular table does it exists it's assumed it has all data
-#' required. 
-#' 
+#' required.
+#'
 #' read returns a dataframe
 #' write returns nothing
 #' check returns boolean
-#' 
+#'
 #' @param action Action to perform in db call. Either read, write, or check
 #' @param db name of database. A file if using sqlite
 #' @param sql_query SQL statement if action is read
@@ -28,29 +28,29 @@ install_dataset <- function(dataset){
 #' @param table_to_check Table name to check if it exists for when action is check
 #' @importFrom dplyr copy_to src_sqlite src_tbls collect tbl
 
-db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
+db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
                    df=NULL, new_table_name=NULL, table_to_check=NULL){
-  
+
   if(!dir.exists("data")){dir.create("data")}
-  
+
   con <- src_sqlite(db, create=TRUE)
-  
+
   if(action=='read'){
     to_return=collect(tbl(con, sql(sql_query)), n=Inf)
-    
+
   } else if(action=='write') {
     copy_to(con, df, name=new_table_name, temporary = FALSE)
     to_return=NA
-    
+
   } else if(action=='check') {
     #Only works with sqlite for now.
     to_return=tolower(table_to_check) %in% tolower(src_tbls(con))
-    
+
   } else {
     stop(paste0('DB action: ',action,' not found'))
   }
-  
-  #Close the connection before returning results. 
+
+  #Close the connection before returning results.
   rm(con)
   return(to_return)
 }
@@ -128,13 +128,14 @@ get_species_data = function() {
   }else{
     species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species')
     write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
+    save_provenance(species_table)
     return(species_table)
   }
 }
 
 #' Get the primary bbs data file which compiles the counts, route info, and weather
-#' data. Install it via ecodataretriever if needed. 
-#' 
+#' data. Install it via ecodataretriever if needed.
+#'
 #' @export
 #' @importFrom dplyr "%>%" group_by
 #' @importFrom readr read_csv
@@ -145,22 +146,22 @@ get_bbs_data <- function(){
     return(read_csv(data_path))
   }
   else{
-    
+
     if (!db_engine(action='check', table_to_check = 'bbs_counts')){
       install_dataset('bbs')
     }
 
     #Primary BBS dataframe
-    bbs_query ="SELECT 
+    bbs_query ="SELECT
                   (counts.statenum*1000) + counts.Route AS site_id,
                   Latitude AS lat,
                   Longitude AS long,
                   Aou AS species_id,
-                  counts.Year AS year, 
+                  counts.Year AS year,
                   speciestotal AS abundance
-                FROM 
+                FROM
                   bbs_counts AS counts
-                  JOIN bbs_weather 
+                  JOIN bbs_weather
                     ON counts.statenum=bbs_weather.statenum
                     AND counts.route=bbs_weather.route
                     AND counts.rpid=bbs_weather.rpid
@@ -169,11 +170,12 @@ get_bbs_data <- function(){
                     ON counts.statenum=bbs_routes.statenum
                     AND counts.route=bbs_routes.route
                 WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
-    
+
     bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
       group_by(site_id) %>%
       combine_subspecies()
+    save_provenance(bbs_data)
     write.csv(bbs_data, file = data_path, row.names = FALSE, quote = FALSE)
     return(bbs_data)
   }
@@ -210,6 +212,8 @@ get_env_data <- function(){
 
   env_data <- full_join(bioclim_data, ndvi_data, by = c('site_id', 'year'))
   env_data <- full_join(env_data, elev_data, by = c('site_id'))
+  save_provenance(env_data)
+  return(env_data)
 }
 
 #' Get BBS population time-series data with environmental variables
@@ -237,10 +241,12 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     filter(length(unique(year)) >= min_num_yrs) %>%
     ungroup() %>%
     select(-lat, -long)
+  save_provenance(pop_ts_env_data)
+  return(pop_ts_env_data)
 }
 
 #' Get BBS richness time-series data with environmental variables. Will
-#' fill in NA values for richness in missing years as long as a site 
+#' fill in NA values for richness in missing years as long as a site
 #' meets the year requirments and has environmental data.
 #'
 #' @param start_yr num first year of time-series
@@ -253,11 +259,11 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   bbs_data <- get_bbs_data()
-  
+
   site_lat_long = bbs_data %>%
     select(site_id, lat, long) %>%
     distinct()
-  
+
   richness_data <- bbs_data %>%
     group_by(site_id, year) %>%
     summarise(richness = n_distinct(species_id)) %>%
@@ -273,6 +279,8 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     group_by(site_id) %>%
     filter(length(unique(year)) >= min_num_yrs) %>%
     ungroup()
+  save_provenance(richness_ts_env_data)
+  return(richness_ts_env_data)
 }
 
 #' Add environmental data to BBS data frame
@@ -303,7 +311,7 @@ filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
     summarise(num_years=length(unique(year))) %>%
     ungroup() %>%
     filter(num_years >= min_num_yrs)
-  
+
   filterd_data <- bbs_data %>%
     filter(year >= start_yr, year <= end_yr) %>%
     filter(site_id %in% sites_to_keep$site_id)
@@ -390,6 +398,8 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
   )
   cleaned_ts_model_forecasts <- cleanup_ts_forecasts(tsmodel_forecasts)
   ts_fcasts <- restruct_ts_forecasts(cleaned_ts_model_forecasts)
+  save_provenance(ts_fcasts)
+  return(ts_fcasts)
 }
 
 #' Cleanup time-series forecast output
@@ -405,7 +415,7 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
 #'
 #' @return data.frame
 cleanup_ts_forecasts <- function(tsmodel_forecasts){
-  column_names <- 
+  column_names <-
   tsmodel_forecasts %>%
     do(
        {timeperiod <- as.data.frame(.$timeperiod)
@@ -460,6 +470,8 @@ restruct_ts_forecasts <- function(cleaned_ts_model_fcasts){
     dplyr::summarize(lo = min(interval_edge), hi = max(interval_edge))
   ts_fcasts_pred_int$levels <- as.numeric(ts_fcasts_pred_int$levels)
   ts_fcasts <- list(pt_est = ts_pt_fcasts, intervals = ts_fcasts_pred_int)
+  save_provenance(ts_fcasts)
+  return(ts_fcasts)
 }
 
 
@@ -474,7 +486,8 @@ get_error_measures <- function(obs, pred){
   mape <- mean(abs(percenterror), na.rm=TRUE)
   results <- data.frame(t(unlist(c(me, rmse, mae, mpe, mape))))
   colnames(results) <- c('ME', 'RMSE', 'MAE', 'MPE', 'MAPE')
-  results
+  save_provenance(results)
+  return(results)
 }
 
 #' Visualize a forecast
