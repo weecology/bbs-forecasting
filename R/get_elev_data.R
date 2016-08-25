@@ -27,7 +27,8 @@ get_elev_data <- function(){
   if (db_engine(action='check', table_to_check = 'elev_data')){
     return(db_engine(action='read', sql_query='SELECT * from elev_data'))
   } else {
-    elevation <- getData("alt", country="US")[[1]]
+    dir.create("data/alt", showWarnings = FALSE)
+    elevation <- getData("alt", country="US", "data/alt")[[1]]
     elev_proj <- crs(elevation)
     route_locations <- get_route_data(elev_proj)
     route_locations$elevs <- raster::extract(elevation, route_locations,
