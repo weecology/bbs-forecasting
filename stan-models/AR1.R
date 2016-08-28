@@ -16,67 +16,57 @@ site_lat_long = bbs_data %>%
   dplyr::select(site_id, lat, long) %>%
   distinct()
 
-richness_w_env <- bbs_data %>%
-  group_by(site_id, year) %>%
-  dplyr::summarise(richness = n_distinct(species_id)) %>%
-  ungroup() %>%
-  filter_ts(start_yr, end_yr, min_num_yrs) %>%
+raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+  select(site_id, year, richness, observer_id) %>%
   complete(site_id, year) %>%
-  left_join(site_lat_long, by='site_id')
+  arrange(site_id, year)
 
-arima_data = richness_w_env %>%
-  dplyr::select(site_id, year, richness) %>%
-  group_by(site_id) %>%
-  spread(key = year, value = richness) %>%
-  t() %>%
-  tbl_df()
+training_observations = filter(raw, year <= last_training_year)
+testing_observations = filter(raw, year > last_training_year)
 
-# First row is actually column names
-colnames(arima_data) = arima_data[1, ]
-arima_data = arima_data[-1, ]
+training_observations %>%
+  group_by(year, site_id) %>%
+  tidyr::spread(key = year, value = richness)
 
-training_observations = arima_data[1:length(start_yr:last_training_year), ]
-testing_observations = arima_data[-(1:length(start_yr:last_training_year)), ]
 
-# one long vector of non-NA observations
-observed = as.matrix(training_observations)[!is.na(training_observations)]
+data = training_observations %>%
+  mutate(index = 1:nrow(.)) %>%
+  rename(observed = richness) %>%
+  filter(!is.na(observed)) %>%
+  as.list()
+data$site_length = rle(data$site_id)$lengths
+data$N_observations = length(data$observed)
+data$N1 = length(start_yr:last_training_year)
+data$N2 = length(seq(last_training_year + 1, end_yr))
+N_sites = length(unique(data$site_id))
 
-# sites associated with each value of `observed`
-site_id = c(col(training_observations)[!is.na(training_observations)])
+center = attr(scale(data$observed), "scaled:center")
+scale = attr(scale(data$observed), "scaled:scale")
 
-# Number of observations assocaited with each site
-site_length = rle(site_id)$lengths
+data$observed = c(scale(data$observed))
+data$observer_index = as.integer(factor(data$observer_id))
+data$N_observers = max(data$observer_index)
 
-# Which values are not missing?
-index = seq(1, prod(dim(training_observations)))[!is.na(training_observations)]
-
-# Stan --------------------------------------------------------------------
-
-data = list(
-  N_obs = length(observed),
-  N1 = length(start_yr:last_training_year),
-  N2 = length(seq(last_training_year + 1, end_yr)),
-  N_sites = ncol(training_observations),
-  index = index,
-  observed = c(scale(observed))
-)
+data$site_id = NULL
+data$year = NULL
+data$observer_id = NULL
 
 m = stan_model(
   "stan-models/AR1.stan"
 )
 
-# Check the number of physicsl cores on the machine. If there's only
-# one, then
-cores = ifelse(parallel::detectCores(logical = FALSE) == 2, 1, parallel::detectCores(logical = FALSE))
+# Check the number of physical cores on the machine. With 2 or fewer cores, just
+# use one core.  Otherwise, use all of them.
+cores = ifelse(parallel::detectCores(logical = FALSE) <= 2, 1, parallel::detectCores(logical = FALSE))
 
-model = sampling(m, data = data, control = list(adapt_delta = 0.8),
+model = sampling(m, data = data, control = list(adapt_delta = 0.9),
                  cores = cores)
 saveRDS(model, file = "stan-models/model-object.RDS")
 
 
 # extract model estimates -------------------------------------------------
 unscale = function(data){
-  data * sd(observed) + mean(observed)
+  data * scale + center
 }
 get_quantiles = function(x, q = c(.025, .975)){
   t(apply(x, 2, quantile, q))
@@ -84,8 +74,23 @@ get_quantiles = function(x, q = c(.025, .975)){
 
 extracted = rstan::extract(model)
 
-y = array(extracted$y, dim = c(nrow(extracted$y), dim(training_observations)))
-future_y = array(extracted$future_y, dim = c(nrow(extracted$future_y), data$N2, data$N_sites))
+y = structure(extracted$y, dim = list(nrow(extracted$y), data$N1, length(data$site_length)))
+future_y = array(extracted$future_y, dim = c(nrow(extracted$future_y), data$N2, length(data$site_length)))
+
+k = sample.int(dim(y)[3], 1)
+matplot(start_yr:last_training_year, unscale(t(y[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year", xlim = c(start_yr, end_yr), ylim = range(unscale(data$observed)))
+matlines(seq(last_training_year+1, end_yr), unscale(t(future_y[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year")
+point_data = training_observations %>% filter(as.integer(factor(site_id)) == k) %>%
+  mutate(observer_id = factor(observer_id))
+point_data %>% lines(richness ~ year, data = ., col = 2, lwd = 2)
+point_data %>%
+  points(richness ~ year, data = ., col = 2 + as.integer(observer_id), pch = 16, ylim = range(unscale(data$observed)))
+
+stop()
+
+# Vestigial pre-observer code ---------------------------------------------
+
+
 future_observed = array(extracted$future_observed, dim = c(nrow(extracted$future_y), data$N2, data$N_sites))
 
 predicted_means = unscale(apply(future_y, 2:3, mean))
