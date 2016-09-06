@@ -7,14 +7,7 @@ start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
 last_training_year <- 2003
-# richness_w_env <- get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
-#   na.omit()
 
-bbs_data <- get_bbs_data()
-
-site_lat_long = bbs_data %>%
-  dplyr::select(site_id, lat, long) %>%
-  distinct()
 
 raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
   select(site_id, year, richness, observer_id) %>%
@@ -28,25 +21,35 @@ training_observations %>%
   group_by(year, site_id) %>%
   tidyr::spread(key = year, value = richness)
 
-
 data = training_observations %>%
-  mutate(index = 1:nrow(.)) %>%
-  rename(observed = richness) %>%
-  filter(!is.na(observed)) %>%
+  mutate(observation_index = 1:nrow(.)) %>%
+  rename(observed_richness = richness) %>%
+  filter(!is.na(observed_richness)) %>%
   as.list()
-data$site_length = rle(data$site_id)$lengths
-data$N_observations = length(data$observed)
-data$N1 = length(start_yr:last_training_year)
-data$N2 = length(seq(last_training_year + 1, end_yr))
-N_sites = length(unique(data$site_id))
 
-center = attr(scale(data$observed), "scaled:center")
-scale = attr(scale(data$observed), "scaled:scale")
+center = attr(scale(data$observed_richness), "scaled:center")
+scale = attr(scale(data$observed_richness), "scaled:scale")
 
-data$observed = c(scale(data$observed))
+# Observation-level pointers
+# Note that site-level random effect includes non-observed years, so its index
+# must as well
+data$observed_richness = c(scale(data$observed_richness))
 data$observer_index = as.integer(factor(data$observer_id))
+data$site_index = as.integer(factor(training_observations$site_id))
+
+# Vector lengths
+data$N_observations = length(data$observed)
+data$N_train_years = length(start_yr:last_training_year)
+data$N_test_years = length(seq(last_training_year + 1, end_yr))
+data$N_sites = length(unique(data$site_id))
 data$N_observers = max(data$observer_index)
 
+# year pointers (based on _all_ site/year combinations, not just ones with
+# observations)
+data$which_first = which(training_observations$year == start_yr)
+data$which_non_first = which(training_observations$year != start_yr)
+
+# Drop unused variables
 data$site_id = NULL
 data$year = NULL
 data$observer_id = NULL
@@ -58,11 +61,10 @@ m = stan_model(
 # Check the number of physical cores on the machine. With 2 or fewer cores, just
 # use one core.  Otherwise, use all of them.
 cores = ifelse(parallel::detectCores(logical = FALSE) <= 2, 1, parallel::detectCores(logical = FALSE))
-
+stop()
 model = sampling(m, data = data, control = list(adapt_delta = 0.9),
-                 cores = cores)
+                 cores = cores, chains = 1, refresh = 1)
 saveRDS(model, file = "stan-models/model-object.RDS")
-
 
 # extract model estimates -------------------------------------------------
 unscale = function(data){
@@ -74,12 +76,12 @@ get_quantiles = function(x, q = c(.025, .975)){
 
 extracted = rstan::extract(model)
 
-y = structure(extracted$y, dim = list(nrow(extracted$y), data$N1, length(data$site_length)))
-future_y = array(extracted$future_y, dim = c(nrow(extracted$future_y), data$N2, length(data$site_length)))
+expected = structure(extracted$y, dim = c(nrow(extracted$y), data$N_train_years, data$N_sites))
+#future_y = array(extracted$future_y, dim = c(nrow(extracted$future_y), data$N2, length(data$site_length)))
 
-k = sample.int(dim(y)[3], 1)
-matplot(start_yr:last_training_year, unscale(t(y[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year", xlim = c(start_yr, end_yr), ylim = range(unscale(data$observed)))
-matlines(seq(last_training_year+1, end_yr), unscale(t(future_y[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year")
+k = sample.int(dim(expected)[3], 1)
+matplot(start_yr:last_training_year, unscale(t(expected[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year", xlim = c(start_yr, end_yr), ylim = range(unscale(data$observed)))
+#matlines(seq(last_training_year+1, end_yr), unscale(t(future_y[,,k])), col = "#00000010", type = "l", lty = 1, ylab = "richness", xlab = "year")
 point_data = training_observations %>% filter(as.integer(factor(site_id)) == k) %>%
   mutate(observer_id = factor(observer_id))
 point_data %>% lines(richness ~ year, data = ., col = 2, lwd = 2)
