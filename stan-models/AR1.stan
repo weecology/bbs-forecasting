@@ -19,33 +19,44 @@ data {
   real observed_richness[N_observations];
 }
 parameters {
-  // scalars //
+  // Core autoregressive process model //
   real<lower=0> sigma_autoreg;
-  real<lower=0> sigma_observer;
-  real<lower=0> sigma_site;
-  real<lower=0> sigma_site_beta;
   real<lower=0> nugget;
-
-  // Autoregressive model //
-  vector[N_sites] site_alpha;
-  vector[N_sites] site_beta;
-  real beta;
-
-  // Latent variables //
   vector[N_train_years * N_sites] y;
+
+  // site-level model //
+  //    First vector is site-level mean
+  //    Second vector is memory (autoregressive "beta").
+  corr_matrix[2] site_cor;
+  vector[2] site_coefs[N_sites];
+  vector[2] mu_site;
+  vector<lower=0>[2] sigma_site;
+
+  // observation model //
+  real<lower=0> sigma_observer;
   vector[N_observers] observer_alpha;
 }
 transformed parameters {
+  vector[N_sites] site_means;
+  vector[N_sites] site_alphas;
+  vector[N_sites] site_betas;
+
   real mu_non_first[(N_train_years - 1) * N_sites];
+
+  for (i in 1:N_sites) {
+    site_means[i] = site_coefs[i, 1];
+    site_betas[i] = site_coefs[i, 2];
+    site_alphas[i] = site_means[i] * (1 - site_betas[i]);
+  }
 
   // For non-first data points, what was richness the preceding year? //
   for (i in 1:num_elements(mu_non_first)) {
     int n;
-    // alpha + beta * y, where alpha and beta are for the current _site_, and
-    // y is for the previous _year_
+    // alpha + beta * y, where alpha and beta are for the _current site_, and
+    // y is for the _previous year_
     n = site_index[which_non_first[i]];
-    mu_non_first[i] = site_alpha[n] +
-      (beta + site_beta[n]) * y[which_non_first[i] - 1];
+    mu_non_first[i] = site_alphas[n] +
+      site_betas[n] * y[which_non_first[i] - 1];
   }
 }
 model {
@@ -53,21 +64,21 @@ model {
   sigma_autoreg  ~ gamma(2, 0.01);
   nugget ~ gamma(2, 0.01);
   sigma_site ~ gamma(2, 0.01);
-  sigma_site_beta ~ gamma(2, 0.01);
   sigma_observer ~ gamma(2, 0.01);
 
-  // prior on autoregressive rate //
-  beta ~ normal(0.5, 0.5); // probably between 0 and 1
+  // prior on global mean richness //
+  mu_site[1] ~ normal(0, 0.1);     // must be close to observed global mean
+  // prior on autoregressive rate  //
+  mu_site[2] ~ normal(0.5, 0.5);   // probably between 0 and 1
 
   // random effects //
-  site_beta ~ normal(0, sigma_site_beta);
-  site_alpha ~ normal(0, sigma_site);
+  site_coefs ~ multi_normal(mu_site, quad_form_diag(site_cor, sigma_site));
   observer_alpha ~ normal(0, sigma_observer);
 
   // Weak prior on y1 for when no observations were taken in year 1 //
-  y[which_first] ~ normal(site_alpha[site_index[which_first]], 2);
+  y[which_first] ~ normal(site_means[site_index[which_first]], 2);
 
-  // Autoregression, with mean reverting to zero. //
+  // Autoregression //
   y[which_non_first] ~ normal(mu_non_first, sigma_autoreg);
 
   // Observation error

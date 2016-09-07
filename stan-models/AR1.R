@@ -61,7 +61,7 @@ m = stan_model(
 # Check the number of physical cores on the machine. With 2 or fewer cores, just
 # use one core.  Otherwise, use all of them.
 cores = ifelse(parallel::detectCores(logical = FALSE) <= 2, 1, parallel::detectCores(logical = FALSE))
-stop()
+
 model = sampling(m, data = data, control = list(adapt_delta = 0.9),
                  cores = cores, chains = 1, refresh = 1)
 saveRDS(model, file = "stan-models/model-object.RDS")
@@ -88,53 +88,9 @@ point_data %>% lines(richness ~ year, data = ., col = 2, lwd = 2)
 point_data %>%
   points(richness ~ year, data = ., col = 2 + as.integer(observer_id), pch = 16, ylim = range(unscale(data$observed)))
 
-stop()
 
 # Vestigial pre-observer code ---------------------------------------------
-
-
-future_observed = array(extracted$future_observed, dim = c(nrow(extracted$future_y), data$N2, data$N_sites))
-
-predicted_means = unscale(apply(future_y, 2:3, mean))
-lower_CIs = unscale(apply(future_observed, 3, get_quantiles, .025))
-upper_CIs = unscale(apply(future_observed, 3, get_quantiles, .975))
-
-# plot --------------------------------------------------------------------
-
-plot_site = function(k){
-  matplot(
-    seq(data$N1 + 1, data$N1 + data$N2),
-    unscale(get_quantiles(future_observed[,,k], c(.005, .025, .975, .995))),
-    type = "l",
-    lty = c(3, 2, 2, 3),
-    col = 2,
-    xlim = c(1, data$N1 + data$N2),
-    xlab = "year",
-    ylab = "species richness",
-    lwd = 2,
-    ylim = range(observed),
-    axes = FALSE
-  )
-  fives = seq(start_yr-10, end_yr + 10) %% 5 == 0
-  axis(1, seq(1 - 10, data$N1 + data$N2 + 10)[fives], seq(start_yr-10, end_yr+10)[fives])
-  axis(2, seq(0, 200, 20), las = 1)
-  matlines(
-    unscale(get_quantiles(cbind(y[,,k], future_y[,,k]))),
-    lty = 1,
-    lwd = 2,
-    col = "#00000060"
-  )
-  points(training_observations[[k]], pch = 16, cex = 0.75)
-  points(seq(data$N1 + 1, data$N1 + data$N2),testing_observations[[k]], pch = 16, cex = 0.75, col = "purple")
-  abline(v = data$N1 + 1/2, col = "#00000060", lty = 2, lwd = 2)
-  lines(unscale(colMeans(cbind(y[,,k], future_y[,,k]))))
-}
-
-par(mfrow = c(2, 2))
-sapply(sample.int(ncol(training_observations), 4), plot_site)
-par(mfrow = c(1, 1))
-
-
+stop()
 # evaluation --------------------------------------------------------------
 
 diffs = as.matrix(predicted_means - testing_observations)
