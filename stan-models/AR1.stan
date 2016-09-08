@@ -16,9 +16,13 @@ data {
 
   // Predictor variables
   vector[N_sites * N_train_years] ndvi_sum;
+  vector[N_sites * N_train_years] log_elevs;
 
   // response variable
   real scaled_richness[N_observations];
+
+  // Flag to include environmental predictors
+  int<lower=0,upper=1> include_environment;
 }
 transformed data {
   int<lower=0> which_non_last[N_sites * (N_train_years - 1)];
@@ -39,6 +43,7 @@ parameters {
   real<lower=0> sigma_site;
   vector[N_sites] alpha_site;
   real beta_ndvi;
+  real beta_log_elevs;
 
   // observation model
   real<lower=0> sigma_observer;
@@ -52,7 +57,10 @@ transformed parameters {
 
   // Anchor (mean for mean-reversion) for each site/year combination.
   // This is basically a linear mixed model, with one level per site.
-  anchor = alpha + alpha_site[site_index] + beta_ndvi * ndvi_sum;
+  anchor = alpha + alpha_site[site_index];
+  if (include_environment) {
+    anchor = anchor + beta_ndvi * ndvi_sum + beta_log_elevs * log_elevs;
+  }
 
   // convert from "anchor & beta" to more standard "alpha & beta"
   alpha_autoreg = anchor * (1 - beta_autoreg);

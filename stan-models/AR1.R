@@ -7,6 +7,8 @@ start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
 last_training_year <- 2003
+include_environment = 1
+
 
 # The stan code expects the data to be sorted by site, then by year
 raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
@@ -73,22 +75,26 @@ data$N_observers = max(data$observer_index)
 # Stan won't accept data named "long" because it's a reserved word.
 data$long = NULL
 
-# We want *all* the NDVI values, not just the years with data
+# We want *all* the predictor values, not just the years with data
 data$ndvi_sum = c(scale(training_observations$ndvi_sum))
+data$log_elevs = c(scale(log(training_observations$elevs)))
+
+data$include_environment = include_environment
 
 # Compile the stan model --------------------------------------------------
 
 m = stan_model("stan-models/AR1.stan")
-stop()
+
 # Check the number of physical cores on the machine. With 2 or fewer cores,
 # just use one core.  Otherwise, use all of them.
-cores = ifelse(parallel::detectCores(logical = FALSE) <= 2, 1,
+cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
+               1,
                parallel::detectCores(logical = FALSE))
 
 
 # Sample from the stan model ----------------------------------------------
 
-model = sampling(m, data = data, control = list(adapt_delta = 0.9),
+model = sampling(m, data = data, control = list(adapt_delta = 0.8),
                  cores = cores, chains = 1, refresh = 1)
 saveRDS(model, file = "stan-models/model-object.RDS")
 
@@ -123,14 +129,14 @@ matplot(start_yr:end_yr,
         rbind(unscale(t(expected[,,k])), predicted),
         col = "#00000010", type = "l", lty = 1, ylab = "richness",
         xlab = "year", xlim = c(start_yr, end_yr),
-        ylim = range(unscale(data$observed)))
+        ylim = range(data$richness))
 point_data = training_observations %>%
   filter(as.integer(factor(site_id)) == k) %>%
   mutate(observer_id = factor(observer_id))
 point_data %>%
   lines(richness ~ year, data = ., col = 2, lwd = 2)
 point_data %>%
-  points(richness ~ year, data = ., col = 2 + as.integer(observer_id),
+  points(richness ~ year, data = ., col = 2 + as.integer(data$observer_id),
          pch = 16, ylim = range(unscale(data$observed)))
 
 # Vestigial pre-observer code ---------------------------------------------
