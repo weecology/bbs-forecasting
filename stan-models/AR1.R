@@ -131,7 +131,9 @@ point_data %>%
          pch = 16, ylim = range(unscale(data$observed)))
 
 # Vestigial pre-observer code ---------------------------------------------
+
 stop()
+
 # evaluation --------------------------------------------------------------
 
 diffs = as.matrix(predicted_means - testing_observations)
