@@ -73,6 +73,9 @@ data$N_observers = max(data$observer_index)
 # Stan won't accept data named "long" because it's a reserved word.
 data$long = NULL
 
+# We want *all* the NDVI values, not just the years with data
+data$ndvi_sum = c(scale(training_observations$ndvi_sum))
+
 # Compile the stan model --------------------------------------------------
 
 m = stan_model("stan-models/AR1.stan")
