@@ -21,14 +21,14 @@ parameters {
   // Core autoregressive model
   vector[N_train_years * N_sites] y;
   real<lower=0> sigma_autoreg;
+  real beta_autoreg;
 
   // site-level model //
   //    First vector is site-level mean
   //    Second vector is memory (autoregressive "beta").
-  corr_matrix[2] site_cor;
-  vector[2] site_coefs[N_sites];
-  vector[2] mu_site;
+  real mu_site;
   vector<lower=0>[2] sigma_site;
+  vector[N_sites] site_means;
 
   // observation model //
   real<lower=0> sigma_observer;
@@ -36,28 +36,23 @@ parameters {
   vector[N_observers] observer_alpha;
 }
 transformed parameters {
-  vector[N_sites] site_means;
   vector[N_sites] site_alphas;
-  vector[N_sites] site_betas;
   real mu_non_first[(N_train_years - 1) * N_sites];
 
   // Extract and simplify coefficients.
   for (i in 1:N_sites) {
-    site_means[i] = site_coefs[i, 1];
-    site_betas[i] = site_coefs[i, 2];
     // long-term expected value of an AR1 process
     // is alpha / (1-beta)
-    site_alphas[i] = site_means[i] * (1 - site_betas[i]);
+    site_alphas[i] = site_means[i] * (1 - beta_autoreg);
   }
 
   // Define the autoregressive means based on previous year's y.
   for (i in 1:num_elements(mu_non_first)) {
     int site_num;
     site_num = site_index[which_non_first[i]];
-    // mu = alpha + beta * y, where alpha and beta are for the _current site_,
-    // and y is for the _previous year_
-    mu_non_first[i] = site_alphas[site_num] +
-      site_betas[site_num] * y[which_non_first[i] - 1];
+    // mu = alpha + beta * y, where alpha is for the _current site_,
+    // and y is for the _previous year_.
+    mu_non_first[i] = site_alphas[site_num] + beta_autoreg * y[which_non_first[i] - 1];
   }
 }
 model {
@@ -68,12 +63,13 @@ model {
   sigma_observer ~ gamma(2, 0.01);
 
   // prior on global mean richness (probably close to 0 after scalilng)
-  mu_site[1] ~ normal(0, 0.1);
-  // prior on autoregressive rate (probably between 0 and 1)
-  mu_site[2] ~ normal(0.5, 0.5);
+  mu_site ~ normal(0, 0.1);
+
+  // Prior on autoregressive beta (probably between 0 and 1)
+  beta_autoreg ~ normal(0.5, 0.5);
 
   // random effects
-  site_coefs ~ multi_normal(mu_site, quad_form_diag(site_cor, sigma_site));
+  site_means ~ normal(mu_site, sigma_site);
   observer_alpha ~ normal(0, sigma_observer);
 
   // Weak prior on y1 for when no observations were taken in year 1
