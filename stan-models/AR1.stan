@@ -1,9 +1,11 @@
 data {
   // Sizes of vectors
-  int<lower=0> N_observations; // Total non-NA observations
-  int<lower=0> N_train_years;  // Number of training years
+  int<lower=0> N_observations; // Total non-NA observations in training set
+  int<lower=0> N_train_years;
+  int<lower=0> N_test_years;
   int<lower=0> N_sites;
   int<lower=0> N_observers;
+  int<lower=0> N_env;
 
   // Pointers to information about each observation
   int<lower=0> observation_index[N_observations];
@@ -15,14 +17,17 @@ data {
   int<lower=0> which_non_first[N_sites * (N_train_years - 1)];
 
   // Predictor variables
-  vector[N_sites * N_train_years] ndvi_sum;
-  vector[N_sites * N_train_years] log_elevs;
+  matrix[N_sites * N_train_years, N_env] env;
 
   // response variable
   real scaled_richness[N_observations];
 
   // Flag to include environmental predictors
   int<lower=0,upper=1> include_environment;
+
+  // From the future
+  matrix[N_sites * N_test_years, N_env] future_env;
+  int future_site_index[N_sites * N_test_years];
 }
 transformed data {
   int<lower=0> which_non_last[N_sites * (N_train_years - 1)];
@@ -42,8 +47,7 @@ parameters {
   real alpha;
   real<lower=0> sigma_site;
   vector[N_sites] alpha_site;
-  real beta_ndvi;
-  real beta_log_elevs;
+  vector[N_env] beta_env;
 
   // observation model
   real<lower=0> sigma_observer;
@@ -58,10 +62,9 @@ transformed parameters {
   // Anchor (mean for mean-reversion) for each site/year combination.
   // This is basically a linear mixed model, with one level per site.
   anchor = alpha + alpha_site[site_index];
-  if (include_environment) {
-    anchor = anchor + beta_ndvi * ndvi_sum + beta_log_elevs * log_elevs;
+  if (include_environment){
+    anchor = anchor + env * beta_env;
   }
-
   // convert from "anchor & beta" to more standard "alpha & beta"
   alpha_autoreg = anchor * (1 - beta_autoreg);
 
@@ -77,11 +80,12 @@ model {
   sigma_site ~ gamma(2, 0.01);
   sigma_observer ~ gamma(2, 0.01);
 
-  // Prior on regression intercept
+  // priors for regression model
   alpha ~ normal(0, 10);
+  beta_env ~ normal(0, 1);
 
-  // Prior on autoregressive beta (probably between 0 and 1)
-  beta_autoreg ~ normal(0.5, 0.5);
+
+  beta_autoreg ~ normal(0.5, 0.5); // (probably between 0 and 1)
 
   // random effects
   alpha_site ~ normal(0, sigma_site);
@@ -101,4 +105,28 @@ model {
     sigma_error
   );
 }
+generated quantities {
+  vector[N_sites * N_test_years] future_anchor;
+  vector[N_sites * N_test_years] future_alpha_autoreg;
+  vector[N_sites * N_test_years] future_y;
+  real previous_y;
 
+
+  future_anchor = alpha + alpha_site[future_site_index];
+  if (include_environment){
+    future_anchor = future_anchor + future_env * beta_env;
+  }
+  future_alpha_autoreg = future_anchor * (1 - beta_autoreg);
+
+  for (i in 1:num_elements(future_anchor)) {
+    real future_mu;
+    if (i % N_test_years == 1) {
+      previous_y = y[future_site_index[i] * N_train_years];
+    } else{
+      previous_y = future_y[i - 1];
+    }
+
+    future_mu = future_alpha_autoreg[i] + beta_autoreg * previous_y;
+    future_y[i] = normal_rng(future_mu, sigma_autoreg);
+  }
+}

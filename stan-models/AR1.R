@@ -3,6 +3,11 @@ library(tidyr)
 library(rstan)
 devtools::load_all()
 
+# Z-transform x based on the mean and sd of some other vector
+rescale = function(x, baseline) {
+  (x - mean(baseline)) / sd(baseline)
+}
+
 start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
@@ -10,10 +15,18 @@ last_training_year <- 2003
 include_environment = 1
 
 
-# The stan code expects the data to be sorted by site, then by year
+# The stan code expects the data to be sorted by site, then by year.
+# Code currently can't handle NAs in environmental data, so we filter sites
+# with missing data out.
 raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+  group_by(site_id) %>%
+  filter(length(lat) == end_yr - start_yr + 1) %>%
+  ungroup() %>%
   complete(site_id, year) %>%
   arrange(site_id, year)
+
+# Uncomment to drop most of the sites; useful for quick testing of the model
+# raw = filter(raw, site_id %% 23 == 17)
 
 training_observations = filter(raw, year <= last_training_year)
 testing_observations = filter(raw, year > last_training_year)
@@ -50,9 +63,12 @@ data = as.list(data)
 
 # For all site/year combinations (including those with no observations),
 # point to the corresponding site
-data$N_train_years = length(start_yr:last_training_year)
+data$N_train_years = length(unique(training_observations$year))
+data$N_test_years = length(unique(testing_observations$year))
 data$site_index = rep(seq_along(unique(data$site_id)),
                       each = data$N_train_years)
+data$future_site_index = rep(seq_along(unique(data$site_id)),
+                      each = data$N_test_years)
 
 # Point to all the site/year combinations (including those with no observations)
 # that occurred in the first year of data collection, and separately to those
@@ -76,8 +92,19 @@ data$N_observers = max(data$observer_index)
 data$long = NULL
 
 # We want *all* the predictor values, not just the years with data
-data$ndvi_sum = c(scale(training_observations$ndvi_sum))
-data$log_elevs = c(scale(log(training_observations$elevs)))
+data$env = scale(
+  cbind(
+    ndvi_sum = training_observations$ndvi_sum,
+    log_elevs = log(training_observations$elevs)
+  )
+)
+data$N_env = ncol(data$env)
+
+data$future_env = cbind(
+  ndvi_sum = rescale(testing_observations$ndvi_sum, training_observations$ndvi_sum),
+  log_elevs = rescale(testing_observations$elevs, training_observations$elevs)
+)
+
 
 data$include_environment = include_environment
 
@@ -95,7 +122,7 @@ cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
 # Sample from the stan model ----------------------------------------------
 
 model = sampling(m, data = data, control = list(adapt_delta = 0.8),
-                 cores = cores, chains = 1, refresh = 1)
+                 cores = cores, chains = 1, refresh = 1, verbose = TRUE)
 saveRDS(model, file = "stan-models/model-object.RDS")
 
 # extract model estimates -------------------------------------------------
@@ -110,23 +137,14 @@ extracted = rstan::extract(model)
 
 expected = structure(extracted$y, dim = c(nrow(extracted$y), data$N_train_years,
                                           data$N_sites))
-
-# Predict -----------------------------------------------------------------
-
-yy = expected[ , dim(expected)[2], ]
-future_y = array(NA, c(nrow(yy), ncol(yy), n_test_years))
-for (i in 1:n_test_years) {
-  future_means = extracted$site_alphas + extracted$site_betas * yy
-  yy = rnorm(length(yy), future_means, extracted$sigma_autoreg)
-  future_y[ , , i] = yy
-}
+future_expected = structure(extracted$future_y, dim = c(nrow(extracted$future_y), data$N_test_years,
+                                          data$N_sites))
 
 # plot --------------------------------------------------------------------
 
 k = sample.int(dim(expected)[3], 1)
-predicted = unscale(t(future_y[,k,]))
 matplot(start_yr:end_yr,
-        rbind(unscale(t(expected[,,k])), predicted),
+        rbind(unscale(t(expected[,,k])), unscale(t(future_expected[,,k]))),
         col = "#00000010", type = "l", lty = 1, ylab = "richness",
         xlab = "year", xlim = c(start_yr, end_yr),
         ylim = range(data$richness))
@@ -135,9 +153,8 @@ point_data = training_observations %>%
   mutate(observer_id = factor(observer_id))
 point_data %>%
   lines(richness ~ year, data = ., col = 2, lwd = 2)
-point_data %>%
-  points(richness ~ year, data = ., col = 2 + as.integer(data$observer_id),
-         pch = 16, ylim = range(unscale(data$observed)))
+points(richness ~ year, data = point_data,
+       col = 2 + as.integer(observer_id), pch = 16)
 
 # Vestigial pre-observer code ---------------------------------------------
 
