@@ -112,7 +112,6 @@ generated quantities {
   vector[N_sites * N_test_years] future_y;
   vector[N_sites * N_test_years] future_observed;
 
-
   future_anchor = alpha + alpha_site[future_site_index];
   if (include_environment){
     future_anchor = future_anchor + future_env * beta_env;

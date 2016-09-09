@@ -19,7 +19,7 @@ include_environment = 1
 
 
 # The stan code expects the data to be sorted by site, then by year.
-# Code currently can't handle NAs in environmental data, so we filter sites
+# Stan code currently can't handle NAs in environmental data, so we filter sites
 # with missing data out.
 raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
   group_by(site_id) %>%
@@ -29,11 +29,10 @@ raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
   arrange(site_id, year)
 
 
-
-
 # Uncomment to drop most of the sites; useful for quick testing of the model
 # raw = filter(raw, site_id %% 23 == 17)
 
+# Split the data
 training_observations = filter(raw, year <= last_training_year)
 testing_observations = filter(raw, year > last_training_year)
 
@@ -107,9 +106,6 @@ data$future_env = cbind(
   log_elevs = rescale(testing_observations$elevs, training_observations$elevs)
 )
 
-# For now, pretend future observers are all unknown
-data$future_observer_index = rep(1E9, nrow(data$future_env))
-
 # If an observer has been seen before, use their observer_index. Otherwise,
 # mark them as zero and pick a random value for them.
 # There has to be a better way to do this. Maybe hadley/forcats to re-order
@@ -120,7 +116,6 @@ data$future_observer_index = as.data.frame(data[c("observer_index", "observer_id
   arrange(site_id, year) %>%
   magrittr::extract2("observer_index")
 data$future_observer_index[is.na(data$future_observer_index)] = 0
-
 
 data$include_environment = include_environment
 
@@ -156,6 +151,9 @@ expected = structure(extracted$y, dim = c(nrow(extracted$y), data$N_train_years,
 future_expected = structure(extracted$future_y, dim = c(nrow(extracted$future_y), data$N_test_years,
                                           data$N_sites))
 
+future_predicted = structure(extracted$future_observed, dim = c(nrow(extracted$future_observed), data$N_test_years,
+                                                        data$N_sites))
+
 # plot --------------------------------------------------------------------
 
 k = sample.int(dim(expected)[3], 1)
@@ -175,7 +173,7 @@ points(richness ~ year, data = point_data,
 # evaluation --------------------------------------------------------------
 
 
-point_estimates = reshape2::melt(apply(unscale(future_expected), 2:3, mean),
+point_estimates = reshape2::melt(apply(unscale(future_predicted), 2:3, mean),
                                  varnames = c("year", "site_index"))
 
 point_estimates$year = point_estimates$year + last_training_year
