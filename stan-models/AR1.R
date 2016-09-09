@@ -3,6 +3,9 @@ library(tidyr)
 library(rstan)
 devtools::load_all()
 
+# MCMC chain count. Set to 4 for real analyses, set to 1 for quick ones
+chains = 1
+
 # Z-transform x based on the mean and sd of some other vector
 rescale = function(x, baseline) {
   (x - mean(baseline)) / sd(baseline)
@@ -25,15 +28,14 @@ raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
   complete(site_id, year) %>%
   arrange(site_id, year)
 
+
+
+
 # Uncomment to drop most of the sites; useful for quick testing of the model
 # raw = filter(raw, site_id %% 23 == 17)
 
 training_observations = filter(raw, year <= last_training_year)
 testing_observations = filter(raw, year > last_training_year)
-
-n_train_years = length(unique(training_observations$year))
-n_test_years = length(unique(testing_observations$year))
-
 
 # Build "data" object to pass to Stan -------------------------------------
 
@@ -105,12 +107,26 @@ data$future_env = cbind(
   log_elevs = rescale(testing_observations$elevs, training_observations$elevs)
 )
 
+# For now, pretend future observers are all unknown
+data$future_observer_index = rep(1E9, nrow(data$future_env))
+
+# If an observer has been seen before, use their observer_index. Otherwise,
+# mark them as zero and pick a random value for them.
+# There has to be a better way to do this. Maybe hadley/forcats to re-order
+# factor levels before splitting into train and test?
+data$future_observer_index = as.data.frame(data[c("observer_index", "observer_id")]) %>%
+  distinct() %>%
+  right_join(testing_observations, "observer_id") %>%
+  arrange(site_id, year) %>%
+  magrittr::extract2("observer_index")
+data$future_observer_index[is.na(data$future_observer_index)] = 0
+
 
 data$include_environment = include_environment
 
 # Compile the stan model --------------------------------------------------
 
-m = stan_model("stan-models/AR1.stan")
+model = stan_model("stan-models/AR1.stan")
 
 # Check the number of physical cores on the machine. With 2 or fewer cores,
 # just use one core.  Otherwise, use all of them.
@@ -121,9 +137,9 @@ cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
 
 # Sample from the stan model ----------------------------------------------
 
-model = sampling(m, data = data, control = list(adapt_delta = 0.8),
-                 cores = cores, chains = 1, refresh = 1, verbose = TRUE)
-saveRDS(model, file = "stan-models/model-object.RDS")
+samples = sampling(model, data = data, control = list(adapt_delta = 0.8),
+                 cores = cores, chains = chains, refresh = 1, verbose = TRUE)
+saveRDS(samples, file = "stan-models/samples.RDS")
 
 # extract model estimates -------------------------------------------------
 unscale = function(data){
@@ -133,7 +149,7 @@ get_quantiles = function(x, q = c(.025, .975)){
   t(apply(x, 2, quantile, q))
 }
 
-extracted = rstan::extract(model)
+extracted = rstan::extract(samples)
 
 expected = structure(extracted$y, dim = c(nrow(extracted$y), data$N_train_years,
                                           data$N_sites))
@@ -156,13 +172,23 @@ point_data %>%
 points(richness ~ year, data = point_data,
        col = 2 + as.integer(observer_id), pch = 16)
 
-# Vestigial pre-observer code ---------------------------------------------
-
-stop()
-
 # evaluation --------------------------------------------------------------
 
-diffs = as.matrix(predicted_means - testing_observations)
+
+point_estimates = reshape2::melt(apply(unscale(future_expected), 2:3, mean),
+                                 varnames = c("year", "site_index"))
+
+point_estimates$year = point_estimates$year + last_training_year
+
+raw$site_index = as.integer(factor(raw$site_id))
+
+point_estimates = right_join(
+  point_estimates,
+  select(filter(raw, year > last_training_year), site_index, year, richness)
+)
+
+point_estimates$diff = point_estimates$value - point_estimates$richness
+
 
 # RMSE
 sqrt(mean(diffs^2, na.rm = TRUE))
