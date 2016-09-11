@@ -57,24 +57,17 @@ parameters {
 }
 transformed parameters {
   vector[N_train_years * N_sites] anchor;
-  vector[N_sites * N_train_years] alpha_autoreg;
-  vector[(N_train_years - 1) * N_sites] mu_non_first;
-
   // Anchor (mean for mean-reversion) for each site/year combination.
   // This is basically a linear mixed model, with one level per site.
   anchor = alpha + alpha_site[site_index];
   if (include_environment){
     anchor = anchor + env * beta_env;
   }
-  // convert from "anchor & beta" to more standard "alpha & beta"
-  alpha_autoreg = anchor * (1 - beta_autoreg);
-
-  // autoregression: determine expected value of y for next year based on
-  // current value of y
-  mu_non_first = alpha_autoreg[which_non_last] +
-      beta_autoreg * y[which_non_last];
 }
 model {
+  vector[N_sites * N_train_years] alpha_autoreg;
+  vector[(N_train_years - 1) * N_sites] mu_non_first;
+
   // priors on standard deviations
   sigma_autoreg  ~ gamma(2, 0.01);
   sigma_error ~ gamma(2, 0.01);
@@ -85,12 +78,19 @@ model {
   alpha ~ normal(0, 10);
   beta_env ~ normal(0, 1);
 
-
   beta_autoreg ~ normal(0.5, 0.5); // (probably between 0 and 1)
 
   // random effects
   alpha_site ~ normal(0, sigma_site);
   alpha_observer ~ normal(0, sigma_observer);
+
+  // convert from "anchor & beta" to more standard "alpha & beta"
+  alpha_autoreg = anchor * (1 - beta_autoreg);
+
+  // autoregression: determine expected value of y for next year based on
+  // current value of y
+  mu_non_first = alpha_autoreg[which_non_last] +
+      beta_autoreg * y[which_non_last];
 
   // Weak prior on y1 for when no observations were taken in year 1
   //    (sd==2 is a very weak prior when the data is scaled to have sd==1)
@@ -139,6 +139,6 @@ generated quantities {
     } else{
       observer_effect = normal_rng(0, sigma_observer);
     }
-    future_observed[i] = future_y[i] + observer_effect;
+    future_observed[i] = normal_rng(future_y[i] + observer_effect, sigma_error);
   }
 }
