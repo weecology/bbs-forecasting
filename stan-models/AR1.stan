@@ -69,14 +69,14 @@ model {
   vector[(N_train_years - 1) * N_sites] mu_non_first;
 
   // priors on standard deviations
-  sigma_autoreg  ~ gamma(2, 0.01);
-  sigma_error ~ gamma(2, 0.01);
-  sigma_site ~ gamma(2, 0.01);
-  sigma_observer ~ gamma(2, 0.01);
+  sigma_autoreg  ~ gamma(2, 0.1);
+  sigma_error ~ gamma(2, 0.1);
+  sigma_site ~ gamma(2, 0.1);
+  sigma_observer ~ gamma(2, 0.1);
 
   // priors for regression model
   alpha ~ normal(0, 10);
-  beta_env ~ normal(0, 1);
+  beta_env ~ normal(0, 2);
 
   beta_autoreg ~ normal(0.5, 0.5); // (probably between 0 and 1)
 
