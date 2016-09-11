@@ -4,7 +4,7 @@ library(rstan)
 devtools::load_all()
 
 # MCMC chain count. Set to 4 for real analyses, set to 1 for quick ones
-chains = 1
+chains = 2
 
 # Z-transform x based on the mean and sd of some other vector
 rescale = function(x, baseline) {
@@ -162,13 +162,15 @@ matplot(start_yr:end_yr,
         col = "#00000010", type = "l", lty = 1, ylab = "richness",
         xlab = "year", xlim = c(start_yr, end_yr),
         ylim = range(data$richness))
-point_data = training_observations %>%
+point_data = raw %>%
   filter(as.integer(factor(site_id)) == k) %>%
   mutate(observer_id = factor(observer_id))
 point_data %>%
   lines(richness ~ year, data = ., col = 2, lwd = 2)
 points(richness ~ year, data = point_data,
        col = 2 + as.integer(observer_id), pch = 16)
+matlines(seq(last_training_year + 1, end_yr), t(apply(unscale(future_predicted[,,k]), 2, quantile, c(.025, .5, .975))), col = "purple", lty = 1, lwd = 2)
+abline(v = last_training_year + 0.5, lty = 2)
 
 # evaluation --------------------------------------------------------------
 
