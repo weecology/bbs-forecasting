@@ -10,11 +10,6 @@ data {
   // Pointers to information about each observation
   int<lower=0> observation_index[N_observations];
   int<lower=0> observer_index[N_observations];
-  int<lower=0> site_index[N_sites * N_train_years];
-
-  // Pointers to specific kinds of years within sites
-  int<lower=0> which_first[N_sites];
-  int<lower=0> which_non_first[N_sites * (N_train_years - 1)];
 
   // Predictor variables
   matrix[N_sites * N_train_years, N_env] env;
@@ -30,14 +25,6 @@ data {
   int future_site_index[N_sites * N_test_years];
   int future_observer_index[N_sites * N_test_years];
 }
-transformed data {
-  int<lower=0> which_non_last[N_sites * (N_train_years - 1)];
-
-  // Apparently I need a loop for this
-  for (i in 1:size(which_non_first)) {
-    which_non_last[i] = which_non_first[i] - 1;
-  }
-}
 parameters {
   // Core autoregressive model
   vector[N_train_years * N_sites] y;
@@ -46,27 +33,17 @@ parameters {
 
   // regression model for the "anchor" (mean for mean-reversion)
   real alpha;
-  real<lower=0> sigma_site;
   vector[N_sites] alpha_site;
+  real<lower=0> sigma_site;
   vector[N_env] beta_env;
 
   // observation model
+  vector[N_observers] alpha_observer;
   real<lower=0> sigma_observer;
   real<lower=0> sigma_error;
-  vector[N_observers] alpha_observer;
-}
-transformed parameters {
-  vector[N_train_years * N_sites] anchor;
-  // Anchor (mean for mean-reversion) for each site/year combination.
-  // This is basically a linear mixed model, with one level per site.
-  anchor = alpha + alpha_site[site_index];
-  if (include_environment){
-    anchor = anchor + env * beta_env;
-  }
 }
 model {
-  vector[N_sites * N_train_years] alpha_autoreg;
-  vector[(N_train_years - 1) * N_sites] mu_non_first;
+  vector[num_elements(y)] env_effect;
 
   // priors on standard deviations
   sigma_autoreg  ~ gamma(2, 0.1);
@@ -75,30 +52,49 @@ model {
   sigma_observer ~ gamma(2, 0.1);
 
   // priors for regression model
-  alpha ~ normal(0, 10);
+  alpha ~ normal(0, 2);
   beta_env ~ normal(0, 2);
 
-  beta_autoreg ~ normal(0.5, 0.5); // (probably between 0 and 1)
+  beta_autoreg ~ normal(0.5, 0.25); // (probably between 0 and 1)
 
   // random effects
   alpha_site ~ normal(0, sigma_site);
   alpha_observer ~ normal(0, sigma_observer);
 
-  // convert from "anchor & beta" to more standard "alpha & beta"
-  alpha_autoreg = anchor * (1 - beta_autoreg);
+  if (include_environment) {
+    env_effect = env * beta_env;
+  } else {
+    env_effect = rep_vector(0.0, num_elements(env_effect));
+  }
 
   // autoregression: determine expected value of y for next year based on
   // current value of y
-  mu_non_first = alpha_autoreg[which_non_last] +
-      beta_autoreg * y[which_non_last];
+  for (i in 1:N_sites) {
+    int start;
+    int end;
+    vector[N_train_years] alpha_autoreg;
+    vector[N_train_years] anchor;
 
-  // Weak prior on y1 for when no observations were taken in year 1
-  //    (sd==2 is a very weak prior when the data is scaled to have sd==1)
-  y[which_first] ~ normal(anchor[which_first], 2);
+    end = i * N_train_years;
+    start = end - N_train_years + 1;
 
-  // Autoregression model for non-first years: inferred values are centered
-  // on mu
-  y[which_non_first] ~ normal(mu_non_first, sigma_autoreg);
+    anchor = alpha + alpha_site[i] + env_effect[start:end];
+
+    // Autoregressive "alpha" equals the long-term mean (anchor) times
+    // (1 - beta_autoreg) because the expected value of an AR(1) process
+    // is alpha_autoreg / (1 - beta_autoreg). See
+    // https://onlinecourses.science.psu.edu/stat510/node/60
+    alpha_autoreg = anchor * (1 - beta_autoreg);
+
+    // First data point is drawn using long-term mean and sd of AR(1)
+    // model. See https://onlinecourses.science.psu.edu/stat510/node/60
+    y[start] ~ normal(
+            anchor[1],
+            sqrt(sigma_autoreg^2 / (1 - beta_autoreg^2)));
+    y[(start+1):end] ~ normal(
+            alpha_autoreg[2:N_train_years] + beta_autoreg * y[start:(end-1)],
+            sigma_autoreg);
+  }
 
   // Observation error; observed value is centered on y + observer effects
   scaled_richness ~ normal(
@@ -124,8 +120,10 @@ generated quantities {
     real observer_effect;
 
     if (i % N_test_years == 1) {
+      // Grab the final observation from this site
       previous_y = y[future_site_index[i] * N_train_years];
     } else{
+      // Grab the value of y that was predicted for last year
       previous_y = future_y[i - 1];
     }
 
@@ -139,6 +137,8 @@ generated quantities {
     } else{
       observer_effect = normal_rng(0, sigma_observer);
     }
+
+    // Add the observer's bias and the observation noise
     future_observed[i] = normal_rng(future_y[i] + observer_effect, sigma_error);
   }
 }

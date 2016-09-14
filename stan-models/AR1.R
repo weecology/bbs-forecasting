@@ -4,7 +4,7 @@ library(rstan)
 devtools::load_all()
 
 # MCMC chain count. Set to 4 for real analyses, set to 1 for quick ones
-chains = 2
+chains = 4
 
 # Z-transform x based on the mean and sd of some other vector
 rescale = function(x, baseline) {
@@ -15,22 +15,23 @@ start_yr <- 1982
 end_yr <- 2013
 min_num_yrs <- 25
 last_training_year <- 2003
-include_environment = 1
+include_environment = 0
 
 
 # The stan code expects the data to be sorted by site, then by year.
 # Stan code currently can't handle NAs in environmental data, so we filter sites
 # with missing data out.
-raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
-  group_by(site_id) %>%
-  filter(length(lat) == end_yr - start_yr + 1) %>%
-  ungroup() %>%
-  complete(site_id, year) %>%
-  arrange(site_id, year)
-
+if (!exists("raw", mode = "list")) {
+  raw = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+    group_by(site_id) %>%
+    filter(length(lat) == end_yr - start_yr + 1) %>%
+    ungroup() %>%
+    complete(site_id, year) %>%
+    arrange(site_id, year)
+}
 
 # Uncomment to drop most of the sites; useful for quick testing of the model
-# raw = filter(raw, site_id %% 23 == 17)
+#raw = filter(raw, site_id %% 23 == 17)
 
 # Split the data
 training_observations = filter(raw, year <= last_training_year)
@@ -40,12 +41,9 @@ testing_observations = filter(raw, year > last_training_year)
 
 # The autoregressive model in Stan will work on one long vector of richness
 # estimates, one for each year/site combination (whether it was observed or
-# not). In the autoregressive model, each element that's not from year
-# `start_yr` will point back to the previous element. For each elment, we also
-# need to point to the site where the observation was taken and (if richness
-# data was collected) to the observer_id. Since the vector of observed richness
-# values will be shorter than the full vector (because of missing values), we
-# also need a vector/index to map from one to the other.
+# not). Since the vector of observed richness values will be shorter than
+# the full vector (because of missing values), we need a vector/index to
+# map from one to the other.
 
 data = training_observations
 
@@ -66,17 +64,8 @@ data = as.list(data)
 # point to the corresponding site
 data$N_train_years = length(unique(training_observations$year))
 data$N_test_years = length(unique(testing_observations$year))
-data$site_index = rep(seq_along(unique(data$site_id)),
-                      each = data$N_train_years)
 data$future_site_index = rep(seq_along(unique(data$site_id)),
                       each = data$N_test_years)
-
-# Point to all the site/year combinations (including those with no observations)
-# that occurred in the first year of data collection, and separately to those
-# that occurred after the first year of data collection.
-year_mod = seq_along(data$site_index) %% data$N_train_years
-data$which_first = which(year_mod == 1)
-data$which_non_first = which(year_mod != 1)
 
 # Stan works better on z-scaled data.  Save the original mean and sd
 # for later
@@ -132,8 +121,9 @@ cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
 
 # Sample from the stan model ----------------------------------------------
 
-samples = sampling(model, data = data, control = list(adapt_delta = 0.8),
-                 cores = cores, chains = chains, refresh = 1, verbose = TRUE)
+
+samples = sampling(model, data = data, control = list(adapt_delta = 0.9),
+                 cores = cores, chains = chains, refresh = 10, verbose = TRUE)
 saveRDS(samples, file = "stan-models/samples.RDS")
 
 # extract model estimates -------------------------------------------------
