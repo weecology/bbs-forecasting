@@ -1,6 +1,6 @@
 if (as.numeric(packageDescription("forecast", fields = "Version")) < 7.1) {
   # Try to fix mysterious and persistent error about my version of "forecast"
-  install.packages("forecast")
+  install.packages("forecast", .libPaths()[2])
 }
 
 library(dplyr)
