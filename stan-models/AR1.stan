@@ -29,34 +29,45 @@ parameters {
   // Core autoregressive model
   vector[N_train_years * N_sites] y;  // latent richness values
   real<lower=0,upper=1> beta_autoreg; // If β≥1, variance is not finite
-  real<lower=0> sigma_long_term;      // asymptotic sd of AR1 process
 
   // regression model for the "anchor" (mean for mean-reversion)
   real alpha;
   vector[N_sites] alpha_site;
-  real<lower=0> sigma_site;
   vector[N_env] beta_env;
 
   // observation model
   vector[N_observers] alpha_observer;
   real<lower=0> sigma_observer;
   real<lower=0> sigma_error;
+
+  // variance partitioning
+  real<lower=0> sigma_total_latent;
+  real<lower=0,upper=1> proportion_within;
 }
 transformed parameters {
+  real sigma_within;
+  real sigma_site;
   real sigma_autoreg;
+
+  // Partition the total variance into within and between site variation
+  sigma_within = sqrt(sigma_total_latent^2 * proportion_within);
+  sigma_site = sqrt(sigma_total_latent^2 * (1 - proportion_within));
+
   // Determine how much to jump from year to year based on amount of
   // autocorrelation and the long-term variance of the AR(1) process.
   // See https://onlinecourses.science.psu.edu/stat510/node/60
-  sigma_autoreg = sqrt(sigma_long_term^2 * (1 - beta_autoreg^2));
+  sigma_autoreg = sqrt(sigma_within^2 * (1 - beta_autoreg^2));
 }
 model {
   vector[num_elements(y)] env_effect;
 
   // priors on standard deviations
   sigma_error ~ gamma(2, 0.1);
-  sigma_site ~ gamma(2, 0.1);
   sigma_observer ~ gamma(2, 0.1);
-  sigma_long_term ~ gamma(2, 0.1);
+  sigma_total_latent ~ gamma(2, 0.1);
+
+  // Proportion of latent variation for intra-site variation
+  proportion_within ~ beta(2, 2);
 
   // priors for regression model
   alpha ~ normal(0, 2);
@@ -94,7 +105,7 @@ model {
     alpha_autoreg = anchor * (1 - beta_autoreg);
 
     // First data point is drawn using long-term mean and sd
-    y[start] ~ normal(anchor[1], sigma_long_term);
+    y[start] ~ normal(anchor[1], sigma_within);
 
     // Subsequent data points depend on the year before: a + b*y
     y[(start+1):end] ~ normal(
