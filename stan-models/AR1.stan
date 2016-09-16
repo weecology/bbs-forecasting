@@ -27,9 +27,9 @@ data {
 }
 parameters {
   // Core autoregressive model
-  vector[N_train_years * N_sites] y;
-  real<lower=0> sigma_autoreg;
-  real beta_autoreg;
+  vector[N_train_years * N_sites] y;  // latent richness values
+  real<lower=0,upper=1> beta_autoreg; // If β≥1, variance is not finite
+  real<lower=0> sigma_long_term;      // asymptotic sd of AR1 process
 
   // regression model for the "anchor" (mean for mean-reversion)
   real alpha;
@@ -42,20 +42,28 @@ parameters {
   real<lower=0> sigma_observer;
   real<lower=0> sigma_error;
 }
+transformed parameters {
+  real sigma_autoreg;
+  // Determine how much to jump from year to year based on amount of
+  // autocorrelation and the long-term variance of the AR(1) process.
+  // See https://onlinecourses.science.psu.edu/stat510/node/60
+  sigma_autoreg = sqrt(sigma_long_term^2 * (1 - beta_autoreg^2));
+}
 model {
   vector[num_elements(y)] env_effect;
 
   // priors on standard deviations
-  sigma_autoreg  ~ gamma(2, 0.1);
   sigma_error ~ gamma(2, 0.1);
   sigma_site ~ gamma(2, 0.1);
   sigma_observer ~ gamma(2, 0.1);
+  sigma_long_term ~ gamma(2, 0.1);
 
   // priors for regression model
   alpha ~ normal(0, 2);
   beta_env ~ normal(0, 2);
 
-  beta_autoreg ~ normal(0.5, 0.25); // (probably between 0 and 1)
+  // Autocorrelation
+  beta_autoreg ~ beta(2, 2);
 
   // random effects
   alpha_site ~ normal(0, sigma_site);
@@ -67,8 +75,6 @@ model {
     env_effect = rep_vector(0.0, num_elements(env_effect));
   }
 
-  // autoregression: determine expected value of y for next year based on
-  // current value of y
   for (i in 1:N_sites) {
     int start;
     int end;
@@ -78,19 +84,19 @@ model {
     end = i * N_train_years;
     start = end - N_train_years + 1;
 
+    // linear mixed model for long-term site-level means, plus perturbations
+    // from the environment.
     anchor = alpha + alpha_site[i] + env_effect[start:end];
 
-    // Autoregressive "alpha" equals the long-term mean (anchor) times
-    // (1 - beta_autoreg) because the expected value of an AR(1) process
-    // is alpha_autoreg / (1 - beta_autoreg). See
-    // https://onlinecourses.science.psu.edu/stat510/node/60
+    // Calculate autoregressive alpha intercept from the long-term mean and
+    // the autoregressive slope.
+    // See https://onlinecourses.science.psu.edu/stat510/node/60
     alpha_autoreg = anchor * (1 - beta_autoreg);
 
-    // First data point is drawn using long-term mean and sd of AR(1)
-    // model. See https://onlinecourses.science.psu.edu/stat510/node/60
-    y[start] ~ normal(
-            anchor[1],
-            sqrt(sigma_autoreg^2 / (1 - beta_autoreg^2)));
+    // First data point is drawn using long-term mean and sd
+    y[start] ~ normal(anchor[1], sigma_long_term);
+
+    // Subsequent data points depend on the year before: a + b*y
     y[(start+1):end] ~ normal(
             alpha_autoreg[2:N_train_years] + beta_autoreg * y[start:(end-1)],
             sigma_autoreg);
