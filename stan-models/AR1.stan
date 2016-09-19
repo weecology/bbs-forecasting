@@ -5,7 +5,7 @@ data {
   int<lower=0> N_test_years;
   int<lower=0> N_sites;
   int<lower=0> N_observers;
-  int<lower=0> N_env;
+  int<lower=0> N_env; // columns of the `env` matrix
 
   // Pointers to information about each observation
   int<lower=0> observation_index[N_observations];
@@ -28,57 +28,62 @@ data {
 parameters {
   // Core autoregressive model
   vector[N_train_years * N_sites] y;  // latent richness values
-  real<lower=0,upper=1> beta_autoreg; // If β≥1, variance is not finite
+  real<lower=0> sigma_diffusion;      // square root of diffusion rate
+  real<lower=0> sigma_within;         // asymptotic within-site sd, I think
 
-  // regression model for the "anchor" (mean for mean-reversion)
+  // linear regression model for the "anchor" (mean for mean-reversion)
   real alpha;
-  vector[N_sites] alpha_site;
+  vector[N_sites] alpha_site_raw;
   vector[N_env] beta_env;
+  real<lower=0> sigma_site;
 
   // observation model
   vector[N_observers] alpha_observer;
   real<lower=0> sigma_observer;
   real<lower=0> sigma_error;
-
-  // variance partitioning
-  real<lower=0> sigma_total_latent;
-  real<lower=0,upper=1> proportion_within;
 }
 transformed parameters {
-  real sigma_within;
-  real sigma_site;
-  real sigma_autoreg;
+  cov_matrix[N_train_years] Sigma;
+  matrix[N_train_years, N_train_years] L_Sigma;
 
-  // Partition the total variance into within and between site variation
-  sigma_within = sqrt(sigma_total_latent^2 * proportion_within);
-  sigma_site = sqrt(sigma_total_latent^2 * (1 - proportion_within));
+  for (i in 1:N_train_years) {
+    for (j in 1:N_train_years) {
+      // Covariance for a Weiner process ("standard Brownian motion"")
+      Sigma[i,j] = min(i, j) * sigma_diffusion;
+      if (i == j) {
+        // Add a negligible amount to the diagonal to make the matrix more
+        // invertible
+        Sigma[i,j] = Sigma[i,j] + 1E-8;
+      }
+    }
+  }
 
-  // Determine how much to jump from year to year based on amount of
-  // autocorrelation and the long-term variance of the AR(1) process.
-  // See https://onlinecourses.science.psu.edu/stat510/node/60
-  sigma_autoreg = sqrt(sigma_within^2 * (1 - beta_autoreg^2));
+  // We're going to use this covariance matrix once per site, so it's helpful
+  // to do the hard work associated with factorizing it here instead of inside
+  // the loop.
+  L_Sigma = cholesky_decompose(Sigma);
 }
 model {
   vector[num_elements(y)] env_effect;
 
   // priors on standard deviations
+  sigma_site ~ gamma(2, 0.1);
+  sigma_diffusion ~ gamma(2, 0.1);
+  sigma_within ~ gamma(2, 0.1);
   sigma_error ~ gamma(2, 0.1);
   sigma_observer ~ gamma(2, 0.1);
-  sigma_total_latent ~ gamma(2, 0.1);
 
-  // Proportion of latent variation for intra-site variation
-  proportion_within ~ beta(2, 2);
-
-  // priors for regression model
+  // priors for regression model on the environment
   alpha ~ normal(0, 2);
   beta_env ~ normal(0, 2);
 
-  // Autocorrelation
-  beta_autoreg ~ beta(2, 2);
-
   // random effects
-  alpha_site ~ normal(0, sigma_site);
   alpha_observer ~ normal(0, sigma_observer);
+  // site-level effects weren't mixing well, so I'm trying the non-centering
+  // approach described in the Stan manual (the "Matt trick"). The raw value
+  // gets multiplied by sigma_site, which is equivalent to using sigma_site
+  // as the sd here instead of 1.
+  alpha_site_raw ~ normal(0, 1);
 
   if (include_environment) {
     env_effect = env * beta_env;
@@ -87,30 +92,28 @@ model {
   }
 
   for (i in 1:N_sites) {
-    int start;
-    int end;
-    vector[N_train_years] alpha_autoreg;
-    vector[N_train_years] anchor;
+    int start; // where to find this site's first year
+    int end;   // where to find this site's last year
+    vector[N_train_years] y_start; // site's latent value in year 1
+    vector[N_train_years] anchor; // Mean for mean reversion
+    vector[N_train_years] alpha_autoreg; // intercept in linear autoregression
+    real alpha_site;
+
+    alpha_site = sigma_site * alpha_site_raw[i];
 
     end = i * N_train_years;
     start = end - N_train_years + 1;
 
     // linear mixed model for long-term site-level means, plus perturbations
     // from the environment.
-    anchor = alpha + alpha_site[i] + env_effect[start:end];
+    anchor = alpha + alpha_site + env_effect[start:end];
 
-    // Calculate autoregressive alpha intercept from the long-term mean and
-    // the autoregressive slope.
-    // See https://onlinecourses.science.psu.edu/stat510/node/60
-    alpha_autoreg = anchor * (1 - beta_autoreg);
-
-    // First data point is drawn using long-term mean and sd
-    y[start] ~ normal(anchor[1], sigma_within);
-
-    // Subsequent data points depend on the year before: a + b*y
-    y[(start+1):end] ~ normal(
-            alpha_autoreg[2:N_train_years] + beta_autoreg * y[start:(end-1)],
-            sigma_autoreg);
+    // standard brownian motion (infinite asymptotic variance).
+    // The mean for this component is just wherever the site started (y[start]).
+    y_start = rep_vector(y[start], N_train_years);
+    y[start:end] ~ multi_normal_cholesky(y_start, L_Sigma);
+    // Mean-reversion to the anchor point
+    y[start:end] ~ normal(anchor, sigma_within);
   }
 
   // Observation error; observed value is centered on y + observer effects
@@ -119,43 +122,43 @@ model {
     sigma_error
   );
 }
-generated quantities {
-  vector[N_sites * N_test_years] future_anchor;
-  vector[N_sites * N_test_years] future_alpha_autoreg;
-  vector[N_sites * N_test_years] future_y;
-  vector[N_sites * N_test_years] future_observed;
-
-  future_anchor = alpha + alpha_site[future_site_index];
-  if (include_environment){
-    future_anchor = future_anchor + future_env * beta_env;
-  }
-  future_alpha_autoreg = future_anchor * (1 - beta_autoreg);
-
-  for (i in 1:num_elements(future_anchor)) {
-    real future_mu;
-    real previous_y;
-    real observer_effect;
-
-    if (i % N_test_years == 1) {
-      // Grab the final observation from this site
-      previous_y = y[future_site_index[i] * N_train_years];
-    } else{
-      // Grab the value of y that was predicted for last year
-      previous_y = future_y[i - 1];
-    }
-
-    future_mu = future_alpha_autoreg[i] + beta_autoreg * previous_y;
-    future_y[i] = normal_rng(future_mu, sigma_autoreg);
-
-    // Add the effects of known observers; if the observer wasn't in the
-    // training set, then draw a random value for their observer effect.
-    if(future_observer_index[i] != 0){
-      observer_effect = alpha_observer[future_observer_index[i]];
-    } else{
-      observer_effect = normal_rng(0, sigma_observer);
-    }
-
-    // Add the observer's bias and the observation noise
-    future_observed[i] = normal_rng(future_y[i] + observer_effect, sigma_error);
-  }
-}
+// generated quantities {
+//   vector[N_sites * N_test_years] future_anchor;
+//   vector[N_sites * N_test_years] future_alpha_autoreg;
+//   vector[N_sites * N_test_years] future_y;
+//   vector[N_sites * N_test_years] future_observed;
+//
+//   future_anchor = alpha + sigma_site * alpha_site_raw[future_site_index];
+//   if (include_environment){
+//     future_anchor = future_anchor + future_env * beta_env;
+//   }
+//   future_alpha_autoreg = future_anchor * (1 - beta_autoreg);
+//
+//   for (i in 1:num_elements(future_anchor)) {
+//     real future_mu;
+//     real previous_y;
+//     real observer_effect;
+//
+//     if (i % N_test_years == 1) {
+//       // Grab the final y value from this site's training years
+//       previous_y = y[future_site_index[i] * N_train_years];
+//     } else{
+//       // Grab the value of y that was predicted for last year
+//       previous_y = future_y[i - 1];
+//     }
+//
+//     future_mu = future_alpha_autoreg[i] + beta_autoreg * previous_y;
+//     future_y[i] = normal_rng(future_mu, sigma_autoreg);
+//
+//     // Add the effects of known observers; if the observer wasn't in the
+//     // training set, then draw a random value for their observer effect.
+//     if(future_observer_index[i] != 0){
+//       observer_effect = alpha_observer[future_observer_index[i]];
+//     } else{
+//       observer_effect = normal_rng(0, sigma_observer);
+//     }
+//
+//     // Add the observer's bias and the observation noise
+//     future_observed[i] = normal_rng(future_y[i] + observer_effect, sigma_error);
+//   }
+// }
