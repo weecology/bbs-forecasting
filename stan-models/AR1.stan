@@ -126,7 +126,7 @@ generated quantities {
     real observer_effect;
 
     if (i % N_test_years == 1) {
-      // Grab the final observation from this site
+      // First test year: grab the final observation from this site
       previous_y = y[future_site_index[i] * N_train_years];
     } else{
       // Grab the value of y that was predicted for last year

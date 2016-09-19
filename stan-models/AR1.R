@@ -162,51 +162,48 @@ point_data = raw %>%
 point_data %>%
   lines(richness ~ year, data = ., col = 2, lwd = 2)
 points(richness ~ year, data = point_data,
-       col = 2 + as.integer(observer_id), pch = 16)
+       col = 2 + as.integer(point_data$observer_id), pch = 16)
 matlines(seq(last_training_year + 1, end_yr), t(apply(unscale(future_predicted[,,k]), 2, quantile, c(.025, .5, .975))), col = "purple", lty = 1, lwd = 2)
 abline(v = last_training_year + 0.5, lty = 2)
 
 # evaluation --------------------------------------------------------------
+testing_observations$site_index = as.integer(factor(testing_observations$site_id))
 
 
-point_estimates = reshape2::melt(apply(unscale(future_predicted), 2:3, mean),
-                                 varnames = c("year", "site_index"))
 
-point_estimates$year = point_estimates$year + last_training_year
+f = function(g, ...){
+  apply(unscale(extracted$future_observed), 2, g, ...)
+}
 
-raw$site_index = as.integer(factor(raw$site_id))
+results = data.frame(
+  mean = f(mean),
+  lower = f(quantile, .025),
+  upper = f(quantile, .975),
+  site_index = data$future_site_index,
+  year = seq(last_training_year + 1, end_yr)
+) %>%
+  right_join(testing_observations, c("site_index", "year")) %>%
+  mutate(diff = richness - mean, in_ci = richness > lower & richness < upper) %>%
+  arrange(site_id, year) %>%
+  mutate(quantile = rowMeans(t(unscale(extracted$future_observed)) > testing_observations$richness))
 
-point_estimates = right_join(
-  point_estimates,
-  select(filter(raw, year > last_training_year), site_index, year, richness)
-)
-
-point_estimates$diff = point_estimates$value - point_estimates$richness
 
 
-# RMSE
-sqrt(mean(diffs^2, na.rm = TRUE))
 
-# Proportion outside the confidence interval (should each be close to 0.025)
-mean(testing_observations < lower_CIs, na.rm = TRUE) # below lower
-mean(testing_observations > upper_CIs, na.rm = TRUE) # above upper
+ggplot(NULL) +
+  geom_violin(aes(x = results$year, y = abs(results$diff), group = factor(results$year))) +
+  geom_smooth(aes(x = results$year, y = abs(results$diff)), se = FALSE)
 
-# Proportion of observations that were greater than predicted
-quantiles = sapply(
-  1:ncol(testing_observations),
-  function(i){
-    rowMeans(
-      testing_observations[[i]] > unscale(t(future_observed[,,i])),
-      na.rm = TRUE
-    )
-  }
-)
+ggplot(NULL, aes(results$year, as.integer(results$in_ci))) +
+  geom_smooth(formula = y ~ x, method = "glm", method.args = list(family = binomial)) +
+  coord_cartesian(ylim = c(.75, 1), expand = FALSE)
+
 
 # Observed versus nominal quantiles (should be on the 1:1 line)
 plot(
   seq(0, 1, length = 101),
   sapply(seq(0, 1, length = 101),
-         function(x) mean(quantiles < x, na.rm = TRUE)),
+         function(x) mean(results$quantile < x, na.rm = TRUE)),
   type = "l",
   col = "purple",
   xlab = "nominal quantiles",
