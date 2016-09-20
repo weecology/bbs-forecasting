@@ -8,7 +8,7 @@ library(rstan)
 devtools::load_all()
 
 # MCMC chain count. Set to 4 for real analyses, set to 1 for quick ones
-chains = 4
+chains = 8
 
 # Z-transform x based on the mean and sd of some other vector
 rescale = function(x, baseline) {
@@ -127,8 +127,16 @@ cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
 
 
 samples = sampling(model, data = data, control = list(adapt_delta = 0.9),
-                 cores = cores, chains = chains, refresh = 10, verbose = TRUE)
-saveRDS(samples, file = "stan-models/samples.RDS")
+                 cores = cores, chains = chains, refresh = 10, verbose = TRUE,
+                 sample_file = "sample", diagnostic_file = "diagnostic",
+                 iter = 5000, thin = 2)
+
+# Compress the stan output, delete the uncompressed versions
+system("tar -czf samples.tgz USA*.grd")
+file.remove(dir("sample_[0-9]+.csv"))
+
+# Save the model's predictions separately for easy loading
+saveRDS(extract(samples, "future_observed")[[1]], "predictions.rds")
 
 # extract model estimates -------------------------------------------------
 unscale = function(data){
@@ -194,9 +202,11 @@ ggplot(NULL) +
   geom_violin(aes(x = results$year, y = abs(results$diff), group = factor(results$year))) +
   geom_smooth(aes(x = results$year, y = abs(results$diff)), se = FALSE)
 
-ggplot(NULL, aes(results$year, as.integer(results$in_ci))) +
-  geom_smooth(formula = y ~ x, method = "glm", method.args = list(family = binomial)) +
-  coord_cartesian(ylim = c(.75, 1), expand = FALSE)
+plot(
+  results %>% group_by(year) %>% summarize(coverage = mean(in_ci, na.rm = TRUE)),
+  type = "o"
+)
+abline(h = 0.95)
 
 
 # Observed versus nominal quantiles (should be on the 1:1 line)
