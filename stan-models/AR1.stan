@@ -52,18 +52,21 @@ transformed parameters {
 model {
   vector[num_elements(y)] env_effect;
 
-  // priors on standard deviations
-  sigma_error ~ gamma(2, 0.1);
-  sigma_site ~ gamma(2, 0.1);
-  sigma_observer ~ gamma(2, 0.1);
-  sigma_long_term ~ gamma(2, 0.1);
+  // priors on standard deviations:
+  // All probably between 0 and 1 because they must be non-negative and
+  // the response variable is scaled to sd==1.
+  sigma_error ~ normal(0.5, 0.25);
+  sigma_site ~ normal(0.5, 0.25);
+  sigma_observer ~ normal(0.5, 0.25);
+  sigma_long_term ~ normal(0.5, 0.25);
 
   // priors for regression model
   alpha ~ normal(0, 2);
   beta_env ~ normal(0, 2);
 
-  // Autocorrelation
-  beta_autoreg ~ beta(2, 2);
+  // Autocorrelation: this prior is basically flat, but drops to 0
+  // at both ends.
+  beta_autoreg ~ beta(1.01, 1.01);
 
   // random effects
   alpha_site ~ normal(0, sigma_site);
