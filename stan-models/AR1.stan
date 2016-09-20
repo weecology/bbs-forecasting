@@ -113,7 +113,6 @@ model {
 }
 generated quantities {
   vector[N_sites * N_test_years] future_anchor;
-  vector[N_sites * N_test_years] future_alpha_autoreg;
   vector[N_sites * N_test_years] future_y;
   vector[N_sites * N_test_years] future_observed;
 
@@ -121,12 +120,14 @@ generated quantities {
   if (include_environment){
     future_anchor = future_anchor + future_env * beta_env;
   }
-  future_alpha_autoreg = future_anchor * (1 - beta_autoreg);
 
   for (i in 1:num_elements(future_anchor)) {
     real future_mu;
     real previous_y;
     real observer_effect;
+    real future_alpha_autoreg;
+
+    future_alpha_autoreg = future_anchor[i] * (1 - beta_autoreg);
 
     if (i % N_test_years == 1) {
       // First test year: grab the final observation from this site
@@ -136,7 +137,7 @@ generated quantities {
       previous_y = future_y[i - 1];
     }
 
-    future_mu = future_alpha_autoreg[i] + beta_autoreg * previous_y;
+    future_mu = future_alpha_autoreg + beta_autoreg * previous_y;
     future_y[i] = normal_rng(future_mu, sigma_autoreg);
 
     // Add the effects of known observers; if the observer wasn't in the
