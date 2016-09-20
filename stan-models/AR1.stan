@@ -53,12 +53,12 @@ model {
   vector[num_elements(y)] env_effect;
 
   // priors on standard deviations:
-  // All probably between 0 and 1 because they must be non-negative and
-  // the response variable is scaled to sd==1.
-  sigma_error ~ normal(0.5, 0.25);
-  sigma_site ~ normal(0.5, 0.25);
-  sigma_observer ~ normal(0.5, 0.25);
-  sigma_long_term ~ normal(0.5, 0.25);
+  // This prior puts most of the weight for the _variance_ between 0 and 1,
+  // with a peak around 0.5.
+  sigma_error ~ normal(0.7, 0.25);
+  sigma_site ~ normal(0.7, 0.25);
+  sigma_observer ~ normal(0.7, 0.25);
+  sigma_long_term ~ normal(0.7, 0.25);
 
   // priors for regression model
   alpha ~ normal(0, 2);
