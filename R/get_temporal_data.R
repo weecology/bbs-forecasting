@@ -9,7 +9,7 @@ get_time_zones = function() {
 
 #' @importFrom rgeos gDistance
 #' @importFrom sp proj4string SpatialPoints CRS over
-add_time_zones = function(locations){
+add_time_zones = function(locations, plot_tz = FALSE){
   boundaries = get_time_zones()
   time_zone = over(
     SpatialPoints(locations[, c("long", "lat")],
@@ -38,6 +38,22 @@ add_time_zones = function(locations){
 
   for (i in 1:nrow(missing_locations)) {
     out[out$site_id == missing_locations$site_id[i], "time_zone"] = missing_tzs[i]
+  }
+
+
+  # Visualize the time zones to make sure that the imputed ones match their
+  # neighbors
+  if (plot_tz) {
+    out %>%
+      distinct(long, lat, time_zone, site_id) %>%
+      mutate(missing = site_id %in% missing_locations$site_id) %>%
+      plot(
+        lat ~ long,
+        data = .,
+        col = factor(time_zone),
+        cex = ifelse(missing, 2, .7),
+        pch = as.integer(factor(time_zone)) %% 10,
+        lwd = ifelse(missing, 3, .25))
   }
 
 
