@@ -172,22 +172,19 @@ matlines(seq(last_training_year + 1, end_yr), t(apply(unscale(future_predicted[,
 abline(v = last_training_year + 0.5, lty = 2)
 
 # evaluation --------------------------------------------------------------
-testing_observations$site_index = as.integer(factor(testing_observations$site_id))
 
-
-
-f = function(g, ...){
-  apply(unscale(extracted$future_observed), 2, g, ...)
+summarize_predictions = function(fun, ...){
+  apply(unscale(extracted$future_observed), 2, fun, ...)
 }
 
 results = data.frame(
-  mean = f(mean),
-  lower = f(quantile, .025),
-  upper = f(quantile, .975),
-  site_index = data$future_site_index,
+  mean = summarize_predictions(mean),
+  lower = summarize_predictions(quantile, .025),
+  upper = summarize_predictions(quantile, .975),
+  site_id = as.integer(levels(factor(raw$site_id))[data$future_site_index]),
   year = seq(last_training_year + 1, end_yr)
 ) %>%
-  right_join(testing_observations, c("site_index", "year")) %>%
+  right_join(testing_observations, c("site_id", "year")) %>%
   mutate(diff = richness - mean, in_ci = richness > lower & richness < upper) %>%
   arrange(site_id, year) %>%
   mutate(quantile = rowMeans(t(unscale(extracted$future_observed)) > testing_observations$richness))
