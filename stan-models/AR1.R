@@ -223,24 +223,26 @@ plot(
 )
 abline(0, 1, col = "#00000050")
 
+
+
 # save output -------------------------------------------------------------
 out = list(
   pt_est = data_frame(
-    site_id = colnames(arima_data)[c(col(predicted_means))],
+    site_id = results$site_id,
     model = "AR1SS",
-    timeperiod = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
-    obs = unlist(testing_observations),
-    pt_fcast = c(predicted_means)
+    timeperiod = results$year,
+    obs = results$richness,
+    pt_fcast = results$mean
   ),
   intervals = data_frame(
-    site_id = colnames(arima_data)[c(col(predicted_means))],
+    site_id = results$site_id,
     model = "AR1SS",
-    timeperiod = seq(last_training_year + 1, end_yr)[c(row(predicted_means))],
-    obs = unlist(testing_observations),
-    pt_fcast = c(predicted_means),
-    lo = c(lower_CIs),
-    hi = c(upper_CIs)
+    timeperiod = results$year,
+    obs = results$richness,
+    pt_fcast = results$mean,
+    lo = results$lower,
+    hi = results$upper
   ),
-  quantiles = c(quantiles)
+  quantiles = results$quantile
 )
 saveRDS(out, "stan-models/output.RDS")
