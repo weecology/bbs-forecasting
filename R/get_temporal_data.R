@@ -102,6 +102,9 @@ get_temporal_data = function(start_yr, end_yr, min_num_yrs){
     mutate(min_post_dawn = as.double(date_time - time, units = "mins")) %>%
     select(-day_frac, -time, -date_time)
 
+  # Sites to inspect
+  na.omit(out[out$min_post_dawn < -30, ]) %>% group_by(site_id, lat, long) %>% summarize(n = n()) %>% filter(n>2) %>% as.data.frame()
+
   # Site 35039 is off by almost exactly an hour 22 times & is right by an
   # intra-state time zone change.
   is_hour_early = out$site_id == 35039 & out$min_post_dawn < -30
