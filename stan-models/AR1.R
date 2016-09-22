@@ -128,12 +128,9 @@ cores = ifelse(parallel::detectCores(logical = FALSE) <= 2,
 
 samples = sampling(model, data = data, control = list(adapt_delta = 0.9),
                  cores = cores, chains = chains, refresh = 10, verbose = TRUE,
-                 sample_file = "saved_sample", diagnostic_file = "diagnostic",
                  iter = 5000, thin = 2)
 
-# Compress the stan output, delete the uncompressed versions
-system("tar -czf tar -czf saved_sample*")
-file.remove(dir("saved_sample[0-9]+.csv"))
+saveRDS(samples, "saved_samples.rds")
 
 # Save the model's predictions separately for easy loading
 saveRDS(extract(samples, "future_observed")[[1]], "predictions.rds")
