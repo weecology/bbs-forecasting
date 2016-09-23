@@ -265,7 +265,7 @@ collapse_to_richness = function(df){
   
   # Code below assumes that NA abundance always means no observations for the
   # whole transect
-  stopifnot(all(is.na(x$abundance) == is.na(x$species_id)))
+  stopifnot(all(is.na(df$abundance) == is.na(df$species_id)))
   
   df %>%
     group_by(site_id, year) %>%
