@@ -1,25 +1,25 @@
 #' Install a particular dataset via Ecodata Retriever
-#' 
+#'
 #' @param dataset name
 install_dataset <- function(dataset){
   # Install a dataset using the ecoretriever
-
+  
   #ecoretriever currently not working in RStudio, issue filed
   ecoretriever::install(dataset, 'sqlite', db_file='./data/bbsforecasting.sqlite')
 }
 
 #' Single wrapper for all database actions
-#' 
+#'
 #' We require only a few simple sql methods. They are 1. Writing an entire dataframe
-#' directly to a database as it's own table, 2. Reading the same tables as dataframes, 
-#' possibly with some modification using SQL statements, 3. Checking to see if a 
+#' directly to a database as it's own table, 2. Reading the same tables as dataframes,
+#' possibly with some modification using SQL statements, 3. Checking to see if a
 #' table exists. If a particular table does it exists it's assumed it has all data
-#' required. 
-#' 
+#' required.
+#'
 #' read returns a dataframe
 #' write returns nothing
 #' check returns boolean
-#' 
+#'
 #' @param action Action to perform in db call. Either read, write, or check
 #' @param db name of database. A file if using sqlite
 #' @param sql_query SQL statement if action is read
@@ -28,7 +28,7 @@ install_dataset <- function(dataset){
 #' @param table_to_check Table name to check if it exists for when action is check
 #' @importFrom dplyr copy_to src_sqlite src_tbls collect tbl
 
-db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL, 
+db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
                    df=NULL, new_table_name=NULL, table_to_check=NULL){
   
   if(!dir.exists("data")){dir.create("data")}
@@ -50,7 +50,7 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
     stop(paste0('DB action: ',action,' not found'))
   }
   
-  #Close the connection before returning results. 
+  #Close the connection before returning results.
   rm(con)
   return(to_return)
 }
@@ -68,11 +68,11 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
 #' @importFrom dplyr "%>%" inner_join do rowwise select filter group_by ungroup full_join n_distinct semi_join left_join
 filter_species <- function(df){
   species_table = get_species_data()
-
+  
   is_unidentified = function(names) {
     grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
   }
-
+  
   valid_taxa = species_table %>%
     filter(!is_unidentified(english_common_name)) %>%
     filter(!is_unidentified(spanish_common_name)) %>%
@@ -81,40 +81,40 @@ filter_species <- function(df){
     filter(aou < 3900 | aou > 3910) %>%
     filter(aou < 4160 | aou > 4210) %>%
     filter(aou != 7010)
-
+  
   filter(df, species_id %in% valid_taxa$aou)
-  }
+}
 
 #' Combine subspecies into their common species
 #'
 #' @importFrom dplyr "%>%" filter slice group_by summarise ungroup
 #' @importFrom magrittr extract2
 combine_subspecies = function(df){
-
+  
   species_table = get_species_data()
-
+  
   # Subspecies have two spaces separated by non-spaces
   subspecies_names = species_table %>%
     filter(species_table$aou %in% unique(df$species_id)) %>%
     magrittr::extract2("spanish_common_name") %>%
     grep(" [^ ]+ ", ., value = TRUE)
-
+  
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
     extract2("aou")
-
+  
   # Drop the third word of the subspecies name to get the species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(gsub(" [^ ]+$", "", subspecies_names),
                 species_table$spanish_common_name)) %>%
     extract2("aou")
-
+  
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
     df$species_id[df$species_id == subspecies_ids[i]] = new_subspecies_ids[i]
   }
-
+  
   df %>%
     group_by(site_id, year, species_id, lat, long) %>%
     summarise(abundance = sum(abundance)) %>%
@@ -133,13 +133,13 @@ get_species_data = function() {
 }
 
 #' Get the primary bbs data file which compiles the counts, route info, and weather
-#' data. Install it via ecodataretriever if needed. 
-#' 
+#' data. Install it via ecodataretriever if needed.
+#'
 #' @export
 #' @importFrom dplyr "%>%" group_by
 #' @importFrom readr read_csv
 get_bbs_data <- function(){
-
+  
   data_path <- paste('./data/', 'bbs', '_data.csv', sep="")
   if (file.exists(data_path)){
     return(read_csv(data_path))
@@ -149,26 +149,26 @@ get_bbs_data <- function(){
     if (!db_engine(action='check', table_to_check = 'bbs_counts')){
       install_dataset('bbs')
     }
-
+    
     #Primary BBS dataframe
-    bbs_query ="SELECT 
-                  (counts.statenum*1000) + counts.Route AS site_id,
-                  Latitude AS lat,
-                  Longitude AS long,
-                  Aou AS species_id,
-                  counts.Year AS year, 
-                  speciestotal AS abundance
-                FROM 
-                  bbs_counts AS counts
-                  JOIN bbs_weather 
-                    ON counts.statenum=bbs_weather.statenum
-                    AND counts.route=bbs_weather.route
-                    AND counts.rpid=bbs_weather.rpid
-                    AND counts.year=bbs_weather.year
-                  JOIN bbs_routes
-                    ON counts.statenum=bbs_routes.statenum
-                    AND counts.route=bbs_routes.route
-                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
+    bbs_query ="SELECT
+    (counts.statenum*1000) + counts.Route AS site_id,
+    Latitude AS lat,
+    Longitude AS long,
+    Aou AS species_id,
+    counts.Year AS year,
+    speciestotal AS abundance
+    FROM
+    bbs_counts AS counts
+    JOIN bbs_weather
+    ON counts.statenum=bbs_weather.statenum
+    AND counts.route=bbs_weather.route
+    AND counts.rpid=bbs_weather.rpid
+    AND counts.year=bbs_weather.year
+    JOIN bbs_routes
+    ON counts.statenum=bbs_routes.statenum
+    AND counts.route=bbs_routes.route
+    WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
     
     bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
@@ -189,7 +189,7 @@ get_env_data <- function(){
   bioclim_data <- get_bioclim_data()
   elev_data <- get_elev_data()
   ndvi_data_raw <- get_bbs_gimms_ndvi()
-
+  
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
@@ -207,7 +207,7 @@ get_env_data <- function(){
     ungroup()
   ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
   ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
-
+  
   env_data <- full_join(bioclim_data, ndvi_data, by = c('site_id', 'year'))
   env_data <- full_join(env_data, elev_data, by = c('site_id'))
 }
@@ -227,20 +227,21 @@ get_env_data <- function(){
 #' @export
 #' @importFrom dplyr "%>%" filter select
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data()
-  pop_ts_env_data <- bbs_data %>%
+  output = get_bbs_data() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    complete(site_id, year) %>% 
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
     group_by(site_id) %>%
     #Filter min_num_years again after accounting for missing environmental data
     filter(length(unique(year)) >= min_num_yrs) %>%
-    ungroup() %>%
-    select(-lat, -long)
+    ungroup()
+  
+  add_observers(output)
 }
 
 #' Get BBS richness time-series data with environmental variables. Will
-#' fill in NA values for richness in missing years as long as a site 
+#' fill in NA values for richness in missing years as long as a site
 #' meets the year requirments and has environmental data.
 #'
 #' @param start_yr num first year of time-series
@@ -252,31 +253,29 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
 #' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data()
-  
-  site_lat_long = bbs_data %>%
-    select(site_id, lat, long) %>%
-    distinct()
-  
-  richness_data <- bbs_data %>%
-    group_by(site_id, year) %>%
-    summarise(richness = n_distinct(species_id)) %>%
-    ungroup() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs) %>%
-    complete(site_id, year) %>%
-    left_join(site_lat_long, by='site_id')
-
-  #Filter min_num_years again after accounting for missing environmental data
-  richness_ts_env_data <- richness_data %>%
-    add_env_data() %>%
-    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
-    group_by(site_id) %>%
-    filter(length(unique(year)) >= min_num_yrs) %>%
-    ungroup()
-  
-  richness_ts_env_data=richness_ts_env_data %>%
-    add_observers()
+  get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+    collapse_to_richness()
 }
+
+#' Replace species-level information with richness values, eliminating redundant rows
+#' @param df a data frame, such as produced by get_bbs_data or get_pop_ts_env_data
+#' @export
+#' @importFrom dplyr n
+collapse_to_richness = function(df){
+  
+  # Code below assumes that NA abundance always means no observations for the
+  # whole transect
+  stopifnot(all(is.na(df$abundance) == is.na(df$species_id)))
+  
+  df %>%
+    group_by(site_id, year) %>%
+    mutate(richness = sum(abundance > 0)) %>%
+    select(-species_id, -abundance) %>% 
+    ungroup() %>%
+    distinct() %>% 
+    right_join(distinct(select(df, -species_id, -abundance)))
+}
+
 
 #' Add environmental data to BBS data frame
 #'
@@ -296,13 +295,13 @@ add_env_data <- function(bbs_data){
 #' @importFrom dplyr %>% left_join
 add_observers=function(bbs_data){
   observer_query='SELECT
-                    bbs_weather.obsn as observer_id,
-                    year,
-                    (statenum*1000)+route as site_id
-                  FROM 
-                    bbs_weather
-                  WHERE 
-                    runtype=1 AND rpid=101'
+  bbs_weather.obsn as observer_id,
+  year,
+  (statenum*1000)+route as site_id
+  FROM
+  bbs_weather
+  WHERE
+  runtype=1 AND rpid=101'
   
   observer_info=db_engine(action = 'read', sql_query = observer_query)
   
@@ -362,7 +361,7 @@ get_filtered_ts <- function(df, min_ts_length){
 #' A version of the original data frame only including years that
 #' are in a contiguous series with stopyear.
 get_modern_contig_ts <- function(df, stopyear) {
-
+  
 }
 
 #' Add zeros to population dynamics data
@@ -405,16 +404,49 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
   get_train_data <- function(df, colnames) as.matrix(df[, colnames])[1:(nrow(df) - lag),]
   get_test_data <- function(df, colnames) as.matrix(df[, colnames])[(nrow(df) - lag + 1):nrow(df),]
   tsmodel_forecasts <- do(grouped_tsdata,
-     timeperiod = get_test_data(., timecol),
-     cast_naive = naive(get_train_data(., responsecol), lag, level = pred_int_levels),
-     cast_avg = meanf(get_train_data(., responsecol), lag, level = pred_int_levels),
-     cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag, level = pred_int_levels),
-     cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcols), seasonal = FALSE), xreg = get_test_data(., exogcols), level = pred_int_levels),
-     cast_ets = forecast(ets(get_train_data(., responsecol)), lag, level = pred_int_levels),
-     test_set = get_test_data(., responsecol)
+                          timeperiod = get_test_data(., timecol),
+                          cast_naive = naive(get_train_data(., responsecol), lag, level = pred_int_levels),
+                          cast_avg = meanf(get_train_data(., responsecol), lag, level = pred_int_levels),
+                          cast_arima = forecast(auto.arima(get_train_data(., responsecol), seasonal = FALSE), h = lag, level = pred_int_levels),
+                          cast_exog_arima = forecast(auto.arima(get_train_data(., responsecol), xreg = get_train_data(., exogcols), seasonal = FALSE), xreg = get_test_data(., exogcols), level = pred_int_levels),
+                          cast_ets = forecast(ets(get_train_data(., responsecol)), lag, level = pred_int_levels),
+                          test_set = get_test_data(., responsecol)
   )
   cleaned_ts_model_forecasts <- cleanup_ts_forecasts(tsmodel_forecasts)
   ts_fcasts <- restruct_ts_forecasts(cleaned_ts_model_forecasts)
+}
+
+#' Add point estimates for random effects associated with site_id and observer_id
+#' @param df a data.frame, as produced by \link{get_bbs_data}
+#' @param last_training_year the final year to include in the training set for
+#'        fitting the mixed model
+#' @importFrom lme4 lmer ranef
+add_ranefs = function(df, last_training_year) {
+  
+  if (is.null(df$observer_id)) {
+    df = add_observers(df)
+  }
+  
+  lmer_data = collapse_to_richness(df) %>% filter(year <= last_training_year)
+  
+  lmer_model = lmer(richness ~ (1|site_id) + (1|observer_id), 
+                    data = lmer_data)
+  ranefs = ranef(lmer_model)
+  
+  # Save the point estimates for the random effects
+  for (i in 1:length(ranefs)) {
+    # This code will need to be modified if random effects aren't simple
+    stopifnot(ncol(ranefs[[i]]) == 1)
+    
+    to_join = cbind(row.names(ranefs[[i]]), ranefs[[i]])
+    colnames(to_join)[1] = names(ranefs)[[i]]
+    colnames(to_join)[2] = gsub("_[^_]+$", "_effect", names(ranefs)[[i]])
+    to_join[[1]] = as.integer(as.character(to_join[[1]]))
+    
+    df = left_join(df, to_join, by = colnames(to_join)[1])
+  }
+  
+  df
 }
 
 #' Cleanup time-series forecast output
@@ -430,40 +462,40 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
 #'
 #' @return data.frame
 cleanup_ts_forecasts <- function(tsmodel_forecasts){
-  column_names <- 
-  tsmodel_forecasts %>%
+  column_names <-
+    tsmodel_forecasts %>%
     do(
-       {timeperiod <- as.data.frame(.$timeperiod)
-        colnames(timeperiod) <- c('timeperiod')
-        naive <- as.data.frame(.$cast_naive)
-        naive <- cbind(timeperiod, naive)
-        naive$model <- 'naive'
-        naive$site_id <- .$site
-        naive$obs <- .$test_set
-        avg <- as.data.frame(.$cast_avg)
-        avg <-cbind(timeperiod, avg)
-        avg$model <- 'avg'
-        avg$site_id <- .$site
-        avg$obs <- .$test_set
-        arima <- as.data.frame(.$cast_arima)
-        arima <- cbind(timeperiod, arima)
-        arima$model <- 'arima'
-        arima$site_id <- .$site
-        arima$obs <- .$test_set
-        exog_arima <- as.data.frame(.$cast_exog_arima)
-        exog_arima <- cbind(timeperiod, exog_arima)
-        exog_arima$model <- 'exog_arima'
-        exog_arima$site_id <- .$site
-        exog_arima$obs <- .$test_set
-	ets <- as.data.frame(.$cast_ets)
-        ets <- cbind(timeperiod, ets)
-        ets$model <- 'ets'
-        ets$site_id <- .$site
-        ets$obs <- .$test_set
-        df <- rbind(naive, avg, arima, exog_arima, ets)
-        df %>% dplyr::select(site_id, model, timeperiod, obs, everything())
-       }
-      )
+      {timeperiod <- as.data.frame(.$timeperiod)
+      colnames(timeperiod) <- c('timeperiod')
+      naive <- as.data.frame(.$cast_naive)
+      naive <- cbind(timeperiod, naive)
+      naive$model <- 'naive'
+      naive$site_id <- .$site
+      naive$obs <- .$test_set
+      avg <- as.data.frame(.$cast_avg)
+      avg <-cbind(timeperiod, avg)
+      avg$model <- 'avg'
+      avg$site_id <- .$site
+      avg$obs <- .$test_set
+      arima <- as.data.frame(.$cast_arima)
+      arima <- cbind(timeperiod, arima)
+      arima$model <- 'arima'
+      arima$site_id <- .$site
+      arima$obs <- .$test_set
+      exog_arima <- as.data.frame(.$cast_exog_arima)
+      exog_arima <- cbind(timeperiod, exog_arima)
+      exog_arima$model <- 'exog_arima'
+      exog_arima$site_id <- .$site
+      exog_arima$obs <- .$test_set
+      ets <- as.data.frame(.$cast_ets)
+      ets <- cbind(timeperiod, ets)
+      ets$model <- 'ets'
+      ets$site_id <- .$site
+      ets$obs <- .$test_set
+      df <- rbind(naive, avg, arima, exog_arima, ets)
+      df %>% dplyr::select(site_id, model, timeperiod, obs, everything())
+      }
+    )
 }
 
 #' Split time-series forecasts into point forecast and prediction interval dfs
@@ -510,7 +542,7 @@ viz_forecast <- function(data, forecasts, focal_site){
   forecasts_focal <- filter(forecasts, site_id == focal_site)
   train_set <- filter(data, site_id == focal_site, year < min(forecasts$timeperiod))
   test_set <- filter(data, site_id == focal_site, year >= min(forecasts$timeperiod))
-
+  
   examp_fcasts <- ggplot(train_set, aes(year, richness)) +
     geom_point(size = 2) +
     geom_line(size = 0.75) +
@@ -521,6 +553,6 @@ viz_forecast <- function(data, forecasts, focal_site){
               size = 1) +
     scale_color_brewer(palette = "Set3") +
     labs(x = "Year", y = "Diversity")
-
+  
   examp_fcasts
 }
