@@ -229,6 +229,7 @@ get_env_data <- function(){
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
   output = get_bbs_data() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    complete(site_id, year) %>% 
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
     group_by(site_id) %>%
@@ -265,7 +266,8 @@ collapse_to_richness = function(df){
     group_by(site_id, year) %>%
     mutate(richness = n()) %>%
     ungroup() %>%
-    distinct()
+    distinct() %>% 
+    right_join(distinct(select(df, -species_id, -abundance)))
 }
 
 
