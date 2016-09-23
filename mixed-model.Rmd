@@ -1,0 +1,99 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r, message = FALSE, warning = FALSE, results = "hide"}
+devtools::load_all()
+library(tidyverse)
+library(ggplot2)
+start_yr = 1982
+end_yr = 2013
+min_num_yrs = 25
+last_train_year = 2003
+d = get_richness_ts_env_data(start_yr, end_yr, min_num_yrs) %>% 
+  filter(!is.na(observer_id))
+train = d[d$year <= last_train_year, ]
+test = d[d$year > last_train_year, ]
+```
+
+Partition the variance among site effects, observer effects, annual effects,
+and residuals. 
+
+```{r}
+library(lme4)
+model = lmer(richness ~ (1|site_id) + (1|observer_id), data = train)
+summary(model)
+```
+
+Predict forward:
+
+```{r}
+predictions = test %>%
+  mutate(predicted = predict(model, test, allow.new.levels = TRUE)) %>% 
+  mutate(diff = richness - predicted)
+
+ 
+predictions %>% 
+  group_by(year) %>% 
+  summarize(mean(diff^2)) %>% 
+  plot(ylab = "Mean Squared Errorr", type = "l", ylim = c(0, 50))
+
+predictions %>% 
+  filter(observer_id %in% train$observer_id) %>% 
+  group_by(year) %>% 
+  summarize(mean(diff^2)) %>% 
+  lines(col = 2)
+legend("topleft", 
+       legend = c("all observations", "known observers only", "training observations"), 
+       lty = c(1, 1, 2), col = c(1, 2, 1))
+
+abline(h = var(resid(model)), lty = 2)
+```
+
+
+
+
+## Can we do better?
+
+None of the predictor variables correlate with the residuals, suggesting that 
+their explanatory effect is mainly *among* sites, rather than in the residuals
+for individual sites.
+
+```{r}
+stopifnot(nrow(train) == length(resid(model)))
+round(sort(cor(resid(model), train)[1, colnames(train) != "richness"]^2), 4)
+```
+
+
+There also isn't much in the way of consistent autocorrelation in the residuals
+(correlation of 0.2 explains 4% of the residual variance [100 * 0.2^2], which 
+isn't tremendously useful even if it is statistically significant---especially
+since the residual variance is only a small portion of the total variance anyway).
+
+```{r}
+resid_matrix = data.frame(site_id = train$site_id, 
+                          year = train$year, 
+                          residuals = resid(model)) %>% 
+  complete(site_id, year) %>% 
+  arrange(site_id, year) %>% 
+  magrittr::extract2("residuals") %>% 
+  matrix(nrow = n_distinct(train$year))
+
+autocorr_matrix = resid_matrix %>% 
+  t() %>% 
+  cor(use = "pairwise.complete.obs")
+
+plot_upper = function(x, title){
+  reshape2::melt(x * upper.tri(x)) %>% 
+    ggplot(aes(x = Var1, y = Var2, fill = value)) + 
+    geom_tile() +
+    scale_fill_gradient2() +
+    ggtitle(title)
+}
+
+plot_upper(autocorr_matrix, "autocorrelation")
+
+summary(lm(resid_matrix[4, ] ~ t(resid_matrix[1:3, ])))
+
+```
