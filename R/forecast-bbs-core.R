@@ -269,7 +269,7 @@ collapse_to_richness = function(df){
   
   df %>%
     group_by(site_id, year) %>%
-    mutate(richness = sum(abundance)) %>%
+    mutate(richness = sum(abundance > 0)) %>%
     select(-species_id, -abundance) %>% 
     ungroup() %>%
     distinct() %>% 
