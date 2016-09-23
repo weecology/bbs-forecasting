@@ -408,6 +408,39 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
   ts_fcasts <- restruct_ts_forecasts(cleaned_ts_model_forecasts)
 }
 
+#' Add point estimates for random effects associated with site_id and observer_id
+#' @param df a data.frame, as produced by \link{get_bbs_data}
+#' @param last_training_year the final year to include in the training set for
+#'        fitting the mixed model
+#' @importFrom lme4 lmer ranef
+add_ranefs = function(df, last_training_year) {
+  
+  if (is.null(df$observer_id)) {
+    df = add_observers(df)
+  }
+  
+  lmer_data = collapse_to_richness(df) %>% filter(year <= last_training_year)
+  
+  lmer_model = lmer(richness ~ (1|site_id) + (1|observer_id), 
+                    data = lmer_data)
+  ranefs = ranef(lmer_model)
+  
+  # Save the point estimates for the random effects
+  for (i in 1:length(ranefs)) {
+    # This code will need to be modified if random effects aren't simple
+    stopifnot(ncol(ranefs[[i]]) == 1)
+    
+    to_join = cbind(row.names(ranefs[[i]]), ranefs[[i]])
+    colnames(to_join)[1] = names(ranefs)[[i]]
+    colnames(to_join)[2] = gsub("_[^_]+$", "_effect", names(ranefs)[[i]])
+    to_join[[1]] = as.integer(as.character(to_join[[1]]))
+    
+    df = left_join(df, to_join, by = colnames(to_join)[1])
+  }
+  
+  df
+}
+
 #' Cleanup time-series forecast output
 #'
 #' Transforms a data frame with one row per for each site and columns
