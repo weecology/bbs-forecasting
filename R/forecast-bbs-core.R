@@ -256,6 +256,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
     collapse_to_richness()
 }
 
+#' Replace species-level information with richness values, eliminating redundant rows
 #' @param df a data frame, such as produced by get_bbs_data or get_pop_ts_env_data
 #' @export
 #' @importFrom dplyr n

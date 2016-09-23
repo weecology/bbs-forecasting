@@ -2,10 +2,14 @@
 % Please edit documentation in R/forecast-bbs-core.R
 \name{collapse_to_richness}
 \alias{collapse_to_richness}
+\title{Replace species-level information with richness values, eliminating redundant rows}
 \usage{
 collapse_to_richness(df)
 }
 \arguments{
 \item{df}{a data frame, such as produced by get_bbs_data or get_pop_ts_env_data}
+}
+\description{
+Replace species-level information with richness values, eliminating redundant rows
 }
 
