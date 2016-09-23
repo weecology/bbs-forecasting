@@ -22,8 +22,8 @@ db_engine(action, db = "./data/bbsforecasting.sqlite", sql_query = NULL,
 }
 \description{
 We require only a few simple sql methods. They are 1. Writing an entire dataframe
-directly to a database as it's own table, 2. Reading the same tables as dataframes, 
-possibly with some modification using SQL statements, 3. Checking to see if a 
+directly to a database as it's own table, 2. Reading the same tables as dataframes,
+possibly with some modification using SQL statements, 3. Checking to see if a
 table exists. If a particular table does it exists it's assumed it has all data
 required.
 }
