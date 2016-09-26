@@ -41,6 +41,8 @@ species_ids = unique(train$species_id)
 
 # Fitting/predicting ------------------------------------------------------
 fit_species = function(species_id){
+  cat(strsplit(date(), " ")[[1]][4], " fitting species", species_id, "\n")
+  
   xy = filter(train, species_id == species_id) %>% 
     select(site_id, year) %>% 
     mutate(present = 1) %>% 
