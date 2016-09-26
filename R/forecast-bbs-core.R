@@ -293,20 +293,26 @@ add_env_data <- function(bbs_data){
 #' Add observer ID's to data
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #' @importFrom dplyr %>% left_join
-add_observers=function(bbs_data){
-  observer_query='SELECT
-  bbs_weather.obsn as observer_id,
-  year,
-  (statenum*1000)+route as site_id
-  FROM
-  bbs_weather
-  WHERE
-  runtype=1 AND rpid=101'
-  
-  observer_info=db_engine(action = 'read', sql_query = observer_query)
-  
+add_observers = function(bbs_data) {
+  data_path = "data/bbs_observers.csv"
+  if (file.exists(data_path)) {
+    observer_info = read_csv(data_path)
+  } else {
+    observer_query = '
+    SELECT
+      bbs_weather.obsn as observer_id,
+      year,
+      (statenum*1000)+route as site_id
+    FROM
+      bbs_weather
+    WHERE
+      runtype=1 AND rpid=101'
+    
+    observer_info = db_engine(action = 'read', sql_query = observer_query)
+    write.csv(observer_info, file = data_path, row.names = FALSE, quote = FALSE)
+  }  
   bbs_data %>%
-    left_join(observer_info, by=c('site_id','year'))
+    left_join(observer_info, by = c('site_id','year'))
 }
 
 
