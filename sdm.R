@@ -1,3 +1,5 @@
+#!/usr/bin/Rscript
+
 devtools::load_all()
 library(parallel)
 library(tidyverse)
