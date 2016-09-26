@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/apps/R/3.2.0/bin/Rscript
 
 devtools::load_all()
 library(parallel)
