@@ -42,10 +42,10 @@ species_ids = unique(train$species_id)
 
 
 # Fitting/predicting ------------------------------------------------------
-fit_species = function(species_id){
-  cat(strsplit(date(), " ")[[1]][4], " fitting species", species_id, "\n")
+fit_species = function(sp_id){
+  cat(strsplit(date(), " ")[[1]][4], " fitting species", sp_id, "\n")
   
-  xy = filter(train, species_id == species_id) %>% 
+  xy = filter(train, species_id == sp_id) %>% 
     select(site_id, year) %>% 
     mutate(present = 1) %>% 
     right_join(train_x, c("site_id", "year")) %>% 
@@ -84,3 +84,5 @@ predictions = mclapply(species_ids, fit_species,
 # Save results ------------------------------------------------------------
 
 saveRDS(predictions, file = "gbm_predictions.rds")
+
+
