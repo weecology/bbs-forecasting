@@ -5,6 +5,8 @@ library(parallel)
 library(tidyverse)
 library(gbm)
 
+dir.create("sdm_predictions", showWarnings = FALSE)
+
 start_yr = 1982
 end_yr = 2013
 min_num_yrs = 25
@@ -80,16 +82,14 @@ fit_species = function(sp_id){
     n.trees = n.trees
   )
   
-  predict(g_full, test_x, n.trees = n.trees, type = "response")
+  p = predict(g_full, test_x, n.trees = n.trees, type = "response")
+  
+  write.table(p, file = paste0("sdm_predictions/", sp_id, ".txt"),
+              row.names = FALSE, col.names = FALSE)
+  
+  NULL
 }
 
 predictions = mclapply(species_ids, fit_species, 
                        mc.cores = 8,
                        mc.preschedule = FALSE)
-
-
-# Save results ------------------------------------------------------------
-
-saveRDS(predictions, file = "gbm_predictions.rds")
-
-
