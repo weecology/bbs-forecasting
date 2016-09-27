@@ -113,6 +113,14 @@ sapply(1:ncol(autocorr_matrix),
 ```
 
 ```{r}
+s = svd(autocorr_matrix)
+library(mvtnorm)
+matplot(t(rmvnorm(3, sigma = s$u[,-22] %*% diag(s$d[-22]) %*% t(s$v[,-22]) + .01 * diag(22))), type = "l", lty = 1)
+```
 
+
+```{r}
+# library(rstanarm)
+# model2 = stan_lmer(richness ~ (1|site_id) + (1|observer_id), data = train, chains = 1)
 ```
 
