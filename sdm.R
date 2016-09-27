@@ -16,7 +16,7 @@ last_train_year = 2003
 first_validation_year = 2000 # for temporal cross-validation
 interaction.depth = 8
 max_n_trees = 2E4
-my_formula = present ~ start_time + bio2 + bio5 + bio15 + ndvi_sum + elevs +
+my_formula = present ~ bio2 + bio5 + bio15 + ndvi_sum + elevs +
   observer_effect + site_effect
 
 # Munge -------------------------------------------------------------------
