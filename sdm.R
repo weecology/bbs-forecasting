@@ -84,7 +84,8 @@ fit_species = function(sp_id){
 }
 
 predictions = mclapply(species_ids, fit_species, 
-                       mc.cores = 8)
+                       mc.cores = 8,
+                       mc.preschedule = FALSE)
 
 
 # Save results ------------------------------------------------------------
