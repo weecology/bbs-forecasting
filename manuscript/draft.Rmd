@@ -9,6 +9,7 @@ Quality of predictions from SDMs is important:
   * something something climate change
   * need to know both accuracy of point estimates and how reasonable our prediction intervals are.
   * Overconfident predictions can be worse than uncertainty
+  * Quality of prediction is one metric for how much we know about ecological processes
 SDM assumptions:
   * we've measured all the important variables (sites don't have any other important properties)
   * Something like stationarity:
@@ -55,7 +56,7 @@ Difficult to test SDM assumptions/predictions because of time scales
 
 * Temporal richness variability doesn't track the predictors we use; sites have "inertia"
 * More important to use a reasonable error model than to get the best predictors \& basis expansions
-* We've posted predictions for the next N years of BBS data, using several methods
+* We've posted predictions for the next N years of BBS data, using several methods, and invite others to do so as well.
 * In many ways, this is the best-case scenario for SDMs:
   * large data set, known \& consistent sampling technique over a period of decades
   * True absences
