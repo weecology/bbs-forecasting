@@ -54,11 +54,25 @@ fit_species = function(sp_id){
     arrange(year, site_id) %>% 
     mutate(present = ifelse(is.na(present), 0, 1))
   
-  # avoid problems with 100% or 0% presence
-  if (var(xy$present[xy$year < first_validation_year]) == 0) {
-    return(NA)
+  # avoid problems with 0% or 100% presence
+  if (mean(xy$present[xy$year < first_validation_year]) == 0) {
+    return(
+      list(
+        predictions = 0,
+        importances = NA,
+        n.trees = NA
+      )
+    )
   }
-  
+  if (mean(xy$present[xy$year < first_validation_year]) == 1) {
+    return(
+      list(
+        predictions = 1,
+        importances = NA,
+        n.trees = NA
+      )
+    )
+  }
   
   # Determine the number of trees to include by using the first portion of
   # the training set to predict the remainder of the training set.
