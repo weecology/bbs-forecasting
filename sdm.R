@@ -84,12 +84,15 @@ fit_species = function(sp_id){
   
   p = predict(g_full, test_x, n.trees = n.trees, type = "response")
   
-  write.table(p, file = paste0("sdm_predictions/", sp_id, ".txt"),
-              row.names = FALSE, col.names = FALSE)
-  
-  NULL
+  list(
+    predictions = p,
+    importances = summary(g_full, plot = FALSE),
+    n.trees = n.trees
+  )
 }
 
-predictions = mclapply(species_ids, fit_species, 
+results = mclapply(species_ids, fit_species, 
                        mc.cores = 8,
                        mc.preschedule = FALSE)
+
+saveRDS(results, file = "sdm_predictions/gbm_species_results.rds")
