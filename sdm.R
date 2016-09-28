@@ -16,6 +16,7 @@ last_train_year = 2003
 first_validation_year = 2000 # for temporal cross-validation
 interaction.depth = 8
 n_trees_to_add = 1000
+max_trees = 20000
 my_formula = present ~ bio2 + bio5 + bio15 + ndvi_sum + elevs +
   observer_effect + site_effect
 
@@ -90,7 +91,7 @@ fit_species = function(sp_id){
     n.trees = gbm.perf(probe_model, method = "test", plot.it = FALSE)
     
     # We're done adding trees when the optimal number of trees stops going up.
-    if (n.trees < (probe_model$n.trees - n_trees_to_add)) {
+    if (n.trees < (probe_model$n.trees - n_trees_to_add) | n.trees > max_trees) {
       done_adding = TRUE
     } else{
       probe_model = gbm.more(probe_model, n.new.trees = n_trees_to_add)
