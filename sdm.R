@@ -16,7 +16,7 @@ last_train_year = 2003
 first_validation_year = 2000 # for temporal cross-validation
 interaction.depth = 8
 n_trees_to_add = 1000
-max_trees = 20000
+max_trees = 2E4
 my_formula = present ~ bio2 + bio5 + bio15 + ndvi_sum + elevs +
   observer_effect + site_effect
 
@@ -114,7 +114,8 @@ fit_species = function(sp_id){
     test_predictions = predict(prediction_model, test_x, n.trees = n.trees, 
                                type = "response"),
     importances = summary(prediction_model, plot = FALSE),
-    n.trees = n.trees
+    n.trees = n.trees,
+    valid.error = probe_model$valid.error
   )
 }
 
