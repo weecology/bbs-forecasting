@@ -13,7 +13,8 @@ Imports:
     raster (>= 2.4-20),
     prism (>= 0.0.7),
     ecoretriever (>= 0.2.1),
-    forecast (>= 7.1)
+    forecast (>= 7.1),
+    lme4 (>= 1.1.12)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 5.0.1
