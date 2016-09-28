@@ -15,7 +15,7 @@ last_train_year = 2003
 # GBM parameters
 first_validation_year = 2000 # for temporal cross-validation
 interaction.depth = 8
-max_n_trees = 2E4
+n_trees_to_add = 1000
 my_formula = present ~ bio2 + bio5 + bio15 + ndvi_sum + elevs +
   observer_effect + site_effect
 
@@ -76,18 +76,29 @@ fit_species = function(sp_id){
   
   # Determine the number of trees to include by using the first portion of
   # the training set to predict the remainder of the training set.
-  g = gbm(
+  done_adding = FALSE # flag for when we have enough trees
+  probe_model = gbm(
     my_formula,
     data = xy,
     distribution = "bernoulli",
     interaction.depth = interaction.depth,
     train.fraction = mean(xy$year < first_validation_year),
-    n.trees = max_n_trees
+    n.trees = 2 * n_trees_to_add
   )
-  n.trees = gbm.perf(g)
+  
+  while (!done_adding) {
+    n.trees = gbm.perf(probe_model, method = "test", plot.it = FALSE)
+    
+    # We're done adding trees when the optimal number of trees stops going up.
+    if (n.trees < (probe_model$n.trees - n_trees_to_add)) {
+      done_adding = TRUE
+    } else{
+      probe_model = gbm.more(probe_model, n.new.trees = n_trees_to_add)
+    }
+  }
   
   # Fit the full time series with the same number of trees
-  g_full = gbm(
+  prediction_model = gbm(
     my_formula,
     data = xy,
     distribution = "bernoulli",
@@ -96,11 +107,12 @@ fit_species = function(sp_id){
     n.trees = n.trees
   )
   
-  p = predict(g_full, test_x, n.trees = n.trees, type = "response")
-  
   list(
-    predictions = p,
-    importances = summary(g_full, plot = FALSE),
+    train_predictions = predict(probe_model, xy, n.trees = n.trees, 
+                                type = "response"),
+    test_predictions = predict(prediction_model, test_x, n.trees = n.trees, 
+                               type = "response"),
+    importances = summary(prediction_model, plot = FALSE),
     n.trees = n.trees
   )
 }
