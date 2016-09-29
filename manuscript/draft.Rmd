@@ -4,35 +4,29 @@ Authors: Harris, Taylor and White?
 
 ## Introduction
 
-Quality of predictions from SDMs is important:
+Quality of predictions is important:
   * helps determine policy/set priorities
   * something something climate change
   * need to know both accuracy of point estimates and how reasonable our prediction intervals are.
   * Overconfident predictions can be worse than uncertainty
   * Quality of prediction is one metric for how much we know about ecological processes
-SDM assumptions:
-  * we've measured all the important variables (sites don't have any other important properties)
-  * Something like stationarity:
-    * e.g. "systems are at equilibrium now and will be at equilibrium in future"
-    * or "species track predictor variables quickly" (no lags)
-    * etc
-  * independent/identically distributed observations across species, years
-  * Space substitutes well for time
-Difficult to test SDM assumptions/predictions because of time scales
+Dominant method is stacked SDMs:
+  *
+Difficult to test model assumptions/predictions because of time scales
   * Most scientists making predictions today will have retired by 2050
   * Use long-term data sets such as BBS to evaluate predictive skill
     * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years
   * Test with simple baselines (e.g. random walk, future-is-like-present)
-  * Focus on richness because... reasons.
+  * Focus on richness/diversity because \[citations saying that it's important\]
 
 ## Methods
 
 **Data**
 
 * BBS + retriever
-* Monthly climate data from interpolated weather stations
-* NDVI
-* Altitude
+* Monthly climate data from interpolated weather stations (PRISM)
+* NDVI (GIMMS)
+* Altitude (SRTM 90m Digital Elevation Database via raster::getData)
 
 **Models**
 
@@ -64,4 +58,15 @@ Difficult to test SDM assumptions/predictions because of time scales
   * birds arguably migrate quickly enough to make equlibrium \& especially space-for-time assumptions less ridiculous
   * errors for individual species can cancel out; only asking for aggregate values
 * Value of stacking versus predicting the quantitity of interest directly
-*
+
+
+## misc
+
+SDM assumptions:
+  * we've measured all the important variables (sites don't have any other important properties)
+  * Something like stationarity:
+    * e.g. "systems are at equilibrium now and will be at equilibrium in future"
+    * or "species track predictor variables quickly" (no lags)
+    * etc
+  * independent/identically distributed observations across species, years
+  * Space substitutes well for time
