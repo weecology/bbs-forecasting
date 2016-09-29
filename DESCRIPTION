@@ -15,6 +15,7 @@ Imports:
     ecoretriever (>= 0.2.1),
     forecast (>= 7.1),
     git2r (>= 0.15.0)
+    lme4 (>= 1.1.12)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 5.0.1
