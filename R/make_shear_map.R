@@ -1,12 +1,15 @@
-library(ggplot2)
-library(viridis)
-library(maps)
-
-# Assumes "results" is a data frame with long, lat, and p (which determines
-# intensity and is between 0 and 1).
-# Note that any points with p==0 will not be plotted
-# Shear amount is how much to move the top to the right (so negative numbers
-# move to the left)
+#' @param results a data frame with long, lat, and p (which color determines 
+#' intensity and is between 0 and 1). Note that any points with p==0 will not 
+#' be plotted
+#' @param shear_amout how much to move the top to the right (so negative numbers
+#' move to the left)
+#' @param map_color color for landmass in the background
+#' @export
+#' @importFrom ggplot2 geom_polygon geom_point
+#' @importFrom ggplot2 ggplot aes aes_
+#' @importFrom ggplot2 map_data
+#' @importFrom ggplot2 theme_void coord_equal
+#' @importFrom viridis scale_color_viridis
 make_shear_map = function(results, shear_amount = -1, map_color = "#FEFFEF"){
   shear = matrix(c(1, shear_amount, 0, 1), nrow = 2)
   
@@ -38,3 +41,4 @@ make_shear_map = function(results, shear_amount = -1, map_color = "#FEFFEF"){
     coord_equal() +
     theme_void()
 }
+
