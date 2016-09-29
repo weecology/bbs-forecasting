@@ -15,7 +15,8 @@ Imports:
     ecoretriever (>= 0.2.1),
     forecast (>= 7.1),
     ggplot2 (>= 2.1.0),
-    viridis (>= 0.3.4)
+    viridis (>= 0.3.4),
+    lme4 (>= 1.1.12)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 5.0.1
