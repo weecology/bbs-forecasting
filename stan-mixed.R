@@ -19,6 +19,6 @@ data = list(
   observer_index = as.integer(factor(train$observer_id))
 )
 
-s = stan("lme.stan", data = data)
+s = stan("lme.stan", data = data, cores = 4)
 
 saveRDS(s, file = "lme-stan.rds")
