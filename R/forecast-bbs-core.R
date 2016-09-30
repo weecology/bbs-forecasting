@@ -259,7 +259,7 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
 #' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+  richness_ts_env_data = get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
     collapse_to_richness()
   save_provenance(richness_ts_env_data)
   return(richness_ts_env_data)
