@@ -3,7 +3,7 @@
 \name{get_richness_ts_env_data}
 \alias{get_richness_ts_env_data}
 \title{Get BBS richness time-series data with environmental variables. Will
-fill in NA values for richness in missing years as long as a site 
+fill in NA values for richness in missing years as long as a site
 meets the year requirments and has environmental data.}
 \usage{
 get_richness_ts_env_data(start_yr, end_yr, min_num_yrs)
@@ -20,7 +20,7 @@ dataframe with site_id, year, and richness
 }
 \description{
 Get BBS richness time-series data with environmental variables. Will
-fill in NA values for richness in missing years as long as a site 
+fill in NA values for richness in missing years as long as a site
 meets the year requirments and has environmental data.
 }
 

@@ -83,7 +83,7 @@ filter_species <- function(df){
     filter(aou != 7010)
 
   filter(df, species_id %in% valid_taxa$aou)
-  }
+}
 
 #' Combine subspecies into their common species
 #'
@@ -231,16 +231,17 @@ get_env_data <- function(){
 #' @export
 #' @importFrom dplyr "%>%" filter select
 get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data()
-  pop_ts_env_data <- bbs_data %>%
+  pop_ts_env_data = get_bbs_data() %>%
     filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    complete(site_id, year) %>% 
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
     group_by(site_id) %>%
     #Filter min_num_years again after accounting for missing environmental data
     filter(length(unique(year)) >= min_num_yrs) %>%
     ungroup() %>%
-    select(-lat, -long)
+    add_observers()
+
   save_provenance(pop_ts_env_data)
   return(pop_ts_env_data)
 }
@@ -258,31 +259,31 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
 #' @importFrom tidyr complete
 get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  bbs_data <- get_bbs_data()
-
-  site_lat_long = bbs_data %>%
-    select(site_id, lat, long) %>%
-    distinct()
-
-  richness_data <- bbs_data %>%
-    group_by(site_id, year) %>%
-    summarise(richness = n_distinct(species_id)) %>%
-    ungroup() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs) %>%
-    complete(site_id, year) %>%
-    left_join(site_lat_long, by='site_id')
-
-  #Filter min_num_years again after accounting for missing environmental data
-  richness_ts_env_data <- richness_data %>%
-    add_env_data() %>%
-    filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
-    group_by(site_id) %>%
-    filter(length(unique(year)) >= min_num_yrs) %>%
-    ungroup() %>%
-    add_observers()
+  get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+    collapse_to_richness()
   save_provenance(richness_ts_env_data)
   return(richness_ts_env_data)
 }
+
+#' Replace species-level information with richness values, eliminating redundant rows
+#' @param df a data frame, such as produced by get_bbs_data or get_pop_ts_env_data
+#' @export
+#' @importFrom dplyr n
+collapse_to_richness = function(df){
+
+  # Code below assumes that NA abundance always means no observations for the
+  # whole transect
+  stopifnot(all(is.na(df$abundance) == is.na(df$species_id)))
+
+  df %>%
+    group_by(site_id, year) %>%
+    mutate(richness = sum(abundance > 0)) %>%
+    select(-species_id, -abundance) %>% 
+    ungroup() %>%
+    distinct() %>% 
+    right_join(distinct(select(df, -species_id, -abundance)))
+}
+
 
 #' Add environmental data to BBS data frame
 #'
@@ -300,8 +301,13 @@ add_env_data <- function(bbs_data){
 #' Add observer ID's to data
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #' @importFrom dplyr %>% left_join
-add_observers=function(bbs_data){
-  observer_query='SELECT
+add_observers = function(bbs_data) {
+  data_path = "data/bbs_observers.csv"
+  if (file.exists(data_path)) {
+    observer_info = read_csv(data_path)
+  } else {
+    observer_query = '
+    SELECT
                     bbs_weather.obsn as observer_id,
                     year,
                     (statenum*1000)+route as site_id
@@ -310,10 +316,11 @@ add_observers=function(bbs_data){
                   WHERE
                     runtype=1 AND rpid=101'
 
-  observer_info=db_engine(action = 'read', sql_query = observer_query)
-
+    observer_info = db_engine(action = 'read', sql_query = observer_query)
+    write.csv(observer_info, file = data_path, row.names = FALSE, quote = FALSE)
+  }  
   bbs_data %>%
-    left_join(observer_info, by=c('site_id','year'))
+    left_join(observer_info, by = c('site_id','year'))
 }
 
 
@@ -423,6 +430,39 @@ get_ts_forecasts <- function(grouped_tsdata, timecol, responsecol, exogcols,
   ts_fcasts <- restruct_ts_forecasts(cleaned_ts_model_forecasts)
   save_provenance(ts_fcasts)
   return(ts_fcasts)
+}
+
+#' Add point estimates for random effects associated with site_id and observer_id
+#' @param df a data.frame, as produced by \link{get_bbs_data}
+#' @param last_training_year the final year to include in the training set for
+#'        fitting the mixed model
+#' @importFrom lme4 lmer ranef
+add_ranefs = function(df, last_training_year) {
+  
+  if (is.null(df$observer_id)) {
+    df = add_observers(df)
+  }
+  
+  lmer_data = collapse_to_richness(df) %>% filter(year <= last_training_year)
+  
+  lmer_model = lmer(richness ~ (1|site_id) + (1|observer_id), 
+                    data = lmer_data)
+  ranefs = ranef(lmer_model)
+  
+  # Save the point estimates for the random effects
+  for (i in 1:length(ranefs)) {
+    # This code will need to be modified if random effects aren't simple
+    stopifnot(ncol(ranefs[[i]]) == 1)
+    
+    to_join = cbind(row.names(ranefs[[i]]), ranefs[[i]])
+    colnames(to_join)[1] = names(ranefs)[[i]]
+    colnames(to_join)[2] = gsub("_[^_]+$", "_effect", names(ranefs)[[i]])
+    to_join[[1]] = as.integer(as.character(to_join[[1]]))
+    
+    df = left_join(df, to_join, by = colnames(to_join)[1])
+  }
+  
+  df
 }
 
 #' Cleanup time-series forecast output
