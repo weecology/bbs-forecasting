@@ -11,7 +11,9 @@ Quality of predictions is important:
   * Overconfident predictions can be worse than uncertainty
   * Quality of prediction is one metric for how much we know about ecological processes
 Dominant method is stacked SDMs:
-  *
+  * Strong assumptions (see "misc" below), many *interesting* predictions
+  * Potential problems with confidence intervals
+  * Potential disconnect between training target and actual goals
 Difficult to test model assumptions/predictions because of time scales
   * Most scientists making predictions today will have retired by 2050
   * Use long-term data sets such as BBS to evaluate predictive skill
