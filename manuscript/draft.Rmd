@@ -10,16 +10,31 @@ Quality of predictions is important:
   * need to know both accuracy of point estimates and how reasonable our prediction intervals are.
   * Overconfident predictions can be worse than uncertainty
   * Quality of prediction is one metric for how much we know about ecological processes
-Dominant method is stacked SDMs:
-  * Strong assumptions (see "misc" below), many *interesting* predictions
+Unclear how much to trust existing predictions:
+  * Strong assumptions (see "misc" below)
+  * many *interesting* predictions
   * Potential problems with confidence intervals
   * Potential disconnect between training target and actual goals
-Difficult to test model assumptions/predictions because of time scales
-  * Most scientists making predictions today will have retired by 2050
+  * Difficult to test model assumptions/predictions because of time scales
+    * Most scientists making predictions today will have retired by 2050
+Demonstrate best practices \& their contribution to better predictions
   * Use long-term data sets such as BBS to evaluate predictive skill
-    * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years
-  * Test with simple baselines (e.g. random walk, future-is-like-present)
+  * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years
+  * Lots of talk about how we should do it, fewer examples of doing them all together
+  * Examples of best practices
+    * not just bioclim
+    * time series
+    * spatial/site-level stuff
+    * probabilistic/error bars
+    * multiple models
+    * Test with simple baselines (e.g. random walk, future-is-like-present)
   * Focus on richness/diversity because \[citations saying that it's important\]
+  * Publish forecasts at different timescales to evaluate performance/credibility
+Here we do that:
+  * forecasts for biodiversity in NAmerican birds with as many best practices as possible
+  * Discuss the influence of these improved methods \& of our error rates on our ability to understand:
+    * How to improve
+    * How much to trust the predictions
 
 ## Methods
 
@@ -36,8 +51,9 @@ Difficult to test model assumptions/predictions because of time scales
 * Naive AR1 model (adjusted for observer effects)
 * species-level GBM w/ mixed model point estimates as bonus predictors where available
 * richness-level GBM w/ mixed model point estimates as bonus predictors where available
+* JSDM
 
-(need a side note about why we're not using a proper count distribution; underdispersion)
+(need a side note about why we're not using a proper count distribution; underdispersion, easier access to out-of-the-box time series methods)
 
 **Evaluation**
 
@@ -59,8 +75,11 @@ Difficult to test model assumptions/predictions because of time scales
   * extended predictor set
   * birds arguably migrate quickly enough to make equlibrium \& especially space-for-time assumptions less ridiculous
   * errors for individual species can cancel out; only asking for aggregate values
+* None of the models actually work all that well, compared to baseline.
 * Value of stacking versus predicting the quantitity of interest directly
-
+* Maybe richness is too coarse
+  * abundance
+  * species-level
 
 ## misc
 
