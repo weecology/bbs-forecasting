@@ -52,6 +52,7 @@ Here we do that:
 * species-level GBM w/ mixed model point estimates as bonus predictors where available
 * richness-level GBM w/ mixed model point estimates as bonus predictors where available
 * JSDM
+* Ensembles (weighted and unweighted)
 
 (need a side note about why we're not using a proper count distribution; underdispersion, easier access to out-of-the-box time series methods)
 
@@ -66,20 +67,26 @@ Here we do that:
 
 ## Results and conclusions
 
+* None of the models actually work all that well, compared to baseline.
 * Temporal richness variability doesn't track the predictors we use; sites have "inertia"
+  * Cite 3 papers Ethan found on consistancy of alpha even when composition changes dramatically
+  * Good for absolute accuracy, little room for improvement over baseline
+  * Maybe richness is too coarse
+    * abundance
+    * species-level
 * More important to use a reasonable error model than to get the best predictors \& basis expansions
-* We've posted predictions for the next N years of BBS data, using several methods, and invite others to do so as well.
+* Ensembles help/don't help (depending on results)
+* Point estimate error versus coverage
 * In many ways, this is the best-case scenario for SDMs:
   * large data set, known \& consistent sampling technique over a period of decades
-  * True absences
+  * "True" absences
   * extended predictor set
   * birds arguably migrate quickly enough to make equlibrium \& especially space-for-time assumptions less ridiculous
   * errors for individual species can cancel out; only asking for aggregate values
-* None of the models actually work all that well, compared to baseline.
 * Value of stacking versus predicting the quantitity of interest directly
-* Maybe richness is too coarse
-  * abundance
-  * species-level
+* Need to start doing this, even if we're bad at it.
+  * We've posted predictions for the next N years of BBS data, using several methods, and invite others to do so as well.
+
 
 ## misc
 
