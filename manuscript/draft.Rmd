@@ -19,7 +19,8 @@ Unclear how much to trust existing predictions:
     * Most scientists making predictions today will have retired by 2050
 Demonstrate best practices \& their contribution to better predictions
   * Use long-term data sets such as BBS to evaluate predictive skill
-  * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years
+  * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years (change since 80's is a true trend but whether it continues in uncertain, 10.1007/978-3-319-03768-4_2, 10.1007/s00382-014-2070-3)
+, 
   * Lots of talk about how we should do it, fewer examples of doing them all together
   * Examples of best practices
     * not just bioclim
@@ -91,10 +92,12 @@ Here we do that:
 ## misc
 
 SDM assumptions:
-  * we've measured all the important variables (sites don't have any other important properties)
+  * we've measured the predictive power of all avialable variables, other potentially important thing that aren't available are landcover, observer skill level, (probably some others)
   * Something like stationarity:
     * e.g. "systems are at equilibrium now and will be at equilibrium in future"
     * or "species track predictor variables quickly" (no lags)
     * etc
   * independent/identically distributed observations across species, years
   * Space substitutes well for time
+
+None of the models are true forcasts as they use observed predictor variables (except the AR1). 
