@@ -19,8 +19,7 @@ Unclear how much to trust existing predictions:
     * Most scientists making predictions today will have retired by 2050
 Demonstrate best practices \& their contribution to better predictions
   * Use long-term data sets such as BBS to evaluate predictive skill
-  * Note the large change in average temperatures since the 80's; comparable to the changes expected in the next N years (change since 80's is a true trend but whether it continues in uncertain, 10.1007/978-3-319-03768-4_2, 10.1007/s00382-014-2070-3)
-, 
+  * Note the large change in average temperatures since the 80's; comparable to the potential changed in the next 20 years 
   * Lots of talk about how we should do it, fewer examples of doing them all together
   * Examples of best practices
     * not just bioclim
