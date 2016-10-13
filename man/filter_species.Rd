@@ -17,6 +17,6 @@ Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
 dippers. These species are poorly sampled due to their aquatic or
 noctural nature. Also removes taxa that were either partially unidentified
 (e.g. "sp.") or were considered hybrids (e.g. "A x B") or were listed as more
-than one species (e.g. "B / B")
+than one species (e.g. "A / B")
 }
 
