@@ -106,7 +106,7 @@ combine_subspecies = function(df){
     filter(spanish_common_name %in% subspecies_names) %>%
     extract2("aou")
 
-  # Drop the third word of the subspecies name to get the species name,
+  # Drop all but the first two words to get the root species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(word(subspecies_names, 1,2),
