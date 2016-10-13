@@ -1,23 +1,23 @@
 #Various factoids
----------------------
-On North American climate
-There has been an increase in mean temperature in North America since the 1980's (pg. 90, fig 2.7) 
-Redmond, Kelly T., and John T. Abatzoglou. "Current climate and recent trends." Climate Change in North America. Springer International Publishing, 2014. 53-94.
 
-Predictions for the next 10-20 years are uncertain (Meehl et al 2014) but models currently suggest a continued trend in warming, with potential for short term decreases (natural variability around increasing trend)(fig 3 & 4, Kumar et al 2014)
-Kumar, Devashish, Evan Kodra, and Auroop R. Ganguly. "Regional and seasonal intercomparison of CMIP3 and CMIP5 climate model ensembles for temperature and precipitation." Climate dynamics 43.9-10 (2014): 2491-2518.
-Meehl, Gerald A., et al. "Decadal climate prediction: an update from the trenches." Bulletin of the American Meteorological Society 95.2 (2014): 243-267.
+On North American climate
+There has been an increase in mean temperature in North America since the 1980's (pg. 90, fig 2.7)   
+Redmond, Kelly T., and John T. Abatzoglou. "Current climate and recent trends." Climate Change in North America. Springer International Publishing, 2014. 53-94.  
+
+Predictions for the next 10-20 years are uncertain (Meehl et al 2014) but models currently suggest a continued trend in warming, with potential for short term decreases (natural variability around increasing trend)(fig 3 & 4, Kumar et al 2014)  
+Kumar, Devashish, Evan Kodra, and Auroop R. Ganguly. "Regional and seasonal intercomparison of CMIP3 and CMIP5 climate model ensembles for temperature and precipitation." Climate dynamics 43.9-10 (2014): 2491-2518.  
+Meehl, Gerald A., et al. "Decadal climate prediction: an update from the trenches." Bulletin of the American Meteorological Society 95.2 (2014): 243-267.  
 
 #Forcasting
-People should do a better job at forecasting.
-Evans, M. R., Norris, K. J. & Benton, T. G. Predictive ecology: systems approaches. Philos. Trans. R. Soc. B Biol. Sci. 367, 163–169 (2012).
-Houlahan, J. E. The priority of prediction in ecological understanding. Oikos (2016). doi:10.1111/oik.03726
-Petchey, O. L. et al. The ecological forecast horizon, and examples of its uses and determinants. Ecol. Lett. 18, 597–611 (2015).
+People should do a better job at forecasting.  
+Evans, M. R., Norris, K. J. & Benton, T. G. Predictive ecology: systems approaches. Philos. Trans. R. Soc. B Biol. Sci. 367, 163–169 (2012).  
+Houlahan, J. E. The priority of prediction in ecological understanding. Oikos (2016). doi:10.1111/oik.03726  
+Petchey, O. L. et al. The ecological forecast horizon, and examples of its uses and determinants. Ecol. Lett. 18, 597–611 (2015).   
 
 
 #SDM references
 
-GBM's are one  of the best models for SDM's (Elith et al 2006) but JSDMs could potentially be better (Warton et al 2015)
+GBM's are one  of the best models for SDM's (Elith et al 2006) but JSDMs could potentially be better (Warton et al 2015)  
 
-Elith, J. et al. Novel methods improve prediction of species’ distributions from occurrence data. Ecography (Cop.). 29, 129–151 (2006).
-Warton, David I., et al. "So many variables: joint modeling in community ecology." Trends in ecology & evolution 30.12 (2015): 766-779.
+Elith, J. et al. Novel methods improve prediction of species’ distributions from occurrence data. Ecography (Cop.). 29, 129–151 (2006).  
+Warton, David I., et al. "So many variables: joint modeling in community ecology." Trends in ecology & evolution 30.12 (2015): 766-779.  
