@@ -60,7 +60,8 @@ db_engine=function(action, db='./data/bbsforecasting.sqlite', sql_query=NULL,
 #' Removes waterbirds, shorebirds, owls, kingfishers, knightjars,
 #' dippers. These species are poorly sampled due to their aquatic or
 #' noctural nature. Also removes taxa that were either partially unidentified
-#' (e.g. "sp.") or were considered hybrids (e.g. "A x B").
+#' (e.g. "sp.") or were considered hybrids (e.g. "A x B") or were listed as more
+#' than one species (e.g. "B / B")
 #'
 #' @param df dataframe containing an species_id column
 #'
@@ -70,12 +71,13 @@ filter_species <- function(df){
   species_table = get_species_data()
 
   is_unidentified = function(names) {
-    grepl("/|unid\\.|sp\\.| or |hybrid| X | x ", names)
+    #Befor filter account for this one hybrid of 2 subspecies so it's kept
+    names[names=='auratus auratus x auratus cafer']='auratus auratus'
+    grepl('sp\\.| x |\\/', names)
   }
 
   valid_taxa = species_table %>%
-    filter(!is_unidentified(english_common_name)) %>%
-    filter(!is_unidentified(spanish_common_name)) %>%
+    filter(!is_unidentified(species)) %>%
     filter(aou > 2880) %>%
     filter(aou < 3650 | aou > 3810) %>%
     filter(aou < 3900 | aou > 3910) %>%
