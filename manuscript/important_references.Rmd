@@ -1,6 +1,6 @@
 #Various factoids
 
-On North American climate
+####On North American climate  
 There has been an increase in mean temperature in North America since the 1980's (pg. 90, fig 2.7)   
 Redmond, Kelly T., and John T. Abatzoglou. "Current climate and recent trends." Climate Change in North America. Springer International Publishing, 2014. 53-94.  
 
@@ -9,11 +9,11 @@ Kumar, Devashish, Evan Kodra, and Auroop R. Ganguly. "Regional and seasonal inte
 Meehl, Gerald A., et al. "Decadal climate prediction: an update from the trenches." Bulletin of the American Meteorological Society 95.2 (2014): 243-267.  
 
 -------------------------------
-Biodiversity is an important thing to consider   
+####Biodiversity is an important thing to consider   
 Cardinale, Bradley J., et al. "Biodiversity loss and its impact on humanity." Nature 486.7401 (2012): 59-67.  
 
 #Forcasting
-People should do a better job at forecasting.  
+####People should do a better job at forecasting.  
 Evans, M. R., Norris, K. J. & Benton, T. G. Predictive ecology: systems approaches. Philos. Trans. R. Soc. B Biol. Sci. 367, 163–169 (2012).  
 Houlahan, J. E. The priority of prediction in ecological understanding. Oikos (2016). doi:10.1111/oik.03726  
 Petchey, O. L. et al. The ecological forecast horizon, and examples of its uses and determinants. Ecol. Lett. 18, 597–611 (2015).   
