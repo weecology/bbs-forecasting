@@ -91,6 +91,7 @@ filter_species <- function(df){
 #'
 #' @importFrom dplyr "%>%" filter slice group_by summarise ungroup
 #' @importFrom magrittr extract2
+#' @importFrom stringr word
 combine_subspecies = function(df){
 
   species_table = get_species_data()
@@ -108,7 +109,7 @@ combine_subspecies = function(df){
   # Drop the third word of the subspecies name to get the species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
-    slice(match(gsub(" [^ ]+$", "", subspecies_names),
+    slice(match(word(subspecies_names, 1,2),
                 species_table$spanish_common_name)) %>%
     extract2("aou")
 
