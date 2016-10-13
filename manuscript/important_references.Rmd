@@ -7,6 +7,9 @@ Redmond, Kelly T., and John T. Abatzoglou. "Current climate and recent trends." 
 Predictions for the next 10-20 years are uncertain (Meehl et al 2014) but models currently suggest a continued trend in warming, with potential for short term decreases (natural variability around increasing trend)(fig 3 & 4, Kumar et al 2014)  
 Kumar, Devashish, Evan Kodra, and Auroop R. Ganguly. "Regional and seasonal intercomparison of CMIP3 and CMIP5 climate model ensembles for temperature and precipitation." Climate dynamics 43.9-10 (2014): 2491-2518.  
 Meehl, Gerald A., et al. "Decadal climate prediction: an update from the trenches." Bulletin of the American Meteorological Society 95.2 (2014): 243-267.  
+-------------------------------
+Biodiversity is an important thing to consider 
+Cardinale, Bradley J., et al. "Biodiversity loss and its impact on humanity." Nature 486.7401 (2012): 59-67.
 
 #Forcasting
 People should do a better job at forecasting.  
