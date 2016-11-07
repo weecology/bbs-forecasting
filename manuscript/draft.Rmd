@@ -19,7 +19,8 @@ Unclear how much to trust existing predictions:
     * Most scientists making predictions today will have retired by 2050
 Demonstrate best practices \& their contribution to better predictions
   * Use long-term data sets such as BBS to evaluate predictive skill
-  * Note the large change in average temperatures since the 80's; comparable to the potential changed in the next 20 years 
+  * Note the large change in average temperatures since the 80's; comparable to 
+    the potential changed in the next 20 years 
   * Lots of talk about how we should do it, fewer examples of doing them all together
   * Examples of best practices
     * Not just bioclim
@@ -35,68 +36,94 @@ Demonstrate best practices \& their contribution to better predictions
   * Focus on richness/diversity because \[citations saying that it's important\]
   * Publish forecasts at different timescales to evaluate performance/credibility
 Here we do that:
-  * forecasts for biodiversity in NAmerican birds with as many best practices as possible
-  * Discuss the influence of these improved methods \& of our error rates on our ability to understand:
+  * forecasts for biodiversity in NAmerican birds with as many best practices as 
+    possible
+  * Discuss the influence of these improved methods \& of our error rates on our 
+    ability to understand:
     * How to improve
     * How much to trust the predictions
 
 ## Methods
 
-**Data**
+### Data
 
 * BBS + retriever
 * Monthly climate data from interpolated weather stations (PRISM)
 * NDVI (GIMMS)
 * Altitude (SRTM 90m Digital Elevation Database via raster::getData)
 
-**Models**
-
-* Mixed model for observer effort \& site effects: used lme4, included random
-  effects observer_id to account for situations were one observer consistently
-  found more (or fewer) species than average. Observer effects are inherent in
+### Accounting for site \& observer effects
+* Observer effects are inherent in
   large data sets taken by different observers, and are known to occur in BBS 
-  [citation]. These models also included a site-level random effect to account
-  for differences in actual richness across BBS routes. [[Maybe year effect?]].
+  [citation].
+* Mixed model for observer effort \& site effects: used Stan, included random
+  effects observer_id to account for situations were one observer consistently
+  found more (or fewer) species than average. These models also included a 
+  site-level random effect to account for differences in actual richness across 
+  BBS routes. [[Maybe year effect?]].
   No fixed effects because not interested in explaining differences among sites
   at this point; just want to account for their existence.
 * Residuals from this model give an estimate of how richness changed over time
   at each site, accounting for observer differences.  We then used this "corrected"
   version of the data for our time-series models such as the AR1, etc.
+* Note: throughout this manuscript, we use Gaussian errors for richness rather than 
+  a proper count distribution because:
+  * underdispersion (variance/mean << 1)
+  * Easier to access out-of-the-box time series methods like auto-ARIMA.
+  * Central limit theorem, large number of species (mean ~50 spp)
+
+### Models
+
+**Baseline models**
+* The lme4 model fitted above.  This model assumes that the site-level average
+  is constant, and tries to estimate its value.  The confidence intervals don't
+  expand over time (except when observers change) because the model says nothing
+  has changed
 * Naive AR1 model (adjusted for observer effects). This model says that richness 
   can diffuse up or down from the previous year's value, without any constraints.
   As a result, the confidence intervals expand quickly over time.
-* Average (adjusted for observer effects). This model says that richness at a site
-  fluctuates around a fixed mean value, so its confidence intervals do not expand
-  as the time since last observation increases.
+
+**Time series models**
 * Auto-ARIMA (Hyndman 2016). Choose a differencing order, then do forward stepwise
   model selection based on AIC.
 * Auto-ARIMA + environment.
+
+**SDMs**
 * SDMs: use graf model w/ mixed model estimates of site \& observer effects
   as predictors (include error in predictors as estimated from the mixed model
   to propagate our uncertainty forward). This is basically SDM, but with a 
-  better model (graf) and more information (monthly climate data instead of using constant values from the Worldclim data, and observer effects). We used Poisson-binomial confidence intervals, as discussed in Calabrese et al. 2014.
+  better model (graf) and more information (monthly climate data instead of 
+  using constant values from the Worldclim data, and observer effects). We used 
+  Poisson-binomial confidence intervals, as discussed in Calabrese et al. 2014.
+* JSDM. Should get best of the previous 2. Might be able to propagate uncertainty
+  from lme4.
+  
+**"Macroecological" model**
 * richness-level GBM w/ mixed model point estimates as bonus predictors where 
   available. This lets us predict richness directly instead of via noisy 
   species-level estimates, but doesn't use the full data set in one model.
   Maybe need to run multiple times to propagate uncertainty from lme4.
-* JSDM. Should get best of the previous 2. Might be able to propagate uncertainty
-  from lme4.
+  
+**Ensembles**
 * Ensembles. Averaging predictions from multiple models tends to reduce the 
   noise in the estimates, and can thus lead to better predictions. Choosing the
   weights for the ensemble isn't straightforward because our estimates of model 
   error on the training set are biased in favor of models that
   overfit. [[Another option is to spatially cross-validate on the training set]]
 
-(need a side note about why we're not using a proper count distribution; underdispersion, easier access to out-of-the-box time series methods)
-
 **Evaluation**
 
+Evaluated each year after the last training year (2010?):
 * (R)MSE
 * Log-likelihood (simultaneously rewards good point estimates, precision, and coverage)
 * Coverage at 95%
 * Calibration/bias
-* Evaluated each year after the last training year (2010?)
-* Dig around in the residuals for insights
+
+Looked at how error changed as the time horizon of forecasting lengthened
+* Error will generally tend to increase
+* Error might flatten out after some number of years
+* Error might increase at different rates for different methods
+  * One model might be better at short time scales \& worse at long time scales
 
 ## Results and conclusions
 
@@ -119,6 +146,7 @@ Here we do that:
 * Value of stacking versus predicting the quantitity of interest directly
 * Need to start doing this, even if we're bad at it.
   * We've posted predictions for the next N years of BBS data, using several methods, and invite others to do so as well.
+* Dig around in the residuals for insights
 
 
 ## misc
@@ -133,3 +161,8 @@ SDM assumptions:
   * Space substitutes well for time
 
 None of the models are true forcasts as they use observed predictor variables (except the AR1). 
+
+
+* Need predictions at multiple time scales
+* Prediction quality at short time scales might not be a good indicator of 
+  long-term effectiveness
