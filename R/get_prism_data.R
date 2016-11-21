@@ -25,7 +25,7 @@ download_prism=function(){
 #within a year range are there. ie. for all 12 months and
 #all 4 variables.
 #########################################################
-#' @importFrom dplyr %>% arrange filter mutate rowwise collect copy_to sql src_tbls tbl full_join group_by left_join summarize ungroup 
+#' @importFrom dplyr %>% arrange filter mutate rowwise collect copy_to sql src_tbls tbl full_join group_by left_join summarize ungroup
 check_if_prism_files_present=function(prism_ls, years){
   #Extract out all the variable names and dates
   if (length(prism_ls$files) == 0){return(FALSE)}
@@ -76,6 +76,7 @@ get_prism_data=function(){
 
     #Load the prism data and extract using the bbs locations.
     prism_stacked <- prism_stack(ls_prism_data())
+    save_provenance(prism_stacked)
     extracted <- raster::extract(prism_stacked, locations)
     prism_bbs_data <- data.frame(site_id = locations$site_id, coordinates(locations), extracted)
     prism_bbs_data <- prism_bbs_data %>%
@@ -86,9 +87,9 @@ get_prism_data=function(){
     #Format the data a little and load into the sqlite database.
     prism_bbs_data$year <- as.numeric(prism_bbs_data$year)
     prism_bbs_data$month <- as.numeric(prism_bbs_data$month)
-    
+
     db_engine(action='write', df=prism_bbs_data, new_table_name = 'prism_bbs_data')
-    
+
     #Now return the data as asked for
     return(prism_bbs_data)
 
@@ -185,7 +186,7 @@ get_bioclim_data=function(){
     bioclim_bbs_data=process_bioclim_data()
 
     db_engine(action='write', df=bioclim_bbs_data, new_table_name = 'bioclim_bbs_data')
-    
+
     return(bioclim_bbs_data)
 
   }
