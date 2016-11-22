@@ -7,25 +7,22 @@ library(gbm)
 
 dir.create("sdm_predictions", showWarnings = FALSE)
 
-start_yr = 1982
-end_yr = 2013
-min_num_yrs = 25
-last_train_year = 2003
+settings = yaml::yaml.load_file("settings.yaml")
 
 # GBM parameters
 first_validation_year = 2000 # for temporal cross-validation
 interaction.depth = 8
 n_trees_to_add = 1000
-max_trees = 2E4
+max_trees = 1E4
 my_formula = present ~ bio2 + bio5 + bio15 + ndvi_sum + elevs +
   observer_effect + site_effect
 
 # Munge -------------------------------------------------------------------
-d = get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>% 
-  add_ranefs(last_training_year = last_train_year)
+d = get_pop_ts_env_data(settings$start_yr, settings$end_yr, settings$min_num_yrs) %>% 
+  add_ranefs(last_training_year = settings$last_train_year)
 
-train = d[d$year <= last_train_year, ]
-test = d[d$year > last_train_year, ]
+train = d[d$year <= settings$last_train_year, ]
+test = d[d$year > settings$last_train_year, ]
 
 # Training data must be arranged by year first for temporal cross-validation
 # to work!
