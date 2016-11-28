@@ -1,6 +1,10 @@
 #' Estimate observer effects
 #' 
-#' By default, \code{stan_file} points to a linear mixed model
+#' The default `mixed.stan` file is a linear mixed model for richness
+#' using site_id and observer_id as random effects.
+#' 
+#' @return \code{NULL}. Saves a list of relevant values in `output_file`
+#'   and the `stanfit` object to disk.
 fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
                               output_file = "observer_model.rds"){
   library(rstan) # prevent annoying NAMESPACE issue described in
@@ -20,7 +24,7 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
     as.integer(as.factor(x))
   }
   
-  # Create a Stan-friendly version of the data.
+  # Create a Stan-friendly version of the training portion of the data.
   stan_df = d %>% 
     collapse_to_richness() %>% 
     filter(year <= settings$last_train_year) %>% 
@@ -49,9 +53,11 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   
   # Print the R-hat MCMC diagnostic (higher is worse).
   # Values should be very close to 1.0 (e.g. 1.05 or lower)
-  max(rstan::summary(samples)[[1]][,"Rhat"])
+  max_rhat = max(rstan::summary(samples)[[1]][,"Rhat"])
+  message("R-hat statistics all at or below ", round(max_rhat, 2))
   
   saveRDS(obs_model, file = output_file)
+  saveRDS(samples, file = paste0("rstan_"))
   
   NULL
 }

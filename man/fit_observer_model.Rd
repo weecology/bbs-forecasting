@@ -7,7 +7,12 @@
 fit_observer_model(stan_file = "mixed.stan", seed = 1,
   output_file = "observer_model.rds")
 }
+\value{
+\code{NULL}. Saves a list of relevant values in `output_file`
+  and the `stanfit` object to disk.
+}
 \description{
-By default, \code{stan_file} points to a linear mixed model
+The default `mixed.stan` file is a linear mixed model for richness
+using site_id and observer_id as random effects.
 }
 
