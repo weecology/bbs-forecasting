@@ -3,6 +3,9 @@
 #' By default, \code{stan_file} points to a linear mixed model
 fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
                               output_file = "observer_model.rds"){
+  library(rstan) # prevent annoying NAMESPACE issue described in
+                 # https://github.com/stan-dev/rstan/issues/353
+  
   set.seed(seed)
   settings = yaml::yaml.load_file("settings.yaml")
   
