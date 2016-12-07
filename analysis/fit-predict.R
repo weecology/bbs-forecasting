@@ -61,9 +61,9 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
   fun = getFromNamespace(fun_name, "forecast")
   
   # Set the `level` so that `upper` and `lower` are 2 sd apart.
-  fc = fun(x[[response_variable]], 
-         h = settings$end_yr - settings$last_train_year,
-         level = pnorm(0.5), ...)
+  fc = fun(x[[response_variable]], ...) %>% 
+    forecast::forecast(h = settings$end_yr - settings$last_train_year,
+                       level = pnorm(0.5))
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   tibble(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fc$mean), sd = c(fc$upper - fc$lower) / 2, model = fun_name,
@@ -107,6 +107,11 @@ naive_no_obs = make_all_forecasts(x_richness, "naive",
                                              obs_model = FALSE, 
                                              settings = settings)
 
+auto_no_obs = make_all_forecasts(x_richness, "auto.arima", 
+                                 obs_model = FALSE, 
+                                 settings = settings,
+                                 seasonal = FALSE)
+
 
 make_gbm_predictions = function(x){
   train = filter(x, year <= settings$last_train_year)
@@ -132,9 +137,9 @@ make_gbm_predictions = function(x){
 #   group_by(iteration) %>% 
 #   by_slice(make_gbm_predictions, .collate = "row")
 
-p = bind_rows(average_model_predictions, average_no_obs, naive_model_predictions, naive_no_obs)
-
-square = function(x)x^2
+p = bind_rows(average_model_predictions, average_no_obs, 
+              naive_model_predictions, naive_no_obs,
+              auto_no_obs)
 
 p %>% 
   filter(!is.na(richness)) %>% 
