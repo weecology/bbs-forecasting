@@ -34,13 +34,7 @@ model {
   );
 }
 generated quantities {
-  vector[N] expected_richness;
   vector[N_test_observer] test_observer_effect;
-  
-  // Model prediction for how many species the average observer would find
-  // on an average transect run through this site
-  expected_richness = intercept + site_effect[site_index];
-  
   for (i in 1:N_test_observer) {
     test_observer_effect[i] = normal_rng(0, observer_sigma);
   }
