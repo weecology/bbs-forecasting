@@ -13,7 +13,8 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   set.seed(seed)
   settings = yaml::yaml.load_file("settings.yaml")
   
-  # If we don't have any observed richness, we can't use the row
+  # If we don't have any observed richness, we can't use the row, so omit
+  # anything with is.na(richness)
   df = get_pop_ts_env_data(settings$start_yr, 
                            settings$end_yr, 
                            settings$min_num_yrs) %>% 
@@ -38,8 +39,8 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   
   # Fit the model; drop character vectors that Stan doesn't need/like
   samples = rstan::sampling(model, 
-                            data = purrr:::discard(stan_data, is.character), 
-                            chains = 1, cores = 2, iter = 500)
+                            data = stan_data, 
+                            chains = 2, cores = 2, iter = 2000)
   
   # Save tidy tables of observer effects and site effects
   observer_table = tidy_stan(samples, 
