@@ -63,22 +63,31 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
     response_variable = "richness"
   }
   
-  fun = getFromNamespace(fun_name, "forecast")
   h = settings$end_yr - settings$last_train_year
   
   # Set the `level` so that `upper` and `lower` are 2 sd apart.
   level = pnorm(0.5)
   
   if (all(is.na(x[[response_variable]]))) {
+    warning("Empty response variable")
     return(list(NA))
   }
   
-  # `naive` needs `level`, but `auto.arima` fails if `level` is passed in.
+  
   if (fun_name == "naive") {
-    fc = fun(x[[response_variable]], h = h, level = level, ...)
+    # `forecast::naive` refuses to predict when the final observation is NA.
+    # But we can fit the same model with `Arima(order = c(0,1,0))`
+    fun = partial(Arima, order = c(0, 1, 0))
   } else {
-    fc = fun(x[[response_variable]], ...) %>% 
-      forecast::forecast(h = h, level = level)
+    # Just get the named function
+    fun = getFromNamespace(fun_name, "forecast")
+  }
+  
+  fc = fun(y = x[[response_variable]], ...) %>% 
+    forecast::forecast(h = h, level = level)
+  
+  if (any(is.na(fc$mean))) {
+    browser()
   }
   
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
@@ -170,13 +179,14 @@ gbm_richness_predictions = x_richness %>%
   group_by(iteration) %>% 
   by_slice(make_gbm_predictions, obs_model = TRUE, .collate = "rows")
 
+# Don't need to group/by_slice because only fitting one iteration
 gbm_no_obs = x_richness %>%
   filter(iteration == 1) %>%
   make_gbm_predictions(obs_model = FALSE)
 
 p = bind_rows(average_model_predictions, average_no_obs, 
               naive_model_predictions, naive_no_obs,
-              auto_no_obs, 
+              auto_no_obs, auto_model_predictions,
               gbm_richness_predictions, gbm_no_obs)
 
 p %>% 
@@ -186,6 +196,6 @@ p %>%
          mae = abs(richness - mean), 
          obs_model = forcats::fct_relevel(factor(obs_model), "TRUE")) %>% 
   ggplot(aes(x = year, y = `mean deviance`, color = model, linetype = obs_model)) + 
-  geom_smooth(method = "gam") + 
+  geom_smooth(method = "gam", formula = y ~ s(x)) + 
   cowplot::theme_cowplot() + 
   scale_color_brewer(type = "qual", palette = "Dark2")
