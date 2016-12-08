@@ -24,7 +24,7 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
   if (fun_name == "naive") {
     # `forecast::naive` refuses to predict when the final observation is NA.
     # But we can fit the same model with `Arima(order = c(0,1,0))`
-    fun = partial(Arima, order = c(0, 1, 0))
+    fun = purrr::partial(Arima, order = c(0, 1, 0))
   } else {
     # Just get the named function
     fun = getFromNamespace(fun_name, "forecast")
@@ -38,7 +38,7 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
   }
   
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
-  tibble(year = seq(settings$last_train_year + 1, settings$end_yr), 
+  data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fc$mean), sd = c(fc$upper - fc$lower) / 2, model = fun_name,
          obs_model = obs_model)
 }
