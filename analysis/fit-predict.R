@@ -52,18 +52,35 @@ average_no_obs = x_richness %>%
 
 
 make_forecast = function(x, fun_name, obs_model, settings, ...){
+  # `Forecast`` functions want NAs for missing years, & want the years in order
+  x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 
+    arrange(year)
+  
   if (obs_model) {
     # observer effect will be added back in `make_all_forecasts`
     response_variable = "expected_richness"
   } else {
     response_variable = "richness"
   }
+  
   fun = getFromNamespace(fun_name, "forecast")
+  h = settings$end_yr - settings$last_train_year
   
   # Set the `level` so that `upper` and `lower` are 2 sd apart.
-  fc = fun(x[[response_variable]], ...) %>% 
-    forecast::forecast(h = settings$end_yr - settings$last_train_year,
-                       level = pnorm(0.5))
+  level = pnorm(0.5)
+  
+  if (all(is.na(x[[response_variable]]))) {
+    return(list(NA))
+  }
+  
+  # `naive` needs `level`, but `auto.arima` fails if `level` is passed in.
+  if (fun_name == "naive") {
+    fc = fun(x[[response_variable]], h = h, level = level, ...)
+  } else {
+    fc = fun(x[[response_variable]], ...) %>% 
+      forecast::forecast(h = h, level = level)
+  }
+  
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   tibble(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fc$mean), sd = c(fc$upper - fc$lower) / 2, model = fun_name,
@@ -72,12 +89,9 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
 
 make_all_forecasts = function(x, fun_name, obs_model, 
                               settings, ...){
-  # `Forecast`` functions want NAs for missing years, and want the years in order
   forecast_data = x %>% 
     filter(year <= settings$last_train_year) %>% 
-    complete(site_id, year) %>%
-    group_by(site_id, iteration) %>%
-    arrange(year)
+    group_by(site_id, iteration)
   
   if (!obs_model) {
     # Without an observation model, all the iterations will be the same.
@@ -100,22 +114,17 @@ make_all_forecasts = function(x, fun_name, obs_model,
   select(out, site_id, year, mean, sd, iteration, richness, model, obs_model)
 }
 
-naive_model_predictions = make_all_forecasts(x_richness, "naive", 
-                                             obs_model = TRUE, 
-                                             settings = settings)
-naive_no_obs = make_all_forecasts(x_richness, "naive", 
-                                             obs_model = FALSE, 
-                                             settings = settings)
-
-auto_no_obs = make_all_forecasts(x_richness, "auto.arima", 
-                                 obs_model = FALSE, 
-                                 settings = settings,
-                                 seasonal = FALSE)
-
-
-make_gbm_predictions = function(x){
+make_gbm_predictions = function(x, obs_model){
   train = filter(x, year <= settings$last_train_year)
-  g = gbm::gbm(expected_richness ~ 
+  test = filter(x, year > settings$last_train_year)
+  
+  if (obs_model) {
+    train$y = train$expected_richness
+  } else {
+    train$y = train$richness
+  }
+  
+  g = gbm::gbm(y ~ 
                  bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + 
                  ndvi_sum + 
                  ndvi_win + 
@@ -125,21 +134,50 @@ make_gbm_predictions = function(x){
                interaction.depth = 3,
                shrinkage = .01,
                n.trees = 5000)
-  test = filter(x, year > settings$last_train_year)
-  mean = predict(g, test, n.trees = gbm::gbm.perf(g, plot.it = FALSE)) + 
-    test$observer_effect
-  cbind(test, mean = mean, model = "richness_gbm",  obs_model = TRUE, 
+  
+  mean = predict(g, test, n.trees = gbm::gbm.perf(g, plot.it = FALSE))
+  if (obs_model) {
+    mean = mean + test$observer_effect
+  }
+  
+  cbind(test, mean = mean, model = "richness_gbm",  obs_model = obs_model, 
         stringsAsFactors = FALSE) %>% 
     select(site_id, year, mean, sd, richness, model, obs_model)
 }
 
-# gbm_predictions = x_richness %>% 
-#   group_by(iteration) %>% 
-#   by_slice(make_gbm_predictions, .collate = "row")
+
+naive_model_predictions = make_all_forecasts(x_richness, 
+                                             "naive", 
+                                             obs_model = TRUE, 
+                                             settings = settings)
+naive_no_obs = make_all_forecasts(x_richness, 
+                                  "naive", 
+                                  obs_model = FALSE, 
+                                  settings = settings)
+
+auto_model_predictions = make_all_forecasts(x_richness, 
+                                            "auto.arima", 
+                                            obs_model = TRUE, 
+                                            settings = settings,
+                                            seasonal = FALSE)
+
+auto_no_obs = make_all_forecasts(x_richness, "auto.arima", 
+                                 obs_model = FALSE, 
+                                 settings = settings,
+                                 seasonal = FALSE)
+
+gbm_richness_predictions = x_richness %>%
+  group_by(iteration) %>% 
+  by_slice(make_gbm_predictions, obs_model = TRUE, .collate = "rows")
+
+gbm_no_obs = x_richness %>%
+  filter(iteration == 1) %>%
+  make_gbm_predictions(obs_model = FALSE)
 
 p = bind_rows(average_model_predictions, average_no_obs, 
               naive_model_predictions, naive_no_obs,
-              auto_no_obs)
+              auto_no_obs, 
+              gbm_richness_predictions, gbm_no_obs)
 
 p %>% 
   filter(!is.na(richness)) %>% 
@@ -149,4 +187,5 @@ p %>%
          obs_model = forcats::fct_relevel(factor(obs_model), "TRUE")) %>% 
   ggplot(aes(x = year, y = `mean deviance`, color = model, linetype = obs_model)) + 
   geom_smooth(method = "gam") + 
-  cowplot::theme_cowplot()
+  cowplot::theme_cowplot() + 
+  scale_color_brewer(type = "qual", palette = "Dark2")
