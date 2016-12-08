@@ -81,6 +81,7 @@ make_gbm_predictions = function(x, obs_model){
     train$y = train$richness
   }
   
+  
   g = gbm::gbm(y ~ 
                  bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + 
                  ndvi_sum + 
@@ -88,9 +89,9 @@ make_gbm_predictions = function(x, obs_model){
                  elevs, 
                data = train,
                distribution = "gaussian",
-               interaction.depth = 3,
-               shrinkage = .01,
-               n.trees = 5000)
+               interaction.depth = 5,
+               shrinkage = .015,
+               n.trees = 1E4)
   
   mean = predict(g, test, n.trees = gbm::gbm.perf(g, plot.it = FALSE))
   if (obs_model) {
