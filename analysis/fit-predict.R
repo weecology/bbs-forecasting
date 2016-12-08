@@ -1,5 +1,6 @@
 # TODO: ensure that sd is correct for all models
 # TODO: better names for columns/functions
+# TODO: Check namespaces
 
 library(tidyverse)
 devtools::load_all()
