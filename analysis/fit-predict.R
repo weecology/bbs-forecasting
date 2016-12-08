@@ -1,10 +1,15 @@
 # TODO: ensure that sd is correct for all models
+# TODO: better names for columns/functions
 
 library(tidyverse)
 devtools::load_all()
 settings = yaml::yaml.load_file("settings.yaml")
 
-obs_model = readRDS("observer_model.rds")
+if (!file.exists("observer_model.rds")) {
+  fit_observer_model()
+} else {
+  obs_model = readRDS("observer_model.rds")
+}
 
 iters = 1:25 # During interactive use/testing, only include a few MCMC samples
 
@@ -26,7 +31,8 @@ average_model_predictions = x_richness %>%
 average_no_obs = x_richness %>% 
   filter(in_train) %>% 
   group_by(site_id) %>% 
-  summarize(mean = mean(richness), sd = sd(richness), model = "average", obs_model = FALSE) %>% 
+  summarize(mean = mean(richness), sd = sd(richness), model = "average", 
+            obs_model = FALSE) %>% 
   left_join(select(x_richness, -sd), "site_id") %>% 
   filter(!in_train) %>% 
   select(site_id, year, mean, sd, richness, model, obs_model)
@@ -71,7 +77,8 @@ p %>%
   mutate(`mean deviance` = -2 * dnorm(richness, mean, sd, log = TRUE),
          mae = abs(richness - mean), 
          obs_model = forcats::fct_relevel(factor(obs_model), "TRUE")) %>% 
-  ggplot(aes(x = year, y = `mean deviance`, color = model, linetype = obs_model)) + 
+  ggplot(aes(x = year, y = `mean deviance`, color = model, 
+             linetype = obs_model)) + 
   geom_smooth(method = "gam", formula = y ~ s(x)) + 
   cowplot::theme_cowplot() + 
   scale_color_brewer(type = "qual", palette = "Dark2")
