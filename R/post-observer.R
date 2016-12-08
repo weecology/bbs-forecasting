@@ -1,3 +1,4 @@
+#' @importFrom forecast Arima auto.arima
 make_forecast = function(x, fun_name, obs_model, settings, ...){
   # `Forecast`` functions want NAs for missing years, & want the years in order
   x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 

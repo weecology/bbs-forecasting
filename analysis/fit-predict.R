@@ -12,7 +12,7 @@ if (!file.exists("observer_model.rds")) {
   obs_model = readRDS("observer_model.rds")
 }
 
-iters = 1:25 # During interactive use/testing, only include a few MCMC samples
+iters = 1:3 # During interactive use/testing, only include a few MCMC samples
 
 # `c()` is needed for a few lines because of distinction between 
 # vectors and 1D arrays, I think?
