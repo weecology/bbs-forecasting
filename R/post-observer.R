@@ -1,6 +1,6 @@
 #' @importFrom forecast Arima auto.arima
 make_forecast = function(x, fun_name, obs_model, settings, ...){
-  # `Forecast`` functions want NAs for missing years, & want the years in order
+  # `Forecast` functions want NAs for missing years, & want the years in order
   x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 
     arrange(year)
   
@@ -21,27 +21,28 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
     return(list(NA))
   }
   
-  
   if (fun_name == "naive") {
     # `forecast::naive` refuses to predict when the final observation is NA.
     # But we can fit the same model with `Arima(order = c(0,1,0))`
     fun = purrr::partial(Arima, order = c(0, 1, 0))
   } else {
     # Just get the named function
-    fun = partial(getFromNamespace(fun_name, "forecast"), seasonal = FALSE)
+    fun = purrr::partial(getFromNamespace(fun_name, "forecast"), 
+                         seasonal = FALSE)
   }
   
-  fc = fun(y = x[[response_variable]], ...) %>% 
+  fcst = fun(y = x[[response_variable]], ...) %>% 
     forecast::forecast(h = h, level = level)
   
-  if (any(is.na(fc$mean))) {
-    browser()
+  if (any(is.na(fcst$mean))) {
+    warning("NA in predictions")
+    return(list(NA))
   }
   
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
-         mean = c(fc$mean), sd = c(fc$upper - fc$lower) / 2, model = fun_name,
-         obs_model = obs_model)
+         mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
+         model = fun_name, obs_model = obs_model)
 }
 
 make_all_forecasts = function(x, fun_name, obs_model, 
@@ -80,7 +81,6 @@ make_gbm_predictions = function(x, obs_model){
   } else {
     train$y = train$richness
   }
-  
   
   g = gbm::gbm(y ~ 
                  bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + 
@@ -121,7 +121,7 @@ combine_predictions = function(x){
     }
   }
   
-  # Uncertainty is additive on the variance scale, not the 
+  # Uncertainty is additive on the variance scale, not the sd scale
   x %>% 
     group_by(site_id, year, model, obs_model, richness) %>% 
     summarize(sd = sqrt(mean(safe_var(mean) + mean(sd^2))), 
