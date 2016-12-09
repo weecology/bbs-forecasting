@@ -31,6 +31,7 @@ average_model_predictions = x_richness %>%
          model = "average", obs_model = TRUE) %>% 
   select(site_id, year, mean, sd, iteration, richness, model, obs_model)
 
+# Use site-level means and sds from the training set as test-set predictions
 average_no_obs = x_richness %>% 
   filter(in_train) %>% 
   group_by(site_id) %>% 
@@ -40,25 +41,21 @@ average_no_obs = x_richness %>%
   filter(!in_train) %>% 
   select(site_id, year, mean, sd, richness, model, obs_model)
 
-naive_model_predictions = make_all_forecasts(x_richness, 
-                                             "naive", 
-                                             obs_model = TRUE, 
-                                             settings = settings)
-naive_no_obs = make_all_forecasts(x_richness, 
-                                  "naive", 
-                                  obs_model = FALSE, 
-                                  settings = settings)
 
-auto_model_predictions = make_all_forecasts(x_richness, 
-                                            "auto.arima", 
-                                            obs_model = TRUE, 
-                                            settings = settings,
-                                            seasonal = FALSE)
+# For all combinations of forecast function & obs_model (TRUE/FALSE)
+# run make_forecasts with data & settings.
+grid = expand.grid(fun_name = c("naive", "auto.arima"), 
+                   obs_model = c(TRUE, FALSE),
+                   stringsAsFactors = FALSE
+)
 
-auto_no_obs = make_all_forecasts(x_richness, "auto.arima", 
-                                 obs_model = FALSE, 
-                                 settings = settings,
-                                 seasonal = FALSE)
+forecast_predictions = grid %>% 
+  transpose() %>% 
+  map(
+    ~do.call(make_all_forecasts, 
+             c(x = list(x_richness), settings = list(settings), .x))
+  ) %>% 
+  bind_rows()
 
 gbm_richness_predictions = x_richness %>%
   group_by(iteration) %>% 
@@ -74,10 +71,8 @@ gbm_no_obs = x_richness %>%
 # Concatenate raw model predictions ---------------------------------------
 
 p = bind_rows(average_model_predictions, average_no_obs, 
-              naive_model_predictions, naive_no_obs,
-              auto_no_obs, auto_model_predictions,
+              forecast_predictions,
               gbm_richness_predictions, gbm_no_obs)
-
 
 # Plotting ----------------------------------------------------------------
 

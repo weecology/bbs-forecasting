@@ -28,7 +28,7 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
     fun = purrr::partial(Arima, order = c(0, 1, 0))
   } else {
     # Just get the named function
-    fun = getFromNamespace(fun_name, "forecast")
+    fun = partial(getFromNamespace(fun_name, "forecast"), seasonal = FALSE)
   }
   
   fc = fun(y = x[[response_variable]], ...) %>% 
