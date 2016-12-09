@@ -93,14 +93,20 @@ make_gbm_predictions = function(x, obs_model){
                shrinkage = .015,
                n.trees = 1E4)
   
-  mean = predict(g, test, n.trees = gbm::gbm.perf(g, plot.it = FALSE))
+  n.trees = gbm::gbm.perf(g, plot.it = FALSE)
+  
+  # sd of training set residuals
+  sd = sqrt(mean((predict(g, n.trees = n.trees) - train$y)^2))
+  
+  mean = predict(g, test, n.trees = n.trees)
   if (obs_model) {
     mean = mean + test$observer_effect
   }
   
   cbind(test, mean = mean, model = "richness_gbm",  obs_model = obs_model, 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, sd, richness, model, obs_model)
+    select(site_id, year, mean, richness, model, obs_model) %>% 
+    mutate(sd = sd)
 }
 
 
@@ -115,6 +121,7 @@ combine_predictions = function(x){
     }
   }
   
+  # Uncertainty is additive on the variance scale, not the 
   x %>% 
     group_by(site_id, year, model, obs_model, richness) %>% 
     summarize(sd = sqrt(mean(safe_var(mean) + mean(sd^2))), 
