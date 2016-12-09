@@ -23,6 +23,8 @@ x_richness = obs_model$data %>%
   filter(iteration %in% iters)
 
 
+# Fit models --------------------------------------------------------------
+
 average_model_predictions = x_richness %>% 
   filter(!in_train) %>% 
   mutate(mean = intercept + observer_effect + site_effect,
@@ -67,10 +69,17 @@ gbm_no_obs = x_richness %>%
   filter(iteration == 1) %>%
   make_gbm_predictions(obs_model = FALSE)
 
+
+
+# Concatenate raw model predictions ---------------------------------------
+
 p = bind_rows(average_model_predictions, average_no_obs, 
               naive_model_predictions, naive_no_obs,
               auto_no_obs, auto_model_predictions,
               gbm_richness_predictions, gbm_no_obs)
+
+
+# Plotting ----------------------------------------------------------------
 
 p %>% 
   filter(!is.na(richness)) %>% 
