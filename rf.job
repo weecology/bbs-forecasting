@@ -31,4 +31,4 @@ date;hostname;pwd
 
 # Load R and run a script
 module load R
-Rscript --default-packages=stats,graphics,grDevices,utils,methods "analysis/sdm-rf.R"
+Rscript --default-packages=stats,graphics,grDevices,utils,methods "analysis/rf-fit.R"
