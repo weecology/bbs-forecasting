@@ -42,6 +42,7 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   # Fit the model; drop character vectors that Stan doesn't need/like
   samples = rstan::sampling(model, 
                             data = stan_data, 
+                            chains = chains, cores = cores, iter = iter,
                             ...)
   
   # Save tidy tables of observer effects and site effects
