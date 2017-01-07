@@ -8,7 +8,7 @@
 # Where to put the outputs:
 #   %A expands to the job-name specified above
 #   %j expands into the job number (a unique identifier for this job)
-#SBATCH --output rf%j.out
+#SBATCH --output rf-%j.out
 #SBATCH --error rf-%j.err
 
 # Number of nodes to use
@@ -31,4 +31,4 @@ date;hostname;pwd
 
 # Load R and run a script
 module load R
-Rscript --default-packages=stats,graphics,grDevices,utils,methods "analysis/rf-fit.R"
+Rscript --default-packages=stats,graphics,grDevices,utils,methods "analysis/fit-rf.R"
