@@ -10,12 +10,18 @@ if (!file.exists("observer_model.rds")) {
 
 bbs = get_bbs_data()
 
+bioclim_to_discard = colnames(obs_model$data) %>% 
+  grep("^bio", ., value = TRUE) %>% 
+  discard(~.x %in% settings$vars)
+
 # `c()` is needed for a few lines because of distinction between 
 # vectors and 1D arrays, I think?
 x_richness = obs_model$data %>% 
   mutate(intercept = c(obs_model$intercept[iteration]), 
          sd = c(obs_model$sigma[iteration]),
-         expected_richness = richness - observer_effect)
+         expected_richness = richness - observer_effect) %>% 
+  select(-ndvi_win, -ndvi_ann, -lat, -long, -site_index, -expected_richness, -sd,
+         -intercept, -site_effect, -one_of(bioclim_to_discard))
 
 rm(obs_model)
 gc()
