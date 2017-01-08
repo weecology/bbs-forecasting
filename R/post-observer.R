@@ -82,11 +82,7 @@ make_gbm_predictions = function(x, obs_model){
     train$y = train$richness
   }
   
-  g = gbm::gbm(y ~ 
-                 bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + 
-                 ndvi_sum + 
-                 ndvi_win + 
-                 elevs, 
+  g = gbm::gbm(as.formula(settings$formula), 
                data = train,
                distribution = "gaussian",
                interaction.depth = 5,
