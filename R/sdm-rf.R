@@ -50,7 +50,7 @@ rf_predict_richness = function(bbs, x_richness, settings, obs_model) {
                          settings = settings, 
                          obs_model = obs_model)
     },
-    mc.cores = 16,
+    mc.cores = 12,
     mc.preschedule = FALSE
   ) %>% 
     bind_rows() %>% 
