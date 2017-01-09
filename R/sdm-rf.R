@@ -43,7 +43,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, obs_model){
 
 rf_predict_richness = function(bbs, x_richness, settings, obs_model, mc.cores) {
   
-  parallel::mclapply(
+  out = parallel::mclapply(
     unique(bbs$species_id), 
     function(sp_id){
       rf_predict_species(sp_id, bbs = bbs, x_richness = x_richness, 
@@ -57,5 +57,10 @@ rf_predict_richness = function(bbs, x_richness, settings, obs_model, mc.cores) {
     group_by(site_id, year, richness) %>% 
     summarize(sd = sqrt(sum(mean * (1 - mean))), mean = sum(mean)) %>% 
     ungroup() %>% 
-    mutate_(model = "rf_sdm", obs_model = ~obs_model)
+    mutate(model = "rf_sdm")
+  
+  # use standard evaluation because column name & function argument match
+  out$obs_model = obs_model
+  
+  out
 }

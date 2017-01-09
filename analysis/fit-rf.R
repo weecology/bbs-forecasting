@@ -30,7 +30,8 @@ gc()
 
 
 rf_sdm_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                 settings = settings, obs_model = TRUE)
+                                 settings = settings, obs_model = TRUE,
+                                 mc.cores = 8)
 
 dir.create("rf_predictions", showWarnings = FALSE)
 saveRDS(rf_sdm_obs, file = "rf_predictions/all_TRUE.rds")
@@ -38,7 +39,8 @@ rm(rf_sdm_obs)
 gc()
 
 rf_sdm_no_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                    settings = settings, obs_model = FALSE) 
+                                    settings = settings, obs_model = FALSE,
+                                    mc.cores = 8) 
 
 saveRDS(rf_sdm_no_obs, file = "rf_predictions/all_FALSE.rds")
 
