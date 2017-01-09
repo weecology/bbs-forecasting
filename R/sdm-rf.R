@@ -41,7 +41,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, obs_model){
     summarize(mean = mean(mean))
 }
 
-rf_predict_richness = function(bbs, x_richness, settings, obs_model) {
+rf_predict_richness = function(bbs, x_richness, settings, obs_model, mc.cores) {
   
   parallel::mclapply(
     unique(bbs$species_id), 
@@ -50,12 +50,12 @@ rf_predict_richness = function(bbs, x_richness, settings, obs_model) {
                          settings = settings, 
                          obs_model = obs_model)
     },
-    mc.cores = 12,
+    mc.cores = mc.cores,
     mc.preschedule = FALSE
   ) %>% 
     bind_rows() %>% 
     group_by(site_id, year, richness) %>% 
     summarize(sd = sqrt(sum(mean * (1 - mean))), mean = sum(mean)) %>% 
     ungroup() %>% 
-    mutate(model = "rf_sdm", obs_model = obs_model)
+    mutate_(model = "rf_sdm", obs_model = ~obs_model)
 }

@@ -1,3 +1,4 @@
+set.seed(1)
 library(tidyverse)
 devtools::load_all()
 settings = yaml::yaml.load_file("settings.yaml")
@@ -10,6 +11,7 @@ if (!file.exists("observer_model.rds")) {
 
 bbs = get_bbs_data()
 
+# Discard unnecessary data to save memory
 bioclim_to_discard = colnames(obs_model$data) %>% 
   grep("^bio", ., value = TRUE) %>% 
   discard(~.x %in% settings$vars)
@@ -30,6 +32,7 @@ gc()
 rf_sdm_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
                                  settings = settings, obs_model = TRUE)
 
+dir.create("rf_predictions", showWarnings = FALSE)
 saveRDS(rf_sdm_obs, file = "rf_predictions/all_TRUE.rds")
 rm(rf_sdm_obs)
 gc()
