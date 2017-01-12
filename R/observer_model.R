@@ -43,6 +43,7 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   samples = rstan::sampling(model, 
                             data = stan_data, 
                             chains = chains, cores = cores, iter = iter,
+                            thin = thin,
                             ...)
   
   # Save tidy tables of observer effects and site effects
@@ -85,7 +86,7 @@ tidy_stan = function(samples, names, key = key, value = value){
   # Extract the matrices, convert them to data_frames, and bind them into one
   # data_frame.  The column names correspond to index values (1:N)
   df = rstan::extract(samples, names) %>% 
-    map(as_data_frame) %>% 
+    purrr::map(as_data_frame) %>% 
     bind_cols() %>% 
     set_names(1:ncol(.))
   
