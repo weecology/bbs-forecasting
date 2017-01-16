@@ -5,7 +5,8 @@
 \title{Estimate observer effects}
 \usage{
 fit_observer_model(stan_file = "mixed.stan", seed = 1,
-  output_file = "observer_model.rds")
+  output_file = "observer_model.rds", chains = 2, cores = 2,
+  iter = 2000, thin = 4, ...)
 }
 \value{
 \code{NULL}. Saves a list of relevant values in `output_file`

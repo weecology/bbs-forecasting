@@ -17,9 +17,11 @@ Imports:
     git2r (>= 0.15.0),
     ggplot2 (>= 2.1.0),
     viridis (>= 0.3.4),
-    lme4 (>= 1.1.12),
     rstan (>= 2.12.1),
-    yaml (>= 2.1.13)
+    yaml (>= 2.1.13),
+    purrr (>= 0.2.2),
+    gbm (>= 2.1.1),
+    randomForest (>= 4.6-12)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 5.0.1
