@@ -13,6 +13,11 @@ bbs = get_pop_ts_env_data(settings$start_yr,
                           settings$end_yr, 
                           settings$min_num_yrs) %>% 
   filter(!is.na(abundance))
+# Discard species that don't occur in the training set
+bbs = bbs %>% 
+  filter(year <= settings$last_train_year) %>% 
+  distinct(species_id) %>% 
+  left_join(bbs)
 
 # Discard unnecessary data to save memory
 bioclim_to_discard = colnames(obs_model$data) %>% 
