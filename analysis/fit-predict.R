@@ -22,8 +22,7 @@ x_richness = obs_model$data %>%
   mutate(intercept = c(obs_model$intercept[iteration]), 
          sd = c(obs_model$sigma[iteration]),
          expected_richness = richness - observer_effect) %>% 
-  select(-ndvi_ann, -lat, -long, -site_index, -expected_richness, -sd,
-         -intercept, -site_effect, -one_of(bioclim_to_discard))
+  select(-ndvi_ann, -lat, -long, -site_index, -one_of(bioclim_to_discard))
 
 # Reclaim memory
 rm(obs_model)
@@ -32,6 +31,7 @@ gc()
 
 # Fit & save models --------------------------------------------------------
 
+# "Average" model with observer effects
 x_richness %>% 
   filter(!in_train) %>% 
   mutate(mean = intercept + observer_effect + site_effect,
@@ -39,6 +39,7 @@ x_richness %>%
   select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
   saveRDS(file = "avg_TRUE.rds")
 
+# "Average" model without observer effects
 # Use site-level means and sds from the training set as test-set predictions
 x_richness %>% 
   filter(in_train) %>% 
@@ -47,18 +48,16 @@ x_richness %>%
             use_obs_model = FALSE) %>% 
   left_join(select(x_richness, -sd), "site_id") %>% 
   filter(!in_train) %>% 
-  select(site_id, year, mean, sd, richness, model, obs_model) %>% 
+  select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
   saveRDS(file = "avg_FALSE.rds")
 
 
+# Forecast-based predictions
 # For all combinations of forecast function & use_obs_model (TRUE/FALSE)
 # run make_forecasts with data & settings.
-grid = expand.grid(fun_name = c("naive", "auto.arima"), 
-                   use_obs_model = c(TRUE, FALSE),
-                   stringsAsFactors = FALSE
-)
-
-grid %>% 
+expand.grid(fun_name = c("naive", "auto.arima"), 
+            use_obs_model = c(TRUE, FALSE),
+            stringsAsFactors = FALSE) %>% 
   transpose() %>% 
   map(
     ~do.call(make_all_forecasts, 
@@ -67,11 +66,13 @@ grid %>%
   bind_rows() %>% 
   saveRDS(file = "forecast.rds")
 
+# GBM richness with observer effects:
 x_richness %>%
   group_by(iteration) %>%
   by_slice(make_gbm_predictions, use_obs_model = TRUE, .collate = "rows") %>% 
   saveRDS(file = "gbm_TRUE.rds")
 
+# GBM richness without observer effects:
 # Don't need to group/by_slice because only fitting one iteration
 x_richness %>%
   filter(iteration == 1) %>%
@@ -79,13 +80,14 @@ x_richness %>%
   saveRDS(file = "gbm_FALSE.rds")
 
 
-# fit random forest -------------------------------------------------------
+# fit random forest SDMs -------------------------------------------------------
 
 # Get data on individual species occurrences
 bbs = get_pop_ts_env_data(settings$start_yr, 
                           settings$end_yr, 
                           settings$min_num_yrs) %>% 
   filter(!is.na(abundance))
+
 # Discard species that don't occur in the training set
 bbs = bbs %>% 
   filter(year <= settings$last_train_year) %>% 
@@ -93,6 +95,9 @@ bbs = bbs %>%
   left_join(bbs)
 
 dir.create("rf_predictions", showWarnings = FALSE)
+
+gc() # Minimize memory detritus before forking
+
 rf_sdm_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
                                  settings = settings, use_obs_model = TRUE,
                                  mc.cores = 8) %>% 

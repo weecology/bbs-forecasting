@@ -1,10 +1,10 @@
 #' @importFrom forecast Arima auto.arima
-make_forecast = function(x, fun_name, obs_model, settings, ...){
+make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   # `Forecast` functions want NAs for missing years, & want the years in order
   x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 
     arrange(year)
   
-  if (obs_model) {
+  if (use_obs_model) {
     # observer effect will be added back in `make_all_forecasts`
     response_variable = "expected_richness"
   } else {
@@ -42,16 +42,16 @@ make_forecast = function(x, fun_name, obs_model, settings, ...){
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
-         model = fun_name, obs_model = obs_model)
+         model = fun_name, use_obs_model = use_obs_model)
 }
 
-make_all_forecasts = function(x, fun_name, obs_model, 
+make_all_forecasts = function(x, fun_name, use_obs_model, 
                               settings, ...){
   forecast_data = x %>% 
     filter(year <= settings$last_train_year) %>% 
     group_by(site_id, iteration)
   
-  if (!obs_model) {
+  if (!use_obs_model) {
     # Without an observation model, all the iterations will be the same.
     # Don't bother fitting the same model to each iteration
     forecast_data = filter(forecast_data, iteration == 1)
@@ -60,23 +60,23 @@ make_all_forecasts = function(x, fun_name, obs_model,
   # TODO: by_slice will be deprecated. See if I can use mutate_all instead?
   # Dropping x_richness$sd before joining so it can be replaced by forecast sd.
   out = by_slice(forecast_data, make_forecast, fun_name = fun_name, 
-                 obs_model = obs_model, settings = settings, ...,
+                 use_obs_model = use_obs_model, settings = settings, ...,
                  .collate = "row") %>%
     left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
   
-  if (obs_model) {
+  if (use_obs_model) {
     # Observer effect was subtraced out in make_forcast. Add it back in here.
     out = mutate(out, mean = mean + observer_effect)
   }
   
-  select(out, site_id, year, mean, sd, iteration, richness, model, obs_model)
+  select(out, site_id, year, mean, sd, iteration, richness, model, use_obs_model)
 }
 
-make_gbm_predictions = function(x, obs_model){
+make_gbm_predictions = function(x, use_obs_model){
   train = filter(x, year <= settings$last_train_year)
   test = filter(x, year > settings$last_train_year)
   
-  if (obs_model) {
+  if (use_obs_model) {
     train$y = train$expected_richness
   } else {
     train$y = train$richness
@@ -95,13 +95,13 @@ make_gbm_predictions = function(x, obs_model){
   sd = sqrt(mean((predict(g, n.trees = n.trees) - train$y)^2))
   
   mean = predict(g, test, n.trees = n.trees)
-  if (obs_model) {
+  if (use_obs_model) {
     mean = mean + test$observer_effect
   }
   
-  cbind(test, mean = mean, model = "richness_gbm",  obs_model = obs_model, 
+  cbind(test, mean = mean, model = "richness_gbm",  use_obs_model = use_obs_model, 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, richness, model, obs_model) %>% 
+    select(site_id, year, mean, richness, model, use_obs_model) %>% 
     mutate(sd = sd)
 }
 
@@ -119,7 +119,7 @@ combine_predictions = function(x){
   
   # Uncertainty is additive on the variance scale, not the sd scale
   x %>% 
-    group_by(site_id, year, model, obs_model, richness) %>% 
+    group_by(site_id, year, model, use_obs_model, richness) %>% 
     summarize(sd = sqrt(mean(safe_var(mean) + mean(sd^2))), 
               mean = mean(mean)) %>% 
     ungroup()
