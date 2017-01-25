@@ -59,9 +59,13 @@ expand.grid(fun_name = c("naive", "auto.arima"),
             use_obs_model = c(TRUE, FALSE),
             stringsAsFactors = FALSE) %>% 
   transpose() %>% 
-  map(
-    ~do.call(make_all_forecasts, 
-             c(x = list(x_richness), settings = list(settings), .x))
+  parallel::mclapply(
+    function(grid_row){
+      do.call(make_all_forecasts, 
+             c(x = list(x_richness), settings = list(settings), grid_row))
+    },
+    mc.cores = 8, 
+    mc.preschedule = FALSE
   ) %>% 
   bind_rows() %>% 
   saveRDS(file = "forecast.rds")
