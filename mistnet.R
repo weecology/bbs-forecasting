@@ -72,7 +72,7 @@ net = mistnet(
     )
   ),
   loss = bernoulliRegLoss(a = 1 + 1E-6, b = 1 + 1E-6),
-  updater = adam.updater(a_0 = 0.01, b2 = 0.99, rate_decay = .9995),  
+  updater = adam.updater(a_0 = 0.01, b2 = 0.99, annealing = .9995),  
   sampler = gaussian.sampler(ncol = latent_dim, sd = 1),
   n.importance.samples = n.importance.samples,
   n.minibatch = n.minibatch,
@@ -161,6 +161,9 @@ out = make_mistnet_tidy(p, "mean", data,
   ungroup() %>% 
   mutate(model = "mistnet", use_obs_model = use_obs_model)
   
+dir.create("mistnet_output", showWarnings = FALSE)
+saveRDS(out, file = paste0("mistnet_output/", "iteration_", i, ".rds"))
+
 # out %>%
 #   group_by(year, site_id, richness) %>%
 #   summarize(mean = mean(mean)) %>%
