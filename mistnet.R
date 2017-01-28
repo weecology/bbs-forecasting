@@ -22,10 +22,10 @@ data = filter(obs_model$data, iteration == i) %>%
   left_join(bbs, c("site_id", "year"))
 
 # Free up some memory
-rm(bbs, obs_model);gc()
+rm(bbs, obs_model)
+gc()
 
-vars = yaml::yaml.load_file("settings.yaml")$vars %>% 
-  c(if (use_obs_model) {"observer_effect"})
+vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
 
 x = data %>% 
   select(one_of(vars)) %>% 
@@ -38,7 +38,10 @@ y = data %>%
   select(which(colSums(.) > 0)) %>% 
   as.matrix()
 
-
+# Drop columns we won't need below
+data = data %>% 
+  select(site_id, year, iteration, richness, in_train)
+gc()
 
 # Model definition --------------------------------------------------------
 # Based on the second-best model in Appendix D of the mistnet paper
@@ -125,29 +128,42 @@ while (net$completed.iterations < n_opt_iterations) {
   print(mean(rowSums(ll * net$importance.weights)))
 } # End while
 
+p = predict(net, 
+            newdata = x[!data$in_train, ], 
+            n.importance.samples = n_prediction_samples)
 
-hist(apply(net$layers[[3]]$outputs, 2, rowMeans), breaks = "fd", border = 2, yaxs = "i")
-hist(qlogis(apply(net$layers[[3]]$outputs, 2, rowMeans)), breaks = "fd", border = 2, yaxs = "i")
-hist(net$layers[[3]]$coef.updater$delta, breaks = "fd", border = 2)
+make_mistnet_tidy = function(p, value_name, data, n_prediction_samples){
+  # Add up p:
+  #  Sum of probabilities is expected richness
+  #  Sum of variances is total variance
+  sums = t(apply(p, 1, colSums)) 
+  
+  # Add the other columns, convert to long format
+  column_names = c("site_id", "year", "iteration", "richness")
+  sums %>%
+    cbind(data[!data$in_train, column_names]) %>%
+    gather_(key_col = "sample", 
+            value_col = value_name,
+            gather_cols = as.character(1:n_prediction_samples),
+            convert = TRUE)
+}
 
-# p = predict(net, newdata = x[!data$in_train, ], n.importance.samples = n_prediction_samples)
-# 
-# make_mistnet_tidy = function(p, value_name){
-#   apply(p, 1, colSums) %>% 
-#     t() %>% 
-#     cbind(data[!data$in_train, c("site_id", "year", "iteration")]) %>% 
-#     gather_(key_col = "sample", value_col = value_name, 
-#             gather_cols = as.character(1:n_prediction_samples))
-# }
-# 
-# out = make_mistnet_tidy(p, "mean") %>% 
-#   left_join(make_mistnet_tidy(p * (1 - p), "variance"),
-#             c("site_id", "year", "iteration", "sample")) %>% 
-#   left_join(select(data, site_id, year, richness), c("site_id", "year"))
-# 
-# out %>% 
-#   group_by(year, site_id, richness) %>% 
-#   summarize(mean = mean(mean)) %>% 
-#   summarize(mse = mean((richness - mean)^2)) %>%  
-#   group_by(year) %>% 
+# Join the mean data frame to the variance data frame, then summarize
+# and tack on extra columns
+out = make_mistnet_tidy(p, "mean", data, 
+                        n_prediction_samples) %>%
+  left_join(make_mistnet_tidy(p * (1 - p), "variance", data, 
+                              n_prediction_samples),
+            c("site_id", "year", "iteration", "sample","richness")) %>% 
+  group_by(site_id, year, iteration, richness) %>% 
+  summarize(sd = sqrt(mean(variance) + var(mean)), 
+            mean = mean(mean)) %>% 
+  ungroup() %>% 
+  mutate(model = "mistnet", use_obs_model = use_obs_model)
+  
+# out %>%
+#   group_by(year, site_id, richness) %>%
+#   summarize(mean = mean(mean)) %>%
+#   summarize(mse = mean((richness - mean)^2)) %>%
+#   group_by(year) %>%
 #   summarize(mse = mean(mse))
