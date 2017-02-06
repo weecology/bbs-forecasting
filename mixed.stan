@@ -2,6 +2,7 @@ data {
   int N;
   int N_site;
   int N_observer;
+  int N_test_observer;
   int site_index[N];
   int observer_index[N];
   real richness[N];
@@ -33,7 +34,8 @@ model {
   );
 }
 generated quantities {
-  // Model prediction for how many species the average observer would find
-  vector[N] expected_richness;
-  expected_richness = to_vector(richness) - observer_effect[observer_index];
+  vector[N_test_observer] test_observer_effect;
+  for (i in 1:N_test_observer) {
+    test_observer_effect[i] = normal_rng(0, observer_sigma);
+  }
 }
