@@ -166,3 +166,83 @@ None of the models are true forcasts as they use observed predictor variables (e
 * Need predictions at multiple time scales
 * Prediction quality at short time scales might not be a good indicator of 
   long-term effectiveness
+
+
+
+## Box 1: Ten simple rules for making and evaluating ecological forecasts
+
+### 1. Compare multiple modeling approaches
+
+Typically ecological forecasts use one modeling approach or a small number of
+related approaches. By fitting and evaluating multiple modeling approaches we
+can learn more rapidly about the best approaches for making predictions for a
+given ecological quantity. This includes comparing process based and data-driven
+models.
+
+### 2. Use time-series data when possible
+
+Forecasts describe how systems are expected to change through time. While some
+areas of ecological forecasting focus primarily on time-series data, others
+primarily focus on using spatial models and space-for time substitutions. Using
+ecological and environmental time-series data allows the consideration of actual
+dynamics from both a process [@treddenick2016a] and error structure perspective.
+
+### 3. Pay attention to uncertainty
+
+Understanding confidence in a forecast is just as important as understanding the
+average or expected outcome. Failing to account for uncertainty can result in
+overconfidence in highly uncertain outcomes leading to poor decision making and
+erosion of confidence in ecological forecasts. Models should explicitly include
+sources of uncertainty where possible and evaluations of forecasts should assess
+the accuracy of uncertainties as well as point estimates [@dietz2017].
+
+### 4. Use predictors related to the question
+
+Many ecological forecasts use data that is readily available and easy to work
+with. While ease of use is a reasonable consideration it is also important to
+include predictor variables that are expected to relate to the ecological
+quantity being forecast and dynamic time-series of predictors instead of
+long-term averages. Investing time in identifying and acquiring better predictor
+variables may have at least as many benefits as using more sophisticated
+modeling techniques.
+
+### 5. Assess how forecast accuracy changes with time-lag
+
+In general the accuracy of forecasts decreases with the length of time into the
+future being forecast [@petch2015]. This decay in accuracy and associated
+forecast horizons should be considered when evaluating forecasts and comparing
+models.
+
+### 6. Include an observation model
+
+Ecological observations are influenced by both the underlying processes and how
+the system is sampled. When possible forecasts should model the factors
+influencing the observation of the data.
+
+### 7. Validate using hindcasting
+
+To evaluate the expected accuracy and uncertainty of forecasts assess the
+performance of these forecasts within existing time-series data.
+
+### 8. Publicly archive forecasts
+
+To allow the future evaluation of the accuracy and uncertainty of forecasts the
+forecast values and/or models should be archived so that they can be assessed
+after new data is generated [@mcgill2012]. Enough information should be provided
+to allow an unambiguous assessment of the forecast performance.
+
+### 9. Make short-term and long-term predictions
+
+In cases where long-term predictions are the primary goal, short-term should
+also be made to accommodate the time-scales of planning and management decisions
+and to allow the accuracy of the forecasts to be quickly evaluated
+[@treddenick2016a];
+
+### 10. Compare forecasts to simple baselines
+
+Compare the accuracy of the forecasts to simple baselines such as the
+time-series average to determine if the modeled forecasts are more accurate than
+the naive assumption that the world is static.
+
+
+
