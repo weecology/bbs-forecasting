@@ -4,44 +4,55 @@ Authors: Harris, Taylor and White?
 
 ## Introduction
 
-Quality of predictions is important:
-  * helps determine policy/set priorities
-  * something something climate change
-  * need to know both accuracy of point estimates and how reasonable our prediction intervals are.
-  * Overconfident predictions can be worse than uncertainty
-  * Quality of prediction is one metric for how much we know about ecological processes
-Unclear how much to trust existing predictions:
-  * Strong assumptions (see "misc" below)
-  * many *interesting* predictions
-  * Potential problems with confidence intervals
-  * Potential disconnect between training target and actual goals
-  * Difficult to test model assumptions/predictions because of time scales
-    * Most scientists making predictions today will have retired by 2050
-Demonstrate best practices \& their contribution to better predictions
-  * Use long-term data sets such as BBS to evaluate predictive skill
-  * Note the large change in average temperatures since the 80's; comparable to 
-    the potential changed in the next 20 years 
-  * Lots of talk about how we should do it, fewer examples of doing them all together
-  * Examples of best practices
-    * Not just bioclim
-    * Dynamic predictor variables (not just site-level averages over 50 years like 
-      Worldclim)
-    * time series models (temporal autocorrelation)
-    * spatial/site-level stuff (repeated measures aren't fully independent)
-    * Properly handling uncertainty:
-      * probabilistic/error bars
-      * error propagation
-    * multiple models
-      * Test with simple baselines (e.g. random walk, future-is-like-present)
-  * Focus on richness/diversity because \[citations saying that it's important\]
-  * Publish forecasts at different timescales to evaluate performance/credibility
-Here we do that:
-  * forecasts for biodiversity in NAmerican birds with as many best practices as 
-    possible
-  * Discuss the influence of these improved methods \& of our error rates on our 
-    ability to understand:
-    * How to improve
-    * How much to trust the predictions
+Forecasting the future state of ecological systems is increasingly important for
+planning, management, and testing the performance of ecological models
+[@clark2001, @dietz2017]. One area of particular interest for forecasting is
+biodiversity since it is important for ecosystem function, central to
+conservation planning, and expected to be influenced by anthropogenic global
+change. Anticipating potential changes in biodiversity is crucial for large
+scale management and conservation, and for addressing debates regarding whether
+local scale diversity is declining and may continue to decline in response to
+anthropogenic influences [@dornelas2014].
+
+Previous efforts to predict future patterns of species richness, and diversity
+more generally, have focused primarily on building species distributions models
+to quantify the spatial relationships between the occurrence of individual
+species and the environment. Forecasts for future environmental conditions are
+then used to predict where each species will occur in the future and the
+probabilities of occurrence are summed across species to predict future species
+richness [e.g., @thomas2004]. Alternatively, models that directly relate spatial
+patterns of species richness to the environment have been developed and
+generally perform equivalently to species distribution modeling based methods
+[@algar2009, @distler2015].
+
+However, despite the emerging interest in forecasting species richness and other
+aspects of biodiversity, little is known about how effectively we can anticipate
+their dynamics. What we do know comes from a small number of hindcasting
+studies, where models are built using data on species occurrence and richness
+from the past and evaluated on their ability to predict contemporary patterns
+[e.g., @algar2009, @distler2015]. These studies are a valuable first step, but
+lack several components that are important for developing good forecasting
+models and understanding how accurately these models can predict the
+future. These components of good forecasting and evaluation (Box 1) broadly
+involve: 1) expanding the use of data to include biological and environmental
+time-series [@treddenick2016]; 2) accounting for uncertainty in observations,
+processes, model choice, and forecast evaluation [@dietz2017]; and 3) conducting
+meaningful evaluations of the forecasts by hindcasting, archiving short-term
+forecasts, and comparing forecasts to baselines to determine if the forecasts
+are more accurate than assuming the system is basically static [@Perretti2013].
+
+In this paper we attempt to forecast the species richness of breeding birds at
+hundreds of locations throughout North America while following the best
+practices in Box 1 for ecological forecasting. To do this we combine 30 years of
+time-series data on bird distributions with monthly time-series of climate data
+and satellite-based remote-sensing. We compare traditional distribution modeling
+based approaches to spatial models of species richness, time-series methods, and
+simple baselines. All forecasts model uncertainty and observation, are evaluated
+across different time lags using hindcasting, and are publicly archived to allow
+future assessment. We discuss the implications of these practices for our
+understanding of, and confidence in, the resulting forecasts, and how we can
+continue to improve on these approaches in the future.
+
 
 ## Methods
 
