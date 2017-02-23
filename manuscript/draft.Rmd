@@ -220,9 +220,10 @@ modeling techniques.
 ### 5. Assess how forecast accuracy changes with time-lag
 
 In general the accuracy of forecasts decreases with the length of time into the
-future being forecast [@petch2015]. This decay in accuracy and associated
-forecast horizons should be considered when evaluating forecasts and comparing
-models.
+future being forecast [@petch2015]. This decay in accuracy and the potential for
+different rates of decay to result in different relative model performance at
+different lead times should be considered when evaluating forecasts and
+comparing models.
 
 ### 6. Include an observation model
 
