@@ -11,15 +11,13 @@
 #SBATCH --output mistnet-%j.out
 #SBATCH --error mistnet-%j.err
 
-# Number of nodes to use
+# Number of nodes to use, following https://wiki.rc.ufl.edu/doc/R#FAQ
 #SBATCH --nodes=1
-
-# Number of tasks (usually translate to processor cores) to use
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 
-# Memory per cpu core. Default is megabytes, but units can be specified with M
-# or G for megabytes or Gigabytes.
+# Memory per cpu core. Default is megabytes, but units can be specified 
+# with M or G for megabytes or Gigabytes.
 #SBATCH --mem-per-cpu=6G
 
 # Job run time in [DAYS]
