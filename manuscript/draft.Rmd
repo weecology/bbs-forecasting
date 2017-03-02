@@ -1,18 +1,23 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 # Moving towards large-scale data-intensive forecasting of species richness in breeding birds
-
+# Using best practices for forecasting biodiversity changes in breeding birds
 Authors: Harris, Taylor and White?
 
 ## Introduction
 
 Forecasting the future state of ecological systems is increasingly important for
-planning, management, and testing the performance of ecological models
-[@clark2001, @dietz2017]. One area of particular interest for forecasting is
-biodiversity since it is important for ecosystem function, central to
-conservation planning, and expected to be influenced by anthropogenic global
-change. Anticipating potential changes in biodiversity is crucial for large
-scale management and conservation, and for addressing debates regarding whether
-local scale diversity is declining and may continue to decline in response to
-anthropogenic influences [@dornelas2014].
+planning, management, and evaluating how well ecological models capture the key
+ecological processes governing a system [@clark2001, @dietz2017]. One area of
+particular interest for forecasting is biodiversity since it is important for
+ecosystem function, central to conservation planning, and expected to be
+influenced by anthropogenic global change. Anticipating potential changes in
+biodiversity is crucial for large scale management and conservation, and for
+addressing debates regarding whether local scale diversity is declining and may
+continue to decline in response to anthropogenic influences [@dornelas2014].
 
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models
@@ -27,31 +32,38 @@ generally perform equivalently to species distribution modeling based methods
 
 However, despite the emerging interest in forecasting species richness and other
 aspects of biodiversity, little is known about how effectively we can anticipate
-their dynamics. What we do know comes from a small number of hindcasting
-studies, where models are built using data on species occurrence and richness
-from the past and evaluated on their ability to predict contemporary patterns
-[e.g., @algar2009, @distler2015]. These studies are a valuable first step, but
-lack several components that are important for developing good forecasting
-models and understanding how accurately these models can predict the
-future. These components of good forecasting and evaluation (Box 1) broadly
-involve: 1) expanding the use of data to include biological and environmental
-time-series [@treddenick2016]; 2) accounting for uncertainty in observations,
-processes, model choice, and forecast evaluation [@dietz2017]; and 3) conducting
-meaningful evaluations of the forecasts by hindcasting, archiving short-term
-forecasts, and comparing forecasts to baselines to determine if the forecasts
-are more accurate than assuming the system is basically static [@Perretti2013].
+their dynamics. This is due in part to the long time scales over which many
+ecological forecasts are applied and the resulting difficulty in assessing
+whether the predicted changes occurred. What we do know comes from a small
+number of hindcasting studies, where models are built using data on species
+occurrence and richness from the past and evaluated on their ability to predict
+contemporary patterns [e.g., @algar2009, @distler2015]. These studies are a
+valuable first step, but lack several components that are important for
+developing good forecasting models and understanding how accurately these models
+can predict the future. These components of good forecasting and evaluation (Box
+1) broadly involve: 1) expanding the use of data to include biological and
+environmental time-series [@treddenick2016]; 2) accounting for uncertainty in
+observations, processes, model choice, and forecast evaluation
+[@clark2001, @dietz2017]; and 3) conducting meaningful evaluations of the
+forecasts by hindcasting, archiving short-term forecasts, and comparing
+forecasts to baselines to determine if the forecasts are more accurate than
+assuming the system is basically static [@Perretti2013].
 
 In this paper we attempt to forecast the species richness of breeding birds at
 hundreds of locations throughout North America while following the best
 practices in Box 1 for ecological forecasting. To do this we combine 30 years of
 time-series data on bird distributions with monthly time-series of climate data
-and satellite-based remote-sensing. We compare traditional distribution modeling
-based approaches to spatial models of species richness, time-series methods, and
-simple baselines. All forecasts model uncertainty and observation, are evaluated
-across different time lags using hindcasting, and are publicly archived to allow
-future assessment. We discuss the implications of these practices for our
-understanding of, and confidence in, the resulting forecasts, and how we can
-continue to improve on these approaches in the future.
+and satellite-based remote-sensing. This 30 year time-scale has only recently
+become possible for large-scale time-series based forecasting and allows us to
+model and assess changes a decade or more into the future in the presence of
+shifts in environmental conditions on par with predicted climate change. We
+compare traditional distribution modeling based approaches to spatial models of
+species richness, time-series methods, and simple baselines. All forecasts model
+uncertainty and observation, are evaluated across different time lags using
+hindcasting, and are publicly archived to allow future assessment. We discuss
+the implications of these practices for our understanding of, and confidence in,
+the resulting forecasts, and how we can continue to improve on these approaches
+in the future.
 
 
 ## Methods
@@ -188,7 +200,9 @@ Typically ecological forecasts use one modeling approach or a small number of
 related approaches. By fitting and evaluating multiple modeling approaches we
 can learn more rapidly about the best approaches for making predictions for a
 given ecological quantity. This includes comparing process based and data-driven
-models.
+models and comparing the accuracy of forecasts to simple baselines to determine
+if the modeled forecasts are more accurate than the naive assumption that the
+world is static.
 
 ### 2. Use time-series data when possible
 
@@ -204,8 +218,9 @@ Understanding confidence in a forecast is just as important as understanding the
 average or expected outcome. Failing to account for uncertainty can result in
 overconfidence in highly uncertain outcomes leading to poor decision making and
 erosion of confidence in ecological forecasts. Models should explicitly include
-sources of uncertainty where possible and evaluations of forecasts should assess
-the accuracy of uncertainties as well as point estimates [@dietz2017].
+sources of uncertainty and how the propagate through the forecast where
+possible. Evaluations of forecasts should assess the accuracy of uncertainties
+as well as point estimates [@dietz2017].
 
 ### 4. Use predictors related to the question
 
@@ -248,13 +263,4 @@ to allow an unambiguous assessment of the forecast performance.
 In cases where long-term predictions are the primary goal, short-term should
 also be made to accommodate the time-scales of planning and management decisions
 and to allow the accuracy of the forecasts to be quickly evaluated
-[@treddenick2016a];
-
-### 10. Compare forecasts to simple baselines
-
-Compare the accuracy of the forecasts to simple baselines such as the
-time-series average to determine if the modeled forecasts are more accurate than
-the naive assumption that the world is static.
-
-
-
+[@treddenick2016a].
