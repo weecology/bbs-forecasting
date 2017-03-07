@@ -12,7 +12,7 @@
 #Returns a list of files to download, which may be length 0.
 ##################################################
 get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
-  available_files_download_path=gimms::updateInventory()
+  available_files_download_path=gimms::updateInventory(version=0)
   available_files_name=basename(available_files_download_path)
 
   files_present=list.files(gimms_folder)
