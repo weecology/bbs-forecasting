@@ -221,6 +221,7 @@ Looked at how error changed as the time horizon of forecasting lengthened
 * Need to start doing this, even if we're bad at it.
   * We've posted predictions for the next N years of BBS data, using several methods, and invite others to do so as well.
 * Dig around in the residuals for insights
+* SDM's and time series models may not be accounting for the ecology of north american birds. Most of them migrate, so whether they are observed or not at the same time every year is a function of their migratory phenology. The migratory patterns of several species have been correlated with NDVI (Renfrew et al 2013). 
 
 
 ## misc
