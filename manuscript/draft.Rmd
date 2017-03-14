@@ -71,29 +71,56 @@ in the future.
 ### Data
 
 * BBS + retriever
-* Monthly climate data from interpolated weather stations (PRISM)
-* NDVI (GIMMS)
-* Altitude (SRTM 90m Digital Elevation Database via raster::getData)
+* Predictor variables
+  * Monthly climate data from interpolated weather stations (PRISM), converted
+    to BIOCLIM variables. Many of these variables were tightly correlated, so
+    we only included the 8 variables selected by Harris's (2015) BBS analysis
+  * NDVI (GIMMS)
+  * Altitude (SRTM 90m Digital Elevation Database via raster::getData)
+* Data summary: 
+  * Number of sites, species, unique observers
+  * central moments of richness (mean about 51, sd about 12 spp)
+  * The within-site variation was much smaller (sd about 5 spp), making the
+    site-level distributions underdispersed.  
+    * This underdispersion implies
+      that common count models such as binomial, Poisson, negative binomial 
+      won't fit well.
+    * For this reason (and because the time series methods assumed 
+      Gaussian errors), we defined model performance throughout this paper in 
+      terms of Gaussians (e.g. mean squared error), rather than with count
+      distributions.
+        * Some of the modeling approaches (SDMs and JSDMs) did use discrete
+          distributions internally, however.
 
 ### Accounting for site \& observer effects
-* Observer effects are inherent in
-  large data sets taken by different observers, and are known to occur in BBS 
-  [citation].
-* Mixed model for observer effort \& site effects: used Stan, included random
-  effects observer_id to account for situations were one observer consistently
-  found more (or fewer) species than average. These models also included a 
-  site-level random effect to account for differences in actual richness across 
-  BBS routes. [[Maybe year effect?]].
-  No fixed effects because not interested in explaining differences among sites
-  at this point; just want to account for their existence.
-* Residuals from this model give an estimate of how richness changed over time
-  at each site, accounting for observer differences.  We then used this "corrected"
-  version of the data for our time-series models such as the AR1, etc.
-* Note: throughout this manuscript, we use Gaussian errors for richness rather than 
-  a proper count distribution because:
-  * underdispersion (variance/mean << 1)
-  * Easier to access out-of-the-box time series methods like auto-ARIMA.
-  * Central limit theorem, large number of species (mean ~50 spp)
+* Observer effects are inherent in large data sets taken by different 
+  observers, and are known to occur in BBS [citation].
+* While these biases are known to exist, they are difficult to quantify: even if
+  the different observers ran the same transects under identical conditions (which 
+  they don't), we would still only have an estimate of their differences, not an 
+  exact value.
+* We estimated the observer effects, along with our uncertainty about those
+  effects' size & direction, with a linear mixed model.
+* This model partitions the variance in observed richness values into site-level
+  variance, observer-level variance, and residual variance (e.g. variation within
+  a site from year to year or from morning to morning).
+  * No fixed effects in this model (e.g. environmental predictor variables because 
+    we're not interested in explaining differences among sites at this point; we 
+    just want to account for their existence while estimating observer effects.
+  * Subtracting off the estimated observer effect provides an estimate of how many
+    would have been found by a "typical" observer on that day; in this sense, it 
+    enables us to correct for observer differences. We then used this "corrected" 
+    version of the data for our time-series models such as the AR1, etc.
+* A simple model like this one can't tell us exactly how each observer differed from
+  the others, so it is important to represent our uncertainty about these differences.
+  Here, we did so by collecting [[N]] Monte Carlo samples from the model's posterior
+  distribution, using Stan. This provided us with [[N]] plausible values for each 
+  observer, so we did not have to commit to a single value.
+* While some methods for predicting richness might be able to use the uncertain
+  estimates of the observer effects directly, we take the simpler approach of just
+  fitting each of the downstream models with each of the Monte Carlo samples. This
+  increases the amount of computational work by a factor of [[N]], but CPU time
+  wasn't our limiting resource.
 
 ### Models
 
@@ -101,32 +128,52 @@ in the future.
 * The lme4 model fitted above.  This model assumes that the site-level average
   is constant, and tries to estimate its value.  The confidence intervals don't
   expand over time (except when observers change) because the model says nothing
-  has changed
-* Naive AR1 model (adjusted for observer effects). This model says that richness 
-  can diffuse up or down from the previous year's value, without any constraints.
-  As a result, the confidence intervals expand quickly over time.
+  has changed.
+* Naive AR1 model (fitted to individual sites' residuals from the observer model). 
+  This model says that richness can diffuse up or down from the previous year's 
+  value, without any constraints. As a result, the confidence intervals expand 
+  quickly over time.
+* Fit once per MCMC sample, to account for uncertainty in what observer effect
+  values we should subtract off
 
 **Time series models**
 * Auto-ARIMA (Hyndman 2016). Choose a differencing order, then do forward stepwise
   model selection based on AIC.
 * Auto-ARIMA + environment.
+* Uncertainty treated as above
+
+**"Macroecological" model**
+* Use a nonlinear model to predict richness as a function of environmental predictors
+  (BIOCLIM + elevation + NDVI).
+* Compared to SDMs, this lets us predict richness directly instead of using hundreds of
+  noisy species-level estimates, but doesn't use the full data set in one model.
+* For this part of the analysis, we used the `gbm` package for fitting boosted regression
+  trees with Gaussian errors.  
+* We included observer effects & the associated uncertainty by running this model [[N]]
+  times (once per MCMC sample).
+* We did *not* include the site-level random effects as predictors, meaning that this
+  approach implicitly assumes that two sites with identical Bioclim, elevation, and 
+  NDVI values should have identical richness distributions.
 
 **SDMs**
-* SDMs: use graf model w/ mixed model estimates of site \& observer effects
-  as predictors (include error in predictors as estimated from the mixed model
-  to propagate our uncertainty forward). This is basically SDM, but with a 
-  better model (graf) and more information (monthly climate data instead of 
-  using constant values from the Worldclim data, and observer effects). We used 
-  Poisson-binomial confidence intervals, as discussed in Calabrese et al. 2014.
-* JSDM. Should get best of the previous 2. Might be able to propagate uncertainty
+* Probably the most common approach?
+* Predict each species' occurrence probabilities individually, then add up the predictions
+* [[Something about not using thresholds that throw away information]]
+* Taking this approach in the face of uncertainty about observer effects would either 
+  require a customized model (cite "neighborly advice" paper), or fitting [[N]] models
+  times the number of species.
+* To make it feasible to fit this large number of models, we
+  used a custom wrapper around the randomForest package. Random forests are flexible
+  models that are built by combining many independent models ("trees") fit to different 
+  versions of the training data, which made it straightforward to adapt them to our 
+  situation: we simply fit one tree using each of the Monte Carlo estimates of our 
+  observer effects and averaged the predictions of the resulting forest.
+
+**JSDM** 
+* New approach that tries to get the , cite examples.
+* Should get best of the previous 2. Might be able to propagate uncertainty
   from lme4.
-  
-**"Macroecological" model**
-* richness-level GBM w/ mixed model point estimates as bonus predictors where 
-  available. This lets us predict richness directly instead of via noisy 
-  species-level estimates, but doesn't use the full data set in one model.
-  Maybe need to run multiple times to propagate uncertainty from lme4.
-  
+    
 **Ensembles**
 * Ensembles. Averaging predictions from multiple models tends to reduce the 
   noise in the estimates, and can thus lead to better predictions. Choosing the
@@ -137,8 +184,12 @@ in the future.
 **Evaluation**
 
 Evaluated each year after the last training year (2010?):
-* (R)MSE
-* Log-likelihood (simultaneously rewards good point estimates, precision, and coverage)
+* (R)MSE 
+  * How far, on average, are the models' predictions from the true value?
+  * [[RMSE has better units than MSE (species versus squared species), but MSE is
+    nice because it's additive (i.e. MSE of 2 is twice as big as MSE of 1).]]
+* Gaussian Log-likelihood (simultaneously rewards good point estimates, precision, 
+  and coverage)
 * Coverage at 95%
 * Calibration/bias
 
@@ -265,3 +316,13 @@ In cases where long-term predictions are the primary goal, short-term should
 also be made to accommodate the time-scales of planning and management decisions
 and to allow the accuracy of the forecasts to be quickly evaluated
 [@treddenick2016a].
+
+### 10. [[?]]
+
+Sites' biotic and abiotic environments differ in more ways than the 
+few ones you happened to measure. As a result, some sites will 
+consistently have more species than a regression model (or sum of 
+regression models) would predict, while others willl consistently have 
+fewer. Depending on the spatial scale of these unmeasured variables, 
+independent site-level random effects could be sufficient for dealing 
+with this, or spatially-autocorrelated random effects might be needed.
