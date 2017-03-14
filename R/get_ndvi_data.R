@@ -12,7 +12,7 @@
 #Returns a list of files to download, which may be length 0.
 ##################################################
 get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
-  available_files_download_path=gimms::updateInventory()
+  available_files_download_path=gimms::updateInventory(version=0)
   available_files_name=basename(available_files_download_path)
 
   files_present=list.files(gimms_folder)
@@ -26,15 +26,22 @@ get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
 }
 
 ################################################
-#Extract values from a single gimms file given a set of coordinates
+#Extract values from a single gimms file given a set of coordinates.
+#Excludes values which don't meet NDVI quality flags.
+#From the GIMMS readme:
+#FLAG = 7 (missing data)
+#FLAG = 6 (NDVI retrieved from average seasonal profile, possibly snow)
+#FLAG = 5 (NDVI retrieved from average seasonal profile)
+#FLAG = 4 (NDVI retrieved from spline interpolation, possibly snow)
+#FLAG = 3 (NDVI retrieved from spline interpolation)
+#FLAG = 2 (Good value)
+#FLAG = 1 (Good value)
 ################################################
 #' @importFrom gimms rasterizeGimms
 extract_gimms_data=function(gimms_file_path, route_locations){
   #Have to load and extract twice. Once for the actual NDVI, once for the quality flag.
-  gimmsRaster=rasterizeGimms(gimms_file_path, flag=FALSE)
-  ndvi=raster::extract(gimmsRaster, route_locations)
-  gimmsRaster=rasterizeGimms(gimms_file_path, flag=TRUE)
-  flag=raster::extract(gimmsRaster, route_locations)
+  gimmsRaster=rasterizeGimms(gimms_file_path, keep=c(1,2,3))
+  ndvi=as.numeric(raster::extract(gimmsRaster, route_locations))
 
   year=as.numeric(substr(basename(gimms_file_path), 4,5))
   month=substr(basename(gimms_file_path), 6,8)
@@ -46,14 +53,13 @@ extract_gimms_data=function(gimms_file_path, route_locations){
   #Convert 2 digit year to 4 digit year
   year=ifelse(year>50, year+1900, year+2000)
 
-  return(data.frame(year=year, month=month, day=day, ndvi=ndvi, flag=flag, site_id=route_locations@data$site_id, stringsAsFactors = FALSE))
+  return(data.frame(year=year, month=month, day=day, ndvi=ndvi, site_id=route_locations@data$site_id, stringsAsFactors = FALSE))
 }
 
 ################################################
 #Extract the NDVI time series for all bbs routes
 #from all years of gimms data
 ################################################
-
 #' @importFrom dplyr bind_rows
 #' @importFrom dplyr %>%
 #' @importFrom sp coordinates<-
@@ -73,35 +79,17 @@ process_gimms_ndvi_bbs=function(gimms_folder = './data/gimms_ndvi/'){
     gimms_ndvi_bbs=extract_gimms_data(file_path, route_locations) %>%
       bind_rows(gimms_ndvi_bbs)
   }
+  
+  #Get a single value per site/month/year. NA values
+  #are kept. These are from where the quality flag was not met. 
+  gimms_ndvi_bbs = gimms_ndvi_bbs %>%
+    group_by(site_id, year, month) %>%
+    summarize(ndvi=mean(ndvi, na.rm=TRUE)) %>%
+    ungroup() 
+  
   save_provenance(gimms_ndvi_bbs)
   return(gimms_ndvi_bbs)
 }
-
-#################################################
-#Filter the quality flags that we don't want.
-#Average the bimonthly values into 1 value per month
-#and add in -99 for na
-#From the GIMMS readme:
-#FLAG = 7 (missing data)
-#FLAG = 6 (NDVI retrieved from average seasonal profile, possibly snow)
-#FLAG = 5 (NDVI retrieved from average seasonal profile)
-#FLAG = 4 (NDVI retrieved from spline interpolation, possibly snow)
-#FLAG = 3 (NDVI retrieved from spline interpolation)
-#FLAG = 2 (Good value)
-#FLAG = 1 (Good value)
-#################################################
-#' @importFrom tidyr expand
-#' @importFrom dplyr filter summarize group_by right_join ungroup
-filter_gimms_data=function(df){
-  df=df %>%
-    filter(flag<=3) %>%
-    group_by(site_id, year, month) %>%
-    summarize(ndvi=mean(ndvi)) %>%
-    ungroup() %>%
-    right_join( expand(df, site_id, month, year))
-  return(df)
-}
-
 
 #################################################
 #Get the GIMMS AVHRR ndvi bi-monthly time series for every bbs site.
@@ -124,8 +112,6 @@ get_bbs_gimms_ndvi = function(gimms_folder = './data/gimms_ndvi/'){
     }
 
     gimms_ndvi_bbs_data=process_gimms_ndvi_bbs()
-
-    gimms_ndvi_bbs_data=filter_gimms_data(gimms_ndvi_bbs_data)
 
     db_engine(action='write', df=gimms_ndvi_bbs_data, new_table_name = 'gimms_ndvi_bbs_data')
 
