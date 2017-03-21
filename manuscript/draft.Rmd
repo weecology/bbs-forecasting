@@ -75,6 +75,8 @@ in the future.
   * Monthly climate data from interpolated weather stations (PRISM), converted
     to BIOCLIM variables. Many of these variables were tightly correlated, so
     we only included the 8 variables selected by Harris's (2015) BBS analysis
+  * Weather/climate and NDVI were each calculated separately for each year,
+    rather than averaged over the full multi-decade period (as Worldclim does)
   * NDVI (GIMMS)
   * Altitude (SRTM 90m Digital Elevation Database via raster::getData)
 * Data summary: 
@@ -91,6 +93,15 @@ in the future.
       distributions.
         * Some of the modeling approaches (SDMs and JSDMs) did use discrete
           distributions internally, however.
+* Splitting the data temporally
+  * Our data set began in `r settings$start_yr`, which was the first year that 
+    NDVI data was available from GIMMS
+  * All the models were trained on the data that was collected through 
+    `r settings$last_train_year`
+  * Sites were included in the analysis if there were at least 
+    `r settings$min_num_yrs` years of data available during this period.
+  * The models were tested/evaluated on the data from 
+    `r settings$last_train_year + 1` `r settings$end_yr`.
 
 ### Accounting for site \& observer effects
 * Observer effects are inherent in large data sets taken by different 
@@ -137,14 +148,27 @@ in the future.
   values we should subtract off
 
 **Time series models**
+* These models only looked at one site at a time and looked for patterns in 
+  univariate time series.
 * Auto-ARIMA (Hyndman 2016). Choose a differencing order, then do forward stepwise
-  model selection based on AIC.
-* Auto-ARIMA + environment.
+  model selection based on AICc.
+    * Autoregressive: current state depends on previous state(s)
+    * Moving average: current observation error depends on previous observation error
+    * Integrated/differencing: is analysis performed on raw data, on sequential 
+      differences of the raw data, on sequential differences of sequential differences,
+      etc.
+    * default settings, except seasonal = FALSE
+* Auto-ARIMA + site-level environmental variables over time.
 * Uncertainty treated as above
 
 **"Macroecological" model**
 * Use a nonlinear model to predict richness as a function of environmental predictors
   (BIOCLIM + elevation + NDVI).
+* We chose the `gbm` package for fitting boosted regression trees as our example of
+  a nonlinear "macroecological model".
+    * Works by fitting thousands of small models sequentially, and then adding up
+      their predictions
+    * the individual small models were regression trees with [[settings]].
 * Compared to SDMs, this lets us predict richness directly instead of using hundreds of
   noisy species-level estimates, but doesn't use the full data set in one model.
 * For this part of the analysis, we used the `gbm` package for fitting boosted regression
@@ -157,23 +181,38 @@ in the future.
 
 **SDMs**
 * Probably the most common approach?
+* These models say that species' occurrence probabilities depend only on the values of
+  the environmental variables at the time and place of the transect, not on the history
+  of the environment or the history of the birds at that site
 * Predict each species' occurrence probabilities individually, then add up the predictions
 * [[Something about not using thresholds that throw away information]]
 * Taking this approach in the face of uncertainty about observer effects would either 
   require a customized model (cite "neighborly advice" paper), or fitting [[N]] models
   times the number of species.
-* To make it feasible to fit this large number of models, we
-  used a custom wrapper around the randomForest package. Random forests are flexible
-  models that are built by combining many independent models ("trees") fit to different 
-  versions of the training data, which made it straightforward to adapt them to our 
-  situation: we simply fit one tree using each of the Monte Carlo estimates of our 
-  observer effects and averaged the predictions of the resulting forest.
+* To make it feasible to fit this large number of models, we used a custom wrapper 
+  around the randomForest package. Random forests are flexible models that are built 
+  by combining many independent models ("trees") fit to different versions of the training
+  data, which made it straightforward to adapt them to our situation: we simply fit one 
+  tree using each of the Monte Carlo estimates of our observer effects and averaged the 
+  predictions of the resulting forest.
+* For the uncertainty, we used Gaussian approximations, based on the means and variances
+  of the sums of independent Bernoulli random variables (cite Calabrese et al.).
 
 **JSDM** 
-* New approach that tries to get the , cite examples.
-* Should get best of the previous 2. Might be able to propagate uncertainty
-  from lme4.
-    
+* Joint species distribution model (JSDM) is a new approach that makes predictions
+  about the full community composition, rather than modeling it species-by-species.
+* In stacked single-species SDMs, the species-level occurrences are treated as 
+  independent coin-flips whose proability depends only on the environment.
+* JSDMs remove this independence assumption, and explicitly account for the
+  possibility that a site will be much more (or less) suitable for birds in 
+  general than one would expect based on a few environmental measurements alone.
+* As a result, JSDMs do a better job of representing our uncertainty about 
+  richness, while stacked SDMs underestimate it (Harris 2015).
+* We used the `mistnet` package (Harris 2015) because it is the only JSDM that
+  describes species' environmental associations with nonlinear functions.
+* The mistnet package doesn't "know" about time series or spatial autocorrelation,
+  so it did not share information among the repeated runs of the same transect.
+
 **Ensembles**
 * Ensembles. Averaging predictions from multiple models tends to reduce the 
   noise in the estimates, and can thus lead to better predictions. Choosing the
@@ -183,15 +222,19 @@ in the future.
 
 **Evaluation**
 
-Evaluated each year after the last training year (2010?):
-* (R)MSE 
-  * How far, on average, are the models' predictions from the true value?
-  * [[RMSE has better units than MSE (species versus squared species), but MSE is
-    nice because it's additive (i.e. MSE of 2 is twice as big as MSE of 1).]]
-* Gaussian Log-likelihood (simultaneously rewards good point estimates, precision, 
-  and coverage)
-* Coverage at 95%
-* Calibration/bias
+* Evaluated each year between  `r settings$last_train_year` and `r settings$end_yr`
+* Metrics:
+  * (R)MSE 
+    * How far, on average, are the models' predictions from the true value?
+    * [[RMSE has better units than MSE (species versus squared species), but MSE is
+      nice because it's additive (i.e. MSE of 2 is twice as big as MSE of 1).]]
+  * Calibration/bias
+    * In general, or in specific situations, is the model consistently predicting
+      that richness will be too high or too low?
+    * Can also report this value in terms of RMSE or MSE
+  * Coverage of 95% confidence intervals
+  * Gaussian Log-likelihood (simultaneously rewards good point estimates, precision, 
+    and coverage)
 
 Looked at how error changed as the time horizon of forecasting lengthened
 * Error will generally tend to increase
@@ -237,12 +280,9 @@ SDM assumptions:
 
 None of the models are true forcasts as they use observed predictor variables (except the AR1). 
 
-
 * Need predictions at multiple time scales
 * Prediction quality at short time scales might not be a good indicator of 
   long-term effectiveness
-
-
 
 ## Box 1: Ten simple rules for making and evaluating ecological forecasts
 
