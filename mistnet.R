@@ -21,7 +21,7 @@ N1 = 100L
 N2 = 12L
 
 # Other mistnet settings
-n_opt_iterations = 1E4
+n_opt_iterations = 2E4
 iteration_size = 10
 n_prediction_samples = 20
 
@@ -84,7 +84,7 @@ fit_mistnet = function(iter,
       )
     ),
     loss = bernoulliRegLoss(a = 1 + 1E-6, b = 1 + 1E-6),
-    updater = adam.updater(a_0 = 0.01, b2 = 0.99, annealing = .9995),  
+    adam.updater(a_0 = 0.01, annealing_rate = 1/1000),  
     sampler = gaussian.sampler(ncol = latent_dim, sd = 1),
     n.importance.samples = n.importance.samples,
     n.minibatch = n.minibatch,
