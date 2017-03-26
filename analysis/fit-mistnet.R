@@ -1,3 +1,4 @@
+#!/usr/bin/Rscript
 args <- commandArgs(TRUE)
 start = args[[1]]
 end = args[[2]]
