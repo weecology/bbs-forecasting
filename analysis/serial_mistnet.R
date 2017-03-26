@@ -44,7 +44,7 @@ for (i in 1:N_jobs) {
   filename = paste0("job_", i, ".job")
   # send the script to SLURM with the specified starts & ends as arguments
   cat(script, starts[[i]], ends[[i]], "\n", file = filename)
-  system(paste("sbatch", filename), wait = FALSE)
+  system(paste("sbatch", filename), wait = TRUE)
   print(paste("job", i, "started"))
   file.remove(filename)
 }

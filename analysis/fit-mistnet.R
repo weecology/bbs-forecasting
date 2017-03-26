@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-source("analysis/fit-mistnet.R")
+source("mistnet.R")
 args <- commandArgs(TRUE)
 start = args[[1]]
 end = args[[2]]
