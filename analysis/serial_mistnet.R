@@ -38,9 +38,13 @@ date;hostname;pwd
 
 # Load R and run a script
 module load R
-Rscript --default-packages=stats,graphics,grDevices,utils,methods 'analysis/fit-mistnet.R'"
+Rscript --default-packages=stats,graphics,grDevices,utils,methods analysis/fit-mistnet.R"
 
 for (i in 1:N_jobs) {
+  filename = paste0("job_", i, ".job")
   # send the script to SLURM with the specified starts & ends as arguments
-  system(paste("sbatch", script, "--args", starts[[i]], ends[[i]]))
+  cat(script, starts[[i]], ends[[i]], "\n", file = filename)
+  system(paste("sbatch", filename), wait = FALSE)
+  print(paste("job", i, "started"))
+  file.remove(filename)
 }
