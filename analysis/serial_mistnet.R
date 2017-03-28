@@ -51,7 +51,7 @@ module load R
 Rscript --default-packages=stats,graphics,grDevices,utils,methods"
 
 for (i in 1:N_jobs) {
-  filename = ifelse(CV, "analysis/CV-mistnet.R", "analysis/fit-mistnet.R")
+  filename = ifelse(CV, "analysis/cv-mistnet.R", "analysis/fit-mistnet.R")
   jobname = paste0("job_", i, ".job")
   # send the script to SLURM with the specified filename, starts & ends as 
   # arguments, plus N_files (used for reproducibility in the CV script)
