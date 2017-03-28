@@ -21,7 +21,7 @@ N1 = 37L
 N2 = 15L
 
 # Other mistnet settings
-n_opt_iterations = 2
+n_opt_iterations = 1E4
 iteration_size = 10
 n_prediction_samples = 500
 
