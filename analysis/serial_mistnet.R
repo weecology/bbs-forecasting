@@ -1,11 +1,21 @@
-N_files = 500
+CV = TRUE
+
+if (CV) {
+  N_files = 100
+} else {
+  N_files = 500
+}
 N_jobs = 25
 
 files_per_job = N_files / N_jobs
 
+stopifnot(files_per_job == as.integer(files_per_job))
+
 starts = seq(0, N_jobs - 1) * files_per_job + 1
 ends = starts + files_per_job - 1
 
+# The "script" object has the whole job script EXCEPT the name of the .R file
+# to run and the arguments that get sent to it.
 script = "#!/bin/bash
   
 # Job name and who to send updates to
@@ -26,7 +36,7 @@ script = "#!/bin/bash
 
 # Memory per cpu core. Default is megabytes, but units can be specified 
 # with M or G for megabytes or Gigabytes.
-#SBATCH --mem-per-cpu=8G
+#SBATCH --mem-per-cpu=6G
 
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
@@ -38,13 +48,14 @@ date;hostname;pwd
 
 # Load R and run a script
 module load R
-Rscript --default-packages=stats,graphics,grDevices,utils,methods analysis/fit-mistnet.R"
+Rscript --default-packages=stats,graphics,grDevices,utils,methods"
 
 for (i in 1:N_jobs) {
-  filename = paste0("job_", i, ".job")
-  # send the script to SLURM with the specified starts & ends as arguments
-  cat(script, starts[[i]], ends[[i]], "\n", file = filename)
-  system(paste("sbatch", filename), wait = TRUE)
-  print(paste("job", i, "started"))
-  file.remove(filename)
+  filename = ifelse(CV, "analysis/CV-mistnet.R", "analysis/fit-mistnet.R")
+  jobname = paste0("job_", i, ".job")
+  # send the script to SLURM with the specified filename, starts & ends as 
+  # arguments, plus N_files (used for reproducibility in the CV script)
+  cat(script, filename, starts[[i]], ends[[i]], N = N_files, "\n", file = jobname)
+  system(paste("sbatch", jobname), wait = TRUE)
+  file.remove(jobname)
 }

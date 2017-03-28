@@ -1,8 +1,8 @@
+library(Heraclitus)
 library(tidyverse)
 library(mistnet)
 library(progress)
 devtools::load_all()
-
 if (!file.exists("observer_model.rds")) {
   fit_observer_model()
 }
@@ -14,19 +14,23 @@ bbs = get_bbs_data() %>%
 
 # Mistnet settings based on the second-best model in Appendix D of 
 # the mistnet paper
-n.minibatch = 23L
-latent_dim = 6L
-n.importance.samples = 24L
-N1 = 100L
-N2 = 12L
+n.minibatch = 79L
+latent_dim = 10L
+n.importance.samples = 28L
+N1 = 37L
+N2 = 15L
 
 # Other mistnet settings
-n_opt_iterations = 2E4
+n_opt_iterations = 2
 iteration_size = 10
-n_prediction_samples = 20
+n_prediction_samples = 500
 
+# If CV==TRUE, we're cross-validating within the training set.
+# a_0 and annealing_rate are hyperparameters of the `adam` optimizer
 fit_mistnet = function(iter,
-                       use_obs_model){
+                       use_obs_model, 
+                       updater_arglist,
+                       CV = FALSE){
   
   settings = yaml::yaml.load_file("settings.yaml")
   
@@ -37,6 +41,15 @@ fit_mistnet = function(iter,
     left_join(bbs, c("site_id", "year"))
   rm(obs_model)
   gc()
+  
+  # Cross-validation
+  if (CV) {
+    # We only get to see the data up through the last_train_year
+    data = filter(data, year <= settings$last_train_year)
+    
+    # All years until the last_train_year are in the training set for CV
+    data$in_train = data$year != settings$last_train_year
+  }
   
   vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
   
@@ -84,7 +97,7 @@ fit_mistnet = function(iter,
       )
     ),
     loss = bernoulliRegLoss(a = 1 + 1E-6, b = 1 + 1E-6),
-    adam.updater(a_0 = 0.01, annealing_rate = 1/1000),  
+    updater = purrr::invoke(adam.updater$new, updater_arglist),  
     sampler = gaussian.sampler(ncol = latent_dim, sd = 1),
     n.importance.samples = n.importance.samples,
     n.minibatch = n.minibatch,
@@ -128,27 +141,31 @@ fit_mistnet = function(iter,
     }
   } # End while
   
-  p = predict(net, 
-              newdata = x[!data$in_train, ], 
-              n.importance.samples = n_prediction_samples)
-  
-  # One richness point estimate & uncertainty per Monte Carlo draw
-  richness_estimates = t(apply(p, 1, colSums))
-  variance_estimates = t(apply(p * (1 - p), 1, colSums))
+  # Streaming mean & variance in expected values
+  moments = moment_stream$new() 
+  residual_variance = 0 # Variance in richness, given occurrence probabilities
+  for (i in 1:n_prediction_samples) {
+    p = predict(net, 
+                newdata = x[!data$in_train, ], 
+                n.importance.samples = 1)
+    
+    moments$update(list(rowSums(p)))
+    residual_variance = residual_variance + 
+      rowSums(p * (1 - p)) / n_prediction_samples
+  }
   
   # total variance is variance in mean estimates plus mean of the variance 
   # estimates
   out = data %>% 
     filter(!in_train) %>% 
-    cbind(mean = rowMeans(richness_estimates),
-          sd = sqrt(apply(richness_estimates, 1, var) + 
-                      rowMeans(variance_estimates))) %>% 
+    cbind(mean = moments$m,
+          sd = sqrt(moments$v_hat + residual_variance)) %>% 
     select(-in_train) %>% 
     mutate(model = "mistnet", use_obs_model = use_obs_model)
   
   dir.create("mistnet_output", showWarnings = FALSE)
   saveRDS(out, file = paste0("mistnet_output/", "iteration_", iter, 
-                             "_", use_obs_model, ".rds"))
+                             "_", ifelse(CV, "CV", use_obs_model), ".rds"))
 }
 
 # # Plotting species' responses to environmental variables
