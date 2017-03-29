@@ -36,7 +36,7 @@ script = "#!/bin/bash
 
 # Memory per cpu core. Default is megabytes, but units can be specified 
 # with M or G for megabytes or Gigabytes.
-#SBATCH --mem-per-cpu=6G
+#SBATCH --mem-per-cpu=7.5G
 
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
@@ -58,4 +58,5 @@ for (i in 1:N_jobs) {
   cat(script, filename, starts[[i]], ends[[i]], N = N_files, "\n", file = jobname)
   system(paste("sbatch", jobname), wait = TRUE)
   file.remove(jobname)
+  Sys.sleep(0.25)
 }
