@@ -40,7 +40,7 @@ fit_mistnet = function(iter,
   data = filter(obs_model$data, iteration == iter) %>% 
     left_join(bbs, c("site_id", "year"))
   rm(obs_model)
-  gc()
+  gc(TRUE)
   
   # Cross-validation
   if (CV) {
@@ -72,7 +72,7 @@ fit_mistnet = function(iter,
   # Drop columns we won't need below
   data = data %>% 
     select(site_id, year, iteration, richness, in_train)
-  gc()
+  gc(TRUE)
   
   # Model definition --------------------------------------------------------
   
@@ -116,6 +116,7 @@ fit_mistnet = function(iter,
   # Fit the model ---------------------------------------------------------
   pb = progress_bar$new(format = "[:bar] :percent eta: :eta",
                         total = n_opt_iterations / iteration_size)
+  print("entering training loop")
   pb$tick(0)
   while (net$completed.iterations < n_opt_iterations) {
     net$fit(iteration_size)
@@ -141,6 +142,9 @@ fit_mistnet = function(iter,
     }
   } # End while
   
+  print("completed training loop")
+  gc(TRUE)
+  
   # Streaming mean & variance in expected values
   moments = moment_stream$new() 
   residual_variance = 0 # Variance in richness, given occurrence probabilities
@@ -153,6 +157,7 @@ fit_mistnet = function(iter,
     residual_variance = residual_variance + 
       rowSums(p * (1 - p)) / n_prediction_samples
   }
+  print("predictions generated")
   
   # total variance is variance in mean estimates plus mean of the variance 
   # estimates
