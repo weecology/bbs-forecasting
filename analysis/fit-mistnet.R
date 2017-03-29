@@ -9,6 +9,8 @@ end = args[[2]]
 invisible(mistnet::adam.updater()$annealing_rate)
 
 for (i in start:end) {
+  gc(TRUE)
   fit_mistnet(iter = i, use_obs_model = TRUE)
+  gc(TRUE)
   fit_mistnet(iter = i, use_obs_model = FALSE)
 }

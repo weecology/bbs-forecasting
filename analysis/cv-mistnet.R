@@ -14,15 +14,16 @@ seed = .Random.seed
 
 # Deterministically set hyperparameter list by setting the seed
 set.seed(1)
-full_arglist = list(a_0 = rlnorm(N, -5, 1),
-                    annealing_rate = rlnorm(N, -7, 1.5),
-                    b1 = rbeta(N, 5, 1),
+full_arglist = list(a_0 = rlnorm(N, log(.01), .25),
+                    annealing_rate = rlnorm(N, -10, 1),
+                    b1 = rbeta(N, 7, 1),
                     b2 = rbeta(N, 100, 1),
-                    e = rlnorm(N, -10, 4))
+                    e = rlnorm(N, -18, 2))
 # Re-set the seed to its previous value
 set.seed(seed)
 
 for (i in start:end) {
+  gc(TRUE)
   # When cross-validating, don't use the observation model because that would
   # add noise across iterations with different MCMC estimates of the observer
   # effects.
