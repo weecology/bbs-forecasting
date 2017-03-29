@@ -36,7 +36,7 @@ script = "#!/bin/bash
 
 # Memory per cpu core. Default is megabytes, but units can be specified 
 # with M or G for megabytes or Gigabytes.
-#SBATCH --mem-per-cpu=7.5G
+#SBATCH --mem-per-cpu=7G
 
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
