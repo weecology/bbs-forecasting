@@ -7,7 +7,9 @@ N = args[[3]]
 
 discrete_log_runif = function(N, a, b){
   # Sample from a discrete log-uniform distribution between a and b
-  floor(exp(runif(N, log(a), log(b + 1))))
+  # Note that as.integer rounds down, so the upper limit needs to be
+  # incremented by 1.
+  as.integer(exp(runif(N, log(a), log(b + 1))))
 }
 
 # check for mistnet version: this will fail if mistnet version is too old.
