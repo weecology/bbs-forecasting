@@ -31,8 +31,8 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
                          seasonal = FALSE)
   }
   
-  fcst = fun(y = x[[response_variable]], ...) %>% 
-    forecast::forecast(h = h, level = level)
+  model = fun(y = x[[response_variable]], ...)
+  fcst = forecast::forecast(model, h = h, level = level)
   
   if (any(is.na(fcst$mean))) {
     warning("NA in predictions")
@@ -42,7 +42,8 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
-         model = fun_name, use_obs_model = use_obs_model)
+         model = fun_name, use_obs_model = use_obs_model,
+         coef_names = list(names(coef(model))))
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
