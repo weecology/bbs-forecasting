@@ -5,6 +5,11 @@ start = args[[1]]
 end = args[[2]]
 N = args[[3]]
 
+discrete_log_runif = function(N, a, b){
+  # Sample from a discrete log-uniform distribution between a and b
+  floor(exp(runif(N, log(a), log(b + 1))))
+}
+
 # check for mistnet version: this will fail if mistnet version is too old.
 # (Otherwise, bogus arguments will get absorbed into `...` without warning)
 invisible(mistnet::adam.updater()$annealing_rate)
@@ -14,11 +19,18 @@ seed = .Random.seed
 
 # Deterministically set hyperparameter list by setting the seed
 set.seed(1)
-full_arglist = list(a_0 = rlnorm(N, log(.01), .25),
+mistnet_arglist = list(n.minibatch = discrete_log_runif(N, 10, 100),
+                       latent_dim =  discrete_log_runif(N, 5, 20),
+                       n.importance.samples = discrete_log_runif(N, 10, 50),
+                       N1 = discrete_log_runif(N, 20, 100),
+                       N2 = discrete_log_runif(N, 5, 50))
+
+updater_arglist = list(a_0 = rlnorm(N, log(.01), 1),
                     annealing_rate = rlnorm(N, -10, 1),
                     b1 = rbeta(N, 7, 1),
                     b2 = rbeta(N, 100, 1),
                     e = rlnorm(N, -18, 2))
+
 # Re-set the seed to its previous value
 set.seed(seed)
 
@@ -29,5 +41,7 @@ for (i in start:end) {
   # effects.
   fit_mistnet(iter = i, 
               use_obs_model = FALSE, 
-              updater_arglist = purrr::map(full_arglist, i), CV = TRUE)
+              mistnet_arglist = purrr::map(mistnet_arglist, i),
+              updater_arglist = purrr::map(updater_arglist, i), 
+              CV = TRUE)
 }

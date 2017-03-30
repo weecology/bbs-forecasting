@@ -2,7 +2,7 @@ library(Heraclitus)
 library(tidyverse)
 library(mistnet)
 library(progress)
-devtools::load_all()
+devtools::load_all() 
 if (!file.exists("observer_model.rds")) {
   fit_observer_model()
 }
@@ -14,14 +14,9 @@ bbs = get_bbs_data() %>%
 
 # Mistnet settings based on the second-best model in Appendix D of 
 # the mistnet paper
-n.minibatch = 79L
-latent_dim = 10L
-n.importance.samples = 28L
-N1 = 37L
-N2 = 15L
 
 # Other mistnet settings
-n_opt_iterations = 1E5
+n_hours = 4
 iteration_size = 10
 n_prediction_samples = 500
 
@@ -29,6 +24,7 @@ n_prediction_samples = 500
 # a_0 and annealing_rate are hyperparameters of the `adam` optimizer
 fit_mistnet = function(iter,
                        use_obs_model, 
+                       mistnet_arglist,
                        updater_arglist,
                        CV = FALSE){
   
@@ -81,13 +77,13 @@ fit_mistnet = function(iter,
     y = y[data$in_train, ],
     layer.definitions = list(
       defineLayer(
-        nonlinearity = rectify.nonlinearity(),
-        size = N1,
+        nonlinearity = leaky.rectify.nonlinearity(),
+        size = mistnet_arglist$N1,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
       defineLayer(
-        nonlinearity = linear.nonlinearity(),
-        size = N2,
+        nonlinearity = leaky.rectify.nonlinearity(),
+        size = mistnet_arglist$N2,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
       defineLayer(
@@ -99,28 +95,25 @@ fit_mistnet = function(iter,
     loss = bernoulliRegLoss(a = 1 + 1E-6, b = 1 + 1E-6),
     updater = purrr::invoke(adam.updater$new, updater_arglist),  
     sampler = gaussian.sampler(ncol = latent_dim, sd = 1),
-    n.importance.samples = n.importance.samples,
-    n.minibatch = n.minibatch,
+    n.importance.samples = mistnet_arglist$n.importance.samples,
+    n.minibatch = mistnet_arglist$n.minibatch,
     training.iterations = 0,
     initialize.biases = TRUE,
     initialize.weights = TRUE
   )
-  # First layer biases equal 1; prevents "dead" rectifiers
-  net$layers[[1]]$biases[] = 1
   
   # Shrink each layer's initial weights compared to baseline
   net$layers[[1]]$weights = net$layers[[1]]$weights / 2
   net$layers[[2]]$weights = net$layers[[2]]$weights / 2
   net$layers[[3]]$weights = net$layers[[3]]$weights / 2
   
+  
+  
   # Fit the model ---------------------------------------------------------
-  pb = progress_bar$new(format = "[:bar] :percent eta: :eta",
-                        total = n_opt_iterations / iteration_size)
   print("entering training loop")
-  pb$tick(0)
-  while (net$completed.iterations < n_opt_iterations) {
+  start_time = Sys.time()
+  while (difftime(Sys.time(), start_time, units = "hours") < n_hours) {
     net$fit(iteration_size)
-    pb$tick()
     # Update prior variance
     for (layer in net$layers) {
       layer$prior$update(
