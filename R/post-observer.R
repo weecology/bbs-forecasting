@@ -39,11 +39,17 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
     return(list(NA))
   }
   
+  coef_names = if (length(coef(model)) > 0) {
+    list(names(coef(model)))
+  } else {
+    list(NA)
+  }
+  
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
          model = fun_name, use_obs_model = use_obs_model,
-         coef_names = list(names(coef(model))))
+         coef_names = coef_names)
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
