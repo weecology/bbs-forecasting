@@ -24,12 +24,12 @@ set.seed(1)
 mistnet_arglist = list(n.minibatch = discrete_log_runif(N, 10, 100),
                        latent_dim =  discrete_log_runif(N, 5, 20),
                        n.importance.samples = discrete_log_runif(N, 10, 50),
-                       N1 = discrete_log_runif(N, 20, 100),
-                       N2 = discrete_log_runif(N, 5, 50))
+                       N1 = discrete_log_runif(N, 40, 100),
+                       N2 = discrete_log_runif(N, 10, 50))
 
-updater_arglist = list(a_0 = rlnorm(N, log(.01), 1),
-                    annealing_rate = rlnorm(N, -10, 1),
-                    b1 = rbeta(N, 7, 1),
+updater_arglist = list(a_0 = rlnorm(N, log(.005), 1),
+                    annealing_rate = rlnorm(N, -9, 1),
+                    b1 = rbeta(N, 12, 2),
                     b2 = rbeta(N, 100, 1),
                     e = rlnorm(N, -18, 2))
 

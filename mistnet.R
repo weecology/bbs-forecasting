@@ -16,7 +16,7 @@ bbs = get_bbs_data() %>%
 # the mistnet paper
 
 # Other mistnet settings
-n_hours = 4
+n_hours = 8
 iteration_size = 10
 n_prediction_samples = 500
 
