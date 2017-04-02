@@ -82,7 +82,7 @@ fit_mistnet = function(iter,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
       defineLayer(
-        nonlinearity = linear.nonlinearity(),
+        nonlinearity = leaky.rectify.nonlinearity(),
         size = mistnet_arglist$N2,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
