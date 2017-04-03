@@ -25,7 +25,7 @@ mistnet_arglist = list(n.minibatch = discrete_log_runif(N, 10, 100),
                        latent_dim =  discrete_log_runif(N, 5, 20),
                        n.importance.samples = discrete_log_runif(N, 10, 50),
                        N1 = discrete_log_runif(N, 40, 100),
-                       N2 = discrete_log_runif(N, 10, 50))
+                       N2 = discrete_log_runif(N, 20, 50))
 
 updater_arglist = list(a_0 = rlnorm(N, log(.005), 1),
                     annealing_rate = rlnorm(N, -9, 1),

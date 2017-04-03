@@ -16,7 +16,7 @@ bbs = get_bbs_data() %>%
 # the mistnet paper
 
 # Other mistnet settings
-n_hours = 8
+n_hours = 12
 iteration_size = 10
 n_prediction_samples = 500
 
@@ -77,12 +77,12 @@ fit_mistnet = function(iter,
     y = y[data$in_train, ],
     layer.definitions = list(
       defineLayer(
-        nonlinearity = leaky.rectify.nonlinearity(),
+        nonlinearity = elu.nonlinearity(),
         size = mistnet_arglist$N1,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
       defineLayer(
-        nonlinearity = leaky.rectify.nonlinearity(),
+        nonlinearity = elu.nonlinearity(),
         size = mistnet_arglist$N2,
         prior = gaussian.prior(mean = 0, sd = .5)
       ),
