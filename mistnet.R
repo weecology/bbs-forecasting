@@ -102,12 +102,7 @@ fit_mistnet = function(iter,
     initialize.weights = TRUE
   )
   
-  # Shrink each layer's initial weights compared to baseline
-  net$layers[[1]]$weights = net$layers[[1]]$weights / 2
-  net$layers[[2]]$weights = net$layers[[2]]$weights / 2
-  net$layers[[3]]$weights = net$layers[[3]]$weights / 2
-  
-  
+  rm(y)
   
   # Fit the model ---------------------------------------------------------
   print("entering training loop")
