@@ -59,7 +59,9 @@ fit_mistnet = function(iter,
     sd_i = sd(x[data$in_train, i])
     x[,i] = (x[,i] - mean_i) / sd_i
   }
-  
+   
+  # response variables start wtih "sp" followed by numbers & occur at least 
+  # once.
   y = data %>% 
     select(matches("^sp[0-9]+$")) %>% 
     select(which(colSums(.) > 0)) %>% 
@@ -102,8 +104,6 @@ fit_mistnet = function(iter,
     initialize.weights = TRUE
   )
   
-  rm(y)
-  
   # Fit the model ---------------------------------------------------------
   print("entering training loop")
   start_time = Sys.time()
@@ -132,15 +132,22 @@ fit_mistnet = function(iter,
   } # End while
   
   print("completed training loop")
+  
   gc(TRUE)
   
   # Streaming mean & variance in expected values
   moments = moment_stream$new() 
   residual_variance = 0 # Variance in richness, given occurrence probabilities
+  ll = matrix(NA, sum(!data$in_train), n_prediction_samples)
   for (i in 1:n_prediction_samples) {
     p = predict(net, 
                 newdata = x[!data$in_train, ], 
                 n.importance.samples = 1)
+    
+    ll[,i] = rowSums(dbinom(x = y[!data$in_train, ], 
+                             size = 1, 
+                             prob = p, 
+                             log = TRUE))
     
     moments$update(list(rowSums(p)))
     residual_variance = residual_variance + 
@@ -155,41 +162,11 @@ fit_mistnet = function(iter,
     cbind(mean = moments$m,
           sd = sqrt(moments$v_hat + residual_variance)) %>% 
     select(-in_train) %>% 
-    mutate(model = "mistnet", use_obs_model = use_obs_model)
+    mutate(model = "mistnet", use_obs_model = use_obs_model,
+           log_lik = apply(ll, 1, mistnet:::logMeanExp))
   
+  # Save the predictions
   dir.create("mistnet_output", showWarnings = FALSE)
   saveRDS(out, file = paste0("mistnet_output/", "iteration_", iter, 
                              "_", ifelse(CV, "CV", use_obs_model), ".rds"))
 }
-
-# # Plotting species' responses to environmental variables
-# N = 250
-# xy = as.matrix(expand.grid(seq(-4, 4, length = N), seq(-4, 4, length = N)))
-# xx = cbind(as.matrix(x[rep(1, N^2), ]), matrix(0, N^2, latent_dim))
-# xx[, c(3, 11)] = xy
-# 
-# relu = function(x){
-#   structure(pmax(x, 0), dim = dim(x))
-# }
-# 
-# to_plot = xx %*% 
-#   net$layers[[1]]$weights %>% 
-#   relu() %*% 
-#   net$layers[[2]]$weights %*% net$layers[[3]]$weights %>% 
-#   plogis()
-# 
-# cbind(xy, fill = to_plot[,28]) %>% 
-#   as.data.frame() %>% 
-#   ggplot(aes(x = Var1, y = Var2, fill = fill)) + 
-#   geom_raster() +
-#   viridis::scale_fill_viridis(limits = c(0, 1)) + 
-#   cowplot::theme_cowplot()
-
-# Summarizing mean squared error
-# out %>%
-#   group_by(year, site_id, richness) %>%
-#   summarize(mean = mean(mean)) %>%
-#   summarize(mse = mean((richness - mean)^2)) %>%
-#   group_by(year) %>%
-#   summarize(mse = mean(mse))
-
