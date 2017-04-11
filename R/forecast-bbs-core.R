@@ -1,11 +1,10 @@
-#' Install a particular dataset via Ecodata Retriever
+#' Install a particular dataset via rdataretreiver
 #'
 #' @param dataset name
 install_dataset <- function(dataset){
-  # Install a dataset using the ecoretriever
+  # Install a dataset using the rdataretriever
 
-  #ecoretriever currently not working in RStudio, issue filed
-  ecoretriever::install(dataset, 'sqlite', db_file='./data/bbsforecasting.sqlite')
+  rdataretriever::install(dataset, 'sqlite', db_file='./data/bbsforecasting.sqlite')
 }
 
 #' Single wrapper for all database actions
@@ -129,7 +128,7 @@ get_species_data = function() {
   if (file.exists(data_path)) {
     return(read.csv(data_path))
   }else{
-    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM bbs_species')
+    species_table=db_engine(action = 'read', sql_query = 'SELECT * FROM breed_bird_survey_species')
     write.csv(species_table, file = data_path, row.names = FALSE, quote = FALSE)
     save_provenance(species_table)
     return(species_table)
@@ -137,7 +136,7 @@ get_species_data = function() {
 }
 
 #' Get the primary bbs data file which compiles the counts, route info, and weather
-#' data. Install it via ecodataretriever if needed.
+#' data. Install it via rdataretriever if needed.
 #'
 #' @export
 #' @importFrom dplyr "%>%" group_by
@@ -150,8 +149,8 @@ get_bbs_data <- function(){
   }
   else{
 
-    if (!db_engine(action='check', table_to_check = 'bbs_counts')){
-      install_dataset('bbs')
+    if (!db_engine(action='check', table_to_check = 'breed_bird_survey_counts')){
+      install_dataset('breed-bird-survey')
     }
 
     #Primary BBS dataframe
@@ -163,16 +162,16 @@ get_bbs_data <- function(){
                   counts.Year AS year,
                   speciestotal AS abundance
                 FROM
-                  bbs_counts AS counts
-                  JOIN bbs_weather
-                    ON counts.statenum=bbs_weather.statenum
-                    AND counts.route=bbs_weather.route
-                    AND counts.rpid=bbs_weather.rpid
-                    AND counts.year=bbs_weather.year
-                  JOIN bbs_routes
-                    ON counts.statenum=bbs_routes.statenum
-                    AND counts.route=bbs_routes.route
-                WHERE bbs_weather.runtype=1 AND bbs_weather.rpid=101"
+                  breed_bird_survey_counts AS counts
+                  JOIN breed_bird_survey_weather
+                    ON counts.statenum=breed_bird_survey_weather.statenum
+                    AND counts.route=breed_bird_survey_weather.route
+                    AND counts.rpid=breed_bird_survey_weather.rpid
+                    AND counts.year=breed_bird_survey_weather.year
+                  JOIN breed_bird_survey_routes
+                    ON counts.statenum=breed_bird_survey_routes.statenum
+                    AND counts.route=breed_bird_survey_routes.route
+                WHERE breed_bird_survey_weather.runtype=1 AND breed_bird_survey_weather.rpid=101"
 
     bbs_data=db_engine(action='read', sql_query = bbs_query) %>%
       filter_species() %>%
@@ -311,11 +310,11 @@ add_observers = function(bbs_data) {
   } else {
     observer_query = '
     SELECT
-                    bbs_weather.obsn as observer_id,
+                    breed_bird_survey_weather.obsn as observer_id,
                     year,
                     (statenum*1000)+route as site_id
                   FROM
-                    bbs_weather
+                    breed_bird_survey_weather
                   WHERE
                     runtype=1 AND rpid=101'
 
