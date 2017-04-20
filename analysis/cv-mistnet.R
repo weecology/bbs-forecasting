@@ -48,3 +48,6 @@ for (i in start:end) {
               updater_arglist = purrr::map(updater_arglist, i), 
               CV = TRUE)
 }
+
+dplyr::as_data_frame(c(mistnet_arglist, updater_arglist)) %>% 
+  write.csv(file = "mistnet_hyper.csv")
