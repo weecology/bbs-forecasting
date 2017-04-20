@@ -49,5 +49,9 @@ for (i in start:end) {
               CV = TRUE)
 }
 
-dplyr::as_data_frame(c(mistnet_arglist, updater_arglist)) %>% 
-  write.csv(file = "mistnet_hyper.csv")
+if (start == 1) {
+  # The other threads don't need to write anything because the seed is the
+  # same.
+  dplyr::as_data_frame(c(mistnet_arglist, updater_arglist)) %>% 
+    write.csv(file = "mistnet_hyper.csv")
+}
