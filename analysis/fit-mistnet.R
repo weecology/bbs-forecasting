@@ -20,12 +20,6 @@ hyper = read.csv("mistnet_hyper.csv") %>%
   filter(X == row) %>% 
   as.list()
 
-fit_mistnet(iter = i, 
-            use_obs_model = FALSE, 
-            mistnet_arglist = purrr::map(mistnet_arglist, i),
-            updater_arglist = purrr::map(updater_arglist, i), 
-            CV = TRUE)
-
 for (i in start:end) {
   for (use_obs_model in c(TRUE, FALSE)) {
     gc(TRUE)
