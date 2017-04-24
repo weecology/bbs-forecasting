@@ -1,4 +1,4 @@
-CV = TRUE
+CV = FALSE
 
 if (CV) {
   N_files = 100
