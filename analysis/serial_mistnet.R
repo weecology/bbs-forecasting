@@ -5,7 +5,7 @@ if (CV) {
 } else {
   N_files = 500
 }
-N_jobs = 25
+N_jobs = 50
 
 files_per_job = N_files / N_jobs
 
@@ -36,12 +36,12 @@ script = "#!/bin/bash
 
 # Memory per cpu core. Default is megabytes, but units can be specified 
 # with M or G for megabytes or Gigabytes.
-#SBATCH --mem-per-cpu=7G
+#SBATCH --mem-per-cpu=9G
 
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
 # [DAYS] are optional, use when it is convenient
-#SBATCH --time=30-00:00:00
+#SBATCH --time=30:00:00
 
 # Save some useful information to the 'output' file
 date;hostname;pwd
@@ -56,7 +56,7 @@ for (i in 1:N_jobs) {
   # send the script to SLURM with the specified filename, starts & ends as 
   # arguments, plus N_files (used for reproducibility in the CV script)
   cat(script, filename, starts[[i]], ends[[i]], N = N_files, "\n", file = jobname)
-  system(paste("sbatch", jobname), wait = TRUE)
+  system(paste("sbatch", jobname, "--qos=ewhite-b"), wait = TRUE)
   file.remove(jobname)
   Sys.sleep(0.25)
 }
