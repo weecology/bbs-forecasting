@@ -94,7 +94,7 @@ fit_mistnet = function(iter,
         prior = gaussian.prior(mean = 0, sd = .5)
       )
     ),
-    loss = bernoulliRegLoss(a = 1 + 1E-2, b = 1 + 1E-2),
+    loss = bernoulliRegLoss(a = 1 + 1E-6, b = 1 + 1E-6),
     updater = purrr::invoke(adam.updater$new, updater_arglist),  
     sampler = gaussian.sampler(ncol = mistnet_arglist$latent_dim, sd = 1),
     n.importance.samples = mistnet_arglist$n.importance.samples,
