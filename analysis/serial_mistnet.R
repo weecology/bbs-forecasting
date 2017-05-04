@@ -22,6 +22,8 @@ script = "#!/bin/bash
 #SBATCH --job-name=mistnet
 #SBATCH --mail-user=harris.d@ufl.edu
 #SBATCH --mail-type=FAIL,END
+#SBATCH --account=ewhite-b 
+#SBATCH --qos=ewhite-b
 
 # Where to put the outputs:
 #   %A expands to the job-name specified above
@@ -56,7 +58,7 @@ for (i in 1:N_jobs) {
   # send the script to SLURM with the specified filename, starts & ends as 
   # arguments, plus N_files (used for reproducibility in the CV script)
   cat(script, filename, starts[[i]], ends[[i]], N = N_files, "\n", file = jobname)
-  system(paste("sbatch", jobname, "--qos=ewhite-b"), wait = TRUE)
+  system(paste("sbatch", jobname), wait = TRUE)
   file.remove(jobname)
   Sys.sleep(0.25)
 }
