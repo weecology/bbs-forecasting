@@ -22,7 +22,7 @@ script = "#!/bin/bash
 #SBATCH --job-name=mistnet
 #SBATCH --mail-user=harris.d@ufl.edu
 #SBATCH --mail-type=FAIL,END
-#SBATCH --account=ewhite-b 
+#SBATCH --account=ewhite
 #SBATCH --qos=ewhite-b
 
 # Where to put the outputs:
