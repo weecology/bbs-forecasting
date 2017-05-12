@@ -5,7 +5,7 @@ if (CV) {
 } else {
   N_files = 500
 }
-N_jobs = 50
+N_jobs = 250
 
 files_per_job = N_files / N_jobs
 
@@ -43,7 +43,7 @@ script = "#!/bin/bash
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
 # [DAYS] are optional, use when it is convenient
-#SBATCH --time=30:00:00
+#SBATCH --time=96:00:00
 
 # Save some useful information to the 'output' file
 date;hostname;pwd
