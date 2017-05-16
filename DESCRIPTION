@@ -12,7 +12,7 @@ Imports:
     sp (>= 1.2-1),
     raster (>= 2.4-20),
     prism (>= 0.0.7),
-    ecoretriever (>= 0.2.1),
+    rdataretriever (>= 1.0.0),
     forecast (>= 7.1),
     git2r (>= 0.15.0),
     ggplot2 (>= 2.1.0),
@@ -24,4 +24,4 @@ Imports:
     randomForest (>= 4.6-12)
 License: What license is it under?
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
