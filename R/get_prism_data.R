@@ -66,7 +66,8 @@ get_prism_data=function(){
     locations <- dplyr::select(bbs_data, site_id, long, lat) %>%
       distinct()
     coordinates(locations) <- c("long", "lat")
-
+    raster::crs(locations) <- '+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0'
+    
     #Check to see if all the raw data in the years specified are downloaded,
     #download everything again if not. (Getting only what is needed, say if a
     #previous download failed, might be overly complicated)
@@ -76,6 +77,9 @@ get_prism_data=function(){
 
     #Load the prism data and extract using the bbs locations.
     prism_stacked <- prism_stack(ls_prism_data())
+    #Aggregate to 40km. Original cells average ~4.5 across N. America,
+    #so aggregation of 9x9 creates mostly 40km cells. 
+    prism_stacked = raster::aggregate(prism_stacked, fact=9)
     save_provenance(prism_stacked)
     extracted <- raster::extract(prism_stacked, locations)
     prism_bbs_data <- data.frame(site_id = locations$site_id, coordinates(locations), extracted)
