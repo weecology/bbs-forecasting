@@ -105,6 +105,10 @@ in the future.
   * The models were tested/evaluated on the data from 
     `r settings$last_train_year + 1` `r settings$end_yr`.
 
+  Bird species richness was compiled from the Breeding Bird Survey (BBS) [@pardieck2017] obtained using the Data Retriever software [@morris203]. The BBS data was initially filtered to exclude all nocturnal, cepuscular, and aquatic species (since these species are not well sampled by BBS methods), as well as unidentified species, and hybrids. All data from routes that did not meet BBS acceptable criteria were excluded. Only routes within the continental U.S.A were used so as to match the climatic dataset.  
+  We used the 4 km resolution PRISM data [@prism] to calculate eight bioclimatic variables identified as relevant to bird distributions [@harris2015] for each year in the dataset: mean diurnal range, isothermality, max temperature of the warmest month, mean temperature of the wettest quarter, mean temperature of the driest quarter, precipitation seasonality, precipitation of the wettest quarter, precipitation of the warmest quarter. Satellite derived NDVI with an 8 km resolution was from the NDIV3g dataset [@pinzon2014] and was available from the time period 1981-2013. Elevation was from the SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster [@hijmans2014]. BBS route starting point coordinates were used to extract all environmental data. Climatic variables and NDVI were aggregated to the average values within a 40 km radius of the start point, equal to the length of a BBS route. NDVI was also subset to average summer (May, June, July) and winter (December, January, Feburary) values.
+  Data from 1982 (the first complete year of NDVI data) to 2003 were used for training models and data from 2004 to 2013 was used for testing. Only BBS routes with at least 25 yearly observations in the years 1982-2015 were used.
+
 ### Accounting for site \& observer effects
 * Observer effects are inherent in large data sets taken by different 
   observers, and are known to occur in BBS [citation].
