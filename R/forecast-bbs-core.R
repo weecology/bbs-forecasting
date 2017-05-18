@@ -270,7 +270,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' Replace species-level information with richness values, eliminating redundant rows
 #' @param df a data frame, such as produced by get_bbs_data or get_pop_ts_env_data
 #' @export
-#' @importFrom dplyr n
+#' @importFrom dplyr n group_by mutate select ungroup distinct right_join
 collapse_to_richness = function(df){
 
   # Code below assumes that NA abundance always means no observations for the
