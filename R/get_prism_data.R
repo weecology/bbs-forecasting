@@ -131,8 +131,8 @@ process_bioclim_data=function(){
   prism_bbs_data=get_prism_data()
 
   #Offset the year by 6 months so that the window for calculating bioclim variables
-  #will be July 1 - July 31. See https://github.com/weecology/bbs-forecasting/issues/114
-  prism_bbs_data$year = with(prism_bbs_data, ifelse(month %in% 6:12, year+1, year))
+  #will be July 1 - June 30. See https://github.com/weecology/bbs-forecasting/issues/114
+  prism_bbs_data$year = with(prism_bbs_data, ifelse(month %in% 7:12, year+1, year))
   
   #Spread out the climate variables ppt, tmean, etc into columns
   prism_bbs_data = prism_bbs_data %>%
