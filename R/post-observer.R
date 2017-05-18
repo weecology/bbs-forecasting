@@ -76,7 +76,8 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     out = mutate(out, mean = mean + observer_effect)
   }
   
-  select(out, site_id, year, mean, sd, iteration, richness, model, use_obs_model)
+  select(out, site_id, year, mean, sd, iteration, richness, model, 
+         use_obs_model, coef_names)
 }
 
 make_gbm_predictions = function(x, use_obs_model){
