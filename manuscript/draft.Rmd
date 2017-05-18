@@ -314,10 +314,11 @@ In general, the models produced confidence intervals that were too narrow,
 indicating overconfident predictions. Of these, the random forest-based SDM
 stack was the most overconfident, as discussed above. As one might expect,
 correcting for observer differences improved the coverage of most models' 95%
-intervals. Interestingly, this effect was very small for mistnet, which seems to
-indicate that its latent variables were already accounting for observer-based
-uncertainty. The "naive" model was the only model whose confidence intervals
-were too wide (Figure 3), which can be attributed to the rapid rate at which
+intervals. Interestingly, this effect was very small for mistnet (its
+coverage only improved from 92% to 93%), which seems to indicate that its
+latent variables were already accounting for observer-related uncertainty. 
+The "naive" model was the only model whose confidence intervals were too wide
+(Figure 3), which can be attributed to the rapid rate at which
 these intervals expand as the time lag increases (Figure 1).
 
 ## Discussion
