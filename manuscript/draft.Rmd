@@ -273,6 +273,53 @@ Looked at how error changed as the time horizon of forecasting lengthened
 
 ## Results
 
+The mixed model (which formed the basis of our observer-corrected "average"
+predictions) found that 70% of the variance in richness in the training set
+could be explained by differences among sites, and 21% could be explained by
+differences among observers. The remaining 9% represents residual variation,
+where a given observer might report a different number of species on different
+runs of the same transect. We found remarkably little autocorrelation in these
+residuals ([[about 0.04, +/- something]]), suggesting richness is close to
+stationary on these time scales, once observer differences are accounted for.
+
+The substantial uncertainty associated with differences among observers caused
+reliable improvements in both mean-squared-error and deviance when observer
+effects were controlled for (Figure 4). This improvement was smallest for the
+"Naive" model, as discussed below.
+
+In general, each model's error increased more-or-less linearly with time,
+although the slopes and initial error rates varied across models (Figure 3). The
+site-level models (i.e. the baselines and the ARIMA methods) tended to do very
+well (Figure 3), especially in terms of RMSE and especially on short time
+horizons. For most combinations of year and metric, the best-performing model
+was one of the two baselines. Usually, the "naive" model had the lowest error
+when observer effects were not explicitly accounted for, and the "average" model
+had the lowest error when they were. We discuss the reasons for this difference
+in the next section.
+
+Our two error metrics produced qualitatively similar results in most cases, with
+the notable exception of the stacked SDMs (Figure 3A and 3B). Deviance, unlike
+RMSE, depends on the full predictive distribution of a model, including the
+model's estimated uncertainty. As noted elsewhere [@harris2015], these models
+are generally far too confident, with observed richness values frequently
+falling well outside their confidence limits (Figure 3C). As a result, the
+stacked SDMs' deviance was dramatically higher than the next-worst model even
+though its RMSE was not unusual. On the other hand, the richness-GBM model and
+especially the mistnet JSDM had reasonably well-calibrated uncertainty
+estimates, even in the presence of uncorrected observer biases (Figure 3C). This
+prevented their deviance from rising as quickly as the site-level models when
+the observer population changed (Figure 3B).
+
+In general, the models produced confidence intervals that were too narrow,
+indicating overconfident predictions. Of these, the random forest-based SDM
+stack was the most overconfident, as discussed above. As one might expect,
+correcting for observer differences improved the coverage of most models' 95%
+intervals. Interestingly, this effect was very small for mistnet, which seems to
+indicate that its latent variables were already accounting for observer-based
+uncertainty. The "naive" model was the only model whose confidence intervals
+were too wide (Figure 3), which can be attributed to the rapid rate at which
+these intervals expand as the time lag increases (Figure 1).
+
 ## Discussion
 
 Forecasting is an emerging imperative in ecology and as such the field needs to
