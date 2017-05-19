@@ -193,7 +193,11 @@ get_env_data <- function(){
   bioclim_data <- get_bioclim_data()
   elev_data <- get_elev_data()
   ndvi_data_raw <- get_bbs_gimms_ndvi()
-
+  
+  #Offset the NDVI year by 6 months so that the window for will be July 1 - June 30. 
+  #See https://github.com/weecology/bbs-forecasting/issues/114
+  ndvi_data_raw$year = with(ndvi_data_raw, ifelse(month %in% c('jul','aug','sep','oct','nov','dec'), year+1, year))
+  
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
