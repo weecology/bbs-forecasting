@@ -39,9 +39,9 @@ get_gimms_download_list=function(gimms_folder = './data/gimms_ndvi/'){
 ################################################
 #' @importFrom gimms rasterizeGimms
 extract_gimms_data=function(gimms_file_path, route_locations){
-  #Have to load and extract twice. Once for the actual NDVI, once for the quality flag.
   gimmsRaster=rasterizeGimms(gimms_file_path, keep=c(1,2,3))
-  ndvi=as.numeric(raster::extract(gimmsRaster, route_locations))
+  ndvi=raster::extract(gimmsRaster, route_locations, buffer=40000)
+  ndvi=as.numeric(lapply(ndvi, mean, na.rm=TRUE))
 
   year=as.numeric(substr(basename(gimms_file_path), 4,5))
   month=substr(basename(gimms_file_path), 6,8)
