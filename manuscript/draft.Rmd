@@ -283,83 +283,88 @@ biodiversity in the form of species richness. The results of this effort are
 both promising and humbling. On an absolute basis, when comparing forecasts
 across sites, many different approaches to forecasting produce reasonable
 forecasts. If a site is predicted to have a high number of species in the
-future, relative to other sites, it generally does. However, within a site the
-forecasts perform relatively poorly. If a site is predicted to have a higher
-richness next year than it did last year there is little confidence that this
-will be the case. This results in simple site-level time-series and baseline
-models like the long-term average and the naive model being some of the best
-performing overall models for future biodiversity.
+future, relative to other sites, it generally does. However, the forecasts
+perform relatively poorly at predicting variation in richness over time for any
+given site. If a site is predicted to have a higher richness next year than it
+did last year there is little confidence that this will be the case. This
+results in simple site-level time-series, which are best predicted by simple
+baselines like the long-term average and the "naive" model.
 
-The most commonly used method to forecast the future state of biodiversity,
-fitting a species distribution model separately to each species and then summing
-the probability of presence across those models, provides the worst overall
-forecasts of all methods evaluated. Most forecasting based on this approach is
-never evaluated and when it is it is typically only assessed based on cross-site
-rather than within site approaches. As a result the forecasts may appear to
-perform well even when change through time is not accurately predicted. This
-issue has also recently been recently highlighted as an issue for using SDMs to
-predict the future locations of individual species [plos one 2012 paper]. This
-result is particularly sobering because this method forms the foundation for
-major claims regarding the predicted loss of biodiversity to climate change
-[2004 science/nature papers]. The poor performance of SDM-based forecasts
-highlights the crucial importance of comparing multiple modeling approaches when
-conducting ecological forecasts, and in particular the value of comparing
-results to simple baselines to avoid over-interpreting the accuracy of
-ecological forecasts. Disciplines that have more mature forecasting cultures
-often do this by reporting "forecast skill", which is the improvement in the
-forecast relative to a simple baseline. We recommend adopting this approach in
-future ecological forecasting research. It also highlights the need for using
-hindcasting and time-series data for assessing the effectiveness of forecasting
-methods, since this allows comparisons to baselines and assessment of the
-predicted dynamics at each site.
+While stacked species distribution models are the most commonly used approach
+for forecasting the future state of biodiversity [[cite?]], this approach
+provided the worst overall forecasts of all methods evaluated. In fact, the most
+common version of the stacking approach (based on rounding species' occurrence
+probabilities up or down before adding them up) would have led to even worse
+results than what we presented [Pellissier et al. 2013's "probabilistic
+approach" paper, Calabese et al. 2014]. In general, SDM-based forecasts are
+rarely evaluated, particularly in terms of repeated observations at the same
+site, and especially with long time horizons. Since site-level richness is
+relatively stable, the model evaluations that show high accuracy in predicting
+differences among sites may not indicate much about the model's ability to
+predict changes over time. This issue has also recently been recently
+highlighted as an issue for using SDMs to predict the future locations of
+individual species [plos one 2012 paper]. This result is particularly sobering
+because this approach forms the foundation for major claims regarding the
+predicted loss of biodiversity to climate change [2004 science/nature papers].
+The poor performance of SDM-based forecasts highlights the crucial importance of
+comparing multiple modeling approaches when conducting ecological forecasts, and
+in particular the value of comparing results to simple baselines to avoid
+over-interpreting the accuracy of ecological forecasts. Disciplines that have
+more mature forecasting cultures often do this by reporting "forecast skill",
+which is the improvement in the forecast relative to a simple baseline. We
+recommend adopting this approach in future ecological forecasting research. It
+also highlights the need for using hindcasting and time-series data for
+assessing the effectiveness of forecasting methods, since this allows
+comparisons to baselines and assessment of the predicted dynamics at each site.
 
 The most common alternative to summed SDMs is modeling richness directly using
-environmental variables and using the resulting models to make forecasts [].
-Two comparisons of the the SDM and direct richness modeling approaches reported
-that the methods yielded equivalent results for forecasting diversity. While our
-results generally support this for point estimates of richness they also show
-that modeling richness directly results in much better estimation of the
-uncertainty of the forecast and therefore is a better overall approach to
-forecasting richness. A similar result is seen when comparing joint species
-distribution models (JSDMs) to stacked single species distribution models. For
-point estimates the joint distribution models are roughly equivalent to stacked
-SDMs, but the JSDMs provide much better estimates of uncertainty. In fact, JSDMs
-and modeling richness directly provide some of the best estimates of uncertainty
-across all modeling approaches. This highlights the importance evaluating models
-based on their uncertainty as well as their mean estimates. Not doing so is
-particularly problematic in this case because the summed species distribution
-models are overly confident meaning that using them would lead to believing that
-richness would be restricted to a much narrower range than would actually
-occur.
+environmental variables and using the resulting models to make forecasts []. Two
+comparisons of the the SDM and direct richness modeling approaches reported that
+the methods yielded equivalent results for forecasting diversity (some other
+comparisons that found poor SDM performance were [[tainted]] by the rounding
+error alluded to above and are not considered here). While our results generally
+support rough equivalence between stacked SDMs and direct richness modeling for
+point estimates, they also show that modeling richness directly
+results in much better estimation of the uncertainty of the forecast and
+therefore is a better overall approach to forecasting richness. A similar result
+is seen when comparing joint species distribution models (JSDMs) to stacked
+single species distribution models. For point estimates the joint distribution
+models are roughly equivalent to stacked SDMs, but the JSDMs provide much better
+estimates of uncertainty. In fact, JSDMs and modeling richness directly provide
+some of the best estimates of uncertainty across all modeling approaches. This
+highlights the importance evaluating models based on their uncertainty as well
+as their mean estimates. Not doing so is particularly problematic in this case
+because the summed species distribution models are overly confident meaning that
+using them would lead to believing that richness would be restricted to a much
+narrower range than would actually occur.
 
-The accurate estimates of uncertainty by JSDMs and richness models result in
-these models approaching the performance of time-series models and baselines at
-the longest time-scales assessed when using measures that consider both point
-estimates and uncertainty. This convergence at longer time scales highlights the
-importance of considering how forecasting method performance changes with the
-distance into the future being predicted. The value of this approach, and
-associated forecast horizons, has been raised for knowing how far into the
-future a model can be effectively used for forecasting [@petchy2015], but our
-results suggest a broader value to this approach for considering the potential
-importance of different models and processes for making forecasts at different
-scales. [[Should make sure Petchy et al. don't make this point]] Our results
-show that for forecasts 1-3 years in the future, baselines and time-series based
-approaches outperform all other methods using integrative metrics. At these time
-scales environmental changes are relatively small and changes in the biota may
-lag behind changes in the environment. However, as the timescale of the forecast
-increases to a decade the JSDMs and environmental richness models get closer to
-the accuracy of the time-series methods and even surpass some of those
-methods. As the forecast distance increases the amount of environmental change
-is expected to increase and the system will have more time to respond,
-potentially leading to shifts towards improved relative performance of the
-models incorporating environmental and ecological information. If this shift
-with forecast distance in the relative importance of different processes and
-models continues, this could lead to JSDMs and environmental richness models
-outperforming time-series based approaches at sufficiently long time
-scales. These results suggest that assessment of how forecast performance
-changes with time lag is not only important for determining how far in the
-future to forecast, but also for determining models and processes are most
-relevant for making forecasts at different time scales.
+For error metrics that evaluate both models' point estimates and their
+uncertainty, the joint SDM and the nonlinear richness model began to outperform
+the time-series baselines at the longest time-scales assessed. This convergence
+at longer time scales highlights the importance of considering how forecasting
+method performance changes with the distance into the future being predicted.
+The value of this approach, and associated forecast horizons, has been raised
+for knowing how far into the future a model can be effectively used for
+forecasting [@petchy2015], but our results suggest a broader value to this
+approach for considering the potential importance of different models and
+processes for making forecasts at different scales. [[Should make sure Petchy et
+al. don't make this point]] Our results show that for forecasts 1-3 years in the
+future, baselines and time-series based approaches outperform all other methods
+using integrative metrics. At these time scales, environmental changes are
+relatively small and changes in the biota may lag behind changes in the
+environment. However, as the timescale of the forecast increases to a decade the
+JSDMs and environmental richness models get closer to the accuracy of the
+time-series methods and even surpass some of those methods. As the forecast
+distance increases the amount of environmental change is expected to increase
+and the system will have more time to respond, potentially leading to shifts
+towards improved relative performance of the models incorporating environmental
+and ecological information. If this shift with forecast distance in the relative
+importance of different processes and models continues, this could lead to JSDMs
+and environmental richness models outperforming time-series based approaches at
+sufficiently long time scales. These results suggest that assessment of how
+forecast performance changes with time lag is not only important for determining
+how far in the future to forecast, but also for determining models and processes
+are most relevant for making forecasts at different time scales.
 
 It is also possible that models that include species' relationships to their
 environments or direct environmental constraints on richness may continue to
