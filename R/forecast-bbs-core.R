@@ -77,11 +77,11 @@ filter_species <- function(df){
 
   valid_taxa = species_table %>%
     filter(!is_unidentified(species)) %>%
-    filter(aou > 2880) %>%
-    filter(aou < 3650 | aou > 3810) %>%
-    filter(aou < 3900 | aou > 3910) %>%
-    filter(aou < 4160 | aou > 4210) %>%
-    filter(aou != 7010)
+    filter(AOU > 2880) %>%
+    filter(AOU < 3650 | AOU > 3810) %>%
+    filter(AOU < 3900 | AOU > 3910) %>%
+    filter(AOU < 4160 | AOU > 4210) %>%
+    filter(AOU != 7010)
 
   filter(df, species_id %in% valid_taxa$aou)
 }
