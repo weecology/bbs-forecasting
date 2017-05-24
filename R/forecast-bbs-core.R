@@ -77,13 +77,13 @@ filter_species <- function(df){
 
   valid_taxa = species_table %>%
     filter(!is_unidentified(species)) %>%
-    filter(aou > 2880) %>%
-    filter(aou < 3650 | aou > 3810) %>%
-    filter(aou < 3900 | aou > 3910) %>%
-    filter(aou < 4160 | aou > 4210) %>%
-    filter(aou != 7010)
+    filter(AOU > 2880) %>%
+    filter(AOU < 3650 | AOU > 3810) %>%
+    filter(AOU < 3900 | AOU > 3910) %>%
+    filter(AOU < 4160 | AOU > 4210) %>%
+    filter(AOU != 7010)
 
-  filter(df, species_id %in% valid_taxa$aou)
+  filter(df, species_id %in% valid_taxa$AOU)
 }
 
 #' Combine subspecies into their common species
@@ -97,20 +97,20 @@ combine_subspecies = function(df){
 
   # Subspecies have two spaces separated by non-spaces
   subspecies_names = species_table %>%
-    filter(species_table$aou %in% unique(df$species_id)) %>%
+    filter(species_table$AOU %in% unique(df$species_id)) %>%
     magrittr::extract2("spanish_common_name") %>%
     grep(" [^ ]+ ", ., value = TRUE)
 
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
-    extract2("aou")
+    extract2("AOU")
 
   # Drop all but the first two words to get the root species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(word(subspecies_names, 1,2),
                 species_table$spanish_common_name)) %>%
-    extract2("aou")
+    extract2("AOU")
 
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
@@ -158,7 +158,7 @@ get_bbs_data <- function(){
                   (counts.statenum*1000) + counts.Route AS site_id,
                   Latitude AS lat,
                   Longitude AS long,
-                  Aou AS species_id,
+                  AOU AS species_id,
                   counts.Year AS year,
                   speciestotal AS abundance
                 FROM
