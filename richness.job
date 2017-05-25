@@ -31,5 +31,4 @@ date;hostname;pwd
 
 # Load R and run a script
 module load R
-Rscript --default-packages=stats,graphics,grDevices,utils,methods "richness.R"
-
+Rscript --default-packages=stats,graphics,grDevices,utils,methods "analysis/fit-predict.R"
