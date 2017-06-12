@@ -86,9 +86,9 @@ tidy_stan = function(samples, names, key = key, value = value){
   # Extract the matrices, convert them to data_frames, and bind them into one
   # data_frame.  The column names correspond to index values (1:N)
   df = rstan::extract(samples, names) %>% 
-    purrr::map(as_data_frame) %>% 
-    bind_cols() %>% 
-    set_names(1:ncol(.))
+    purrr::map(dplyr::as_data_frame) %>% 
+    dplyr::bind_cols() %>% 
+    purrr::set_names(1:ncol(.))
   
   # Initially, iteration number is denoted by row; make this explicit and then
   # make the data tidy/long instead of wide.
@@ -102,7 +102,7 @@ tidy_stan = function(samples, names, key = key, value = value){
   # so I add them here.
   out %>% 
     mutate(key = as.integer(key)) %>% 
-    set_names(c("iteration", key, value))
+    purrr::set_names(c("iteration", key, value))
 }
 
 
@@ -122,7 +122,7 @@ add_observer_index = function(x) {
   x %>% 
     group_by(observer_id) %>% 
     summarize(training_observer = any(in_train)) %>% 
-    arrange(desc(training_observer)) %>% 
+    arrange(dplyr::desc(training_observer)) %>% 
     mutate(observer_index = 1:nrow(.)) %>% 
     right_join(x, "observer_id")
 }
