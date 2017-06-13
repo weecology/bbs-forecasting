@@ -13,7 +13,7 @@ get_pop_ts_env_data(start_yr, end_yr, last_train_year, min_year_percentage)
 
 \item{last_train_year}{num last year of the time-series' training portion}
 
-\item{min_year_percentage}{num percent of years between of data between 
+\item{min_year_percentage}{num percent of years of non-missing data between 
 start_yr & last_train_year}
 }
 \value{

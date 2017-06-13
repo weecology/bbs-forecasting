@@ -233,7 +233,7 @@ get_env_data <- function(){
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
 #' @param last_train_year num last year of the time-series' training portion
-#' @param min_year_percentage num percent of years between of data between 
+#' @param min_year_percentage num percent of years of non-missing data between 
 #'         start_yr & last_train_year
 #'
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
@@ -351,7 +351,6 @@ add_observers = function(bbs_data) {
 filter_ts <- function(bbs_data, start_yr, end_yr, last_train_year, 
                       min_year_percentage){
   min_num_years = (last_train_year - start_yr + 1) * min_year_percentage / 100
-  browser()
   sites_to_keep = bbs_data %>%
     filter(year >= start_yr, year <= last_train_year) %>%
     group_by(site_id) %>%
