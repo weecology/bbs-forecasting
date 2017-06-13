@@ -17,9 +17,10 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   
   # If we don't have any observed richness, we can't use the row, so omit
   # anything with is.na(richness)
-  df = get_pop_ts_env_data(settings$start_yr, 
-                           settings$end_yr, 
-                           settings$min_num_yrs) %>% 
+  df = get_pop_ts_env_data(settings$start_yr,
+                           settings$end_yr,
+                           settings$last_train_year,
+                           settings$min_year_percentage) %>% 
     collapse_to_richness() %>% 
     filter(!is.na(richness)) %>%
     mutate(in_train = year <= settings$last_train_year) %>% 

@@ -15,4 +15,3 @@ a spatial data frame including site_id, long, and lat
 \description{
 Get route locations
 }
-

@@ -1,7 +1,7 @@
 start_yr: 1982
 end_yr: 2013
-min_num_yrs: 25
 last_train_year: 2003
+min_year_percentage: 70
 formula: y ~ bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + ndvi_sum + ndvi_win + elevs
 vars: 
   - bio2 #Mean Diurnal Range (Mean of monthly (max temp - min temp))

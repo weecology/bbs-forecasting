@@ -89,7 +89,8 @@ x_richness %>%
 # Get data on individual species occurrences
 bbs = get_pop_ts_env_data(settings$start_yr, 
                           settings$end_yr, 
-                          settings$min_num_yrs) %>% 
+                          settings$last_train_year,
+                          settings$min_year_percentage) %>% 
   filter(!is.na(abundance))
 
 # Discard species that don't occur in the training set
