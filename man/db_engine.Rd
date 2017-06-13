@@ -32,4 +32,3 @@ read returns a dataframe
 write returns nothing
 check returns boolean
 }
-

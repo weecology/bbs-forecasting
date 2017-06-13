@@ -9,4 +9,3 @@ viz_forecast(data, forecasts, focal_site)
 \description{
 Visualizes a forecast for a single focal site from a group of forecasts
 }
-

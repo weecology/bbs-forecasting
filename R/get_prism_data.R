@@ -66,7 +66,8 @@ get_prism_data=function(){
     locations <- dplyr::select(bbs_data, site_id, long, lat) %>%
       distinct()
     coordinates(locations) <- c("long", "lat")
-
+    raster::crs(locations) <- '+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0'
+    
     #Check to see if all the raw data in the years specified are downloaded,
     #download everything again if not. (Getting only what is needed, say if a
     #previous download failed, might be overly complicated)
@@ -76,6 +77,9 @@ get_prism_data=function(){
 
     #Load the prism data and extract using the bbs locations.
     prism_stacked <- prism_stack(ls_prism_data())
+    #Aggregate to 40km. Original cells average ~4.5 across N. America,
+    #so aggregation of 9x9 creates mostly 40km cells. 
+    prism_stacked = raster::aggregate(prism_stacked, fact=9)
     save_provenance(prism_stacked)
     extracted <- raster::extract(prism_stacked, locations)
     prism_bbs_data <- data.frame(site_id = locations$site_id, coordinates(locations), extracted)
@@ -126,12 +130,16 @@ process_bioclim_data=function(){
   #Get the prism data.
   prism_bbs_data=get_prism_data()
 
+  #Offset the year by 6 months so that the window for calculating bioclim variables
+  #will be July 1 - June 30. See https://github.com/weecology/bbs-forecasting/issues/114
+  prism_bbs_data$year = with(prism_bbs_data, ifelse(month %in% 7:12, year+1, year))
+  
   #Spread out the climate variables ppt, tmean, etc into columns
   prism_bbs_data = prism_bbs_data %>%
     spread(clim_var, value)
 
   #Process the quarter ones first.
-  quarter_info=data.frame(month=1:12, quarter=c(1,1,1,2,2,2,3,3,3,4,4,4))
+  quarter_info=data.frame(month=1:12, quarter=c(3,3,3,4,4,4,1,1,1,2,2,2))
   bioclim_quarter_data= prism_bbs_data %>%
     left_join(quarter_info, by='month') %>%
     group_by(site_id, year, quarter) %>%

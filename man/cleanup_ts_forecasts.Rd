@@ -20,4 +20,3 @@ with cells containing full forecast output a number of different forecasts,
 into one where each row contains the point forecast and forecast intervals
 for a single site, time period, model combination.
 }
-

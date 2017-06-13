@@ -14,4 +14,3 @@ If elevation data already exists, do nothing, otherwise use the raster
 package to download the average elevation in a 40km radius of each BBS route
 and push to the SQLite database
 }
-

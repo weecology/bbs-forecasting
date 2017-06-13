@@ -415,6 +415,26 @@ probability across species and sites since there is no clear way to address this
 issue without making strong assumptions about the data, but this would be a
 valuable addition to future forecasting models.
 
+Here we have made forecasts using yearly timesteps fifty (?) years into the
+future. Many ecological forecasts are temporally aggregated to 5-30 year
+timesteps and projected up to a century into the future. These are commonly
+beyond the career or even lifespan of the researchers, making reasonable model
+assessment impossible. Currently assessments at these large scales can be only
+be made with a small number of opportune datasets. For examples hindcasts have
+been used to asses models of species richness [@alger2009, distler2015] and
+distribution [@rappacciuolo2012, @moran-ordonez2017, @araujo2005,
+@eskildsen2013] using data aggregated across similar time scales. More
+evaluation studies like these are needed but there is a paucity of adequate long
+term data available. Short term forecasts will allow for relatively rapid
+validation of models by researchers without needing to wait for enough data to
+accumulate. This is not to say they should replace large scale long term
+forecasts. The relationships of temporal scaling is currently understudied, but
+it is possible they are similar to spatial scale dynamics [@mcgill2010,
+@levin1992]. For example drivers of species richness differ at different spatial
+scales [@rahbek2001, @hurlbert2003]. Thus short term forecasts should be
+expected to add value to end users and inform, not replace, long term larger
+scaled forecasts.
+
 Future efforts will also need to begin to address the additional uncertainty
 that comes from error in forecasting the environmental conditions themselves. In
 this and other hindcasting studies the environmental conditions for the "future"

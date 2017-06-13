@@ -9,4 +9,3 @@ get_env_data()
 \description{
 Master function for acquiring all environmental in a single table
 }
-
