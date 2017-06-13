@@ -6,14 +6,16 @@
 fill in NA values for richness in missing years as long as a site
 meets the year requirments and has environmental data.}
 \usage{
-get_richness_ts_env_data(start_yr, end_yr, min_num_yrs)
+get_richness_ts_env_data(start_yr, end_yr, last_train_year, min_year_percentage)
 }
 \arguments{
 \item{start_yr}{num first year of time-series}
 
 \item{end_yr}{num last year of time-series}
 
-\item{min_num_yrs}{num minimum number of years of data between start_yr & end_yr}
+\item{last_train_year}{num last year of time series' training portion}
+
+\item{min_year_percentage}{num minimum number of years of data between start_yr & end_yr}
 }
 \value{
 dataframe with site_id, year, and richness
@@ -23,4 +25,3 @@ Get BBS richness time-series data with environmental variables. Will
 fill in NA values for richness in missing years as long as a site
 meets the year requirments and has environmental data.
 }
-

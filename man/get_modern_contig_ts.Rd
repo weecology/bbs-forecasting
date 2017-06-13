@@ -20,4 +20,3 @@ are in a contiguous series with stopyear.
 Get data for all contiguous samples ending in a given year.
 If only one year of contiguous data are available keep that year.
 }
-

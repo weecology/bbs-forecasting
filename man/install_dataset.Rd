@@ -2,7 +2,7 @@
 % Please edit documentation in R/forecast-bbs-core.R
 \name{install_dataset}
 \alias{install_dataset}
-\title{Install a particular dataset via Ecodata Retriever}
+\title{Install a particular dataset via rdataretreiver}
 \usage{
 install_dataset(dataset)
 }
@@ -10,6 +10,5 @@ install_dataset(dataset)
 \item{dataset}{name}
 }
 \description{
-Install a particular dataset via Ecodata Retriever
+Install a particular dataset via rdataretreiver
 }
-

@@ -19,4 +19,3 @@ list of data.frames. The first value is the pt_fcast part of the
 \description{
 Split time-series forecasts into point forecast and prediction interval dfs
 }
-

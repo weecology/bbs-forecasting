@@ -4,23 +4,26 @@
 \alias{get_pop_ts_env_data}
 \title{Get BBS population time-series data with environmental variables}
 \usage{
-get_pop_ts_env_data(start_yr, end_yr, min_num_yrs)
+get_pop_ts_env_data(start_yr, end_yr, last_train_year, min_year_percentage)
 }
 \arguments{
 \item{start_yr}{num first year of time-series}
 
 \item{end_yr}{num last year of time-series}
 
-\item{min_num_yrs}{num minimum number of years of data between start_yr & end_yr}
+\item{last_train_year}{num last year of the time-series' training portion}
+
+\item{min_year_percentage}{num percent of years between of data between 
+start_yr & last_train_year}
 }
 \value{
 dataframe with site_id, lat, long, year, species_id, and abundance
 }
 \description{
-Selects sites with data spanning 1982 through 2013 containing at least 25
-samples during that period.
+Selects data from the subset of sites that were visited in at least 
+`min_year_percentage` percent of years in the training set, and from
+all years between `start_yr` to `end_yr`.
 }
 \details{
-Attaches associated environmental data
+Also attaches associated environmental data
 }
-
