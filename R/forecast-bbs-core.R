@@ -70,7 +70,7 @@ filter_species <- function(df){
   species_table = get_species_data()
 
   is_unidentified = function(names) {
-    #Befor filter account for this one hybrid of 2 subspecies so it's kept
+    #Before filtering, account for this one hybrid of 2 subspecies so it's kept
     names[names=='auratus auratus x auratus cafer']='auratus auratus'
     grepl('sp\\.| x |\\/', names)
   }
@@ -183,6 +183,22 @@ get_bbs_data <- function(){
   }
 }
 
+#' Get route locations in a SpatialPointsDataFrame
+#'
+#' @param projection string projection for route data
+#'
+#' @return a spatial data frame including site_id, long, and lat
+#' @importFrom sp SpatialPointsDataFrame CRS
+#' @importFrom dplyr collect copy_to src_sqlite src_tbls tbl %>%
+get_route_data <- function(){
+  p=CRS('+proj=longlat +datum=WGS84')
+  bbs_data <- get_bbs_data()
+  route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
+  spatial_routes <- route_locations %>%
+    dplyr::select(long, lat) %>%
+    SpatialPointsDataFrame(data=route_locations, proj4string=p)
+}
+
 #' Get combined environmental data
 #'
 #' Master function for acquiring all environmental in a single table
@@ -224,27 +240,30 @@ get_env_data <- function(){
 
 #' Get BBS population time-series data with environmental variables
 #'
-#' Selects sites with data spanning 1982 through 2013 containing at least 25
-#' samples during that period.
+#' Selects data from the subset of sites that were visited in at least 
+#' `min_year_percentage` percent of years in the training set, and from
+#' all years between `start_yr` to `end_yr`.
 #'
-#' Attaches associated environmental data
+#' Also attaches associated environmental data
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year num last year of the time-series' training portion
+#' @param min_year_percentage num percent of years of non-missing data between 
+#'         start_yr & last_train_year
 #'
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
 #' @importFrom dplyr "%>%" filter select
-get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
+get_pop_ts_env_data <- function(start_yr, end_yr, last_train_year, 
+                                min_year_percentage){
   pop_ts_env_data = get_bbs_data() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    filter_ts(start_yr, end_yr, last_train_year, min_year_percentage) %>%
     complete(site_id, year) %>% 
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
-    group_by(site_id) %>%
     #Filter min_num_years again after accounting for missing environmental data
-    filter(length(unique(year)) >= min_num_yrs) %>%
+    filter_ts(start_yr, end_yr, last_train_year, min_year_percentage) %>%
     ungroup() %>%
     add_observers()
 
@@ -258,14 +277,17 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year num last year of time series' training portion
+#' @param min_year_percentage num minimum number of years of data between start_yr & end_yr
 #'
 #' @return dataframe with site_id, year, and richness
 #' @export
 #' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
 #' @importFrom tidyr complete
-get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  richness_ts_env_data = get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+get_richness_ts_env_data <- function(start_yr, end_yr, last_train_year,
+                                     min_year_percentage){
+  richness_ts_env_data = get_pop_ts_env_data(start_yr, end_yr, last_train_year,
+                                             min_year_percentage) %>%
     collapse_to_richness()
   save_provenance(richness_ts_env_data)
   return(richness_ts_env_data)
@@ -336,17 +358,21 @@ add_observers = function(bbs_data) {
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year last year of the time-series' training portion
+#' @param min_year_percentage num minimum percentage of years between 
+#'         start_yr & last_train_year that have data
 #'
 #' @return dataframe with original data and associated environmental data
 #' @importFrom dplyr "%>%" filter group_by summarise ungroup
-filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
+filter_ts <- function(bbs_data, start_yr, end_yr, last_train_year, 
+                      min_year_percentage){
+  min_num_years = (last_train_year - start_yr + 1) * min_year_percentage / 100
   sites_to_keep = bbs_data %>%
-    filter(year >= start_yr, year <= end_yr) %>%
+    filter(year >= start_yr, year <= last_train_year) %>%
     group_by(site_id) %>%
     summarise(num_years=length(unique(year))) %>%
     ungroup() %>%
-    filter(num_years >= min_num_yrs)
+    filter(num_years >= min_num_years)
 
   filterd_data <- bbs_data %>%
     filter(year >= start_yr, year <= end_yr) %>%

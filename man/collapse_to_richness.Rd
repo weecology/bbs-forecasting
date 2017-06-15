@@ -12,4 +12,3 @@ collapse_to_richness(df)
 \description{
 Replace species-level information with richness values, eliminating redundant rows
 }
-
