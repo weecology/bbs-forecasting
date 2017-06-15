@@ -183,6 +183,22 @@ get_bbs_data <- function(){
   }
 }
 
+#' Get route locations in a SpatialPointsDataFrame
+#'
+#' @param projection string projection for route data
+#'
+#' @return a spatial data frame including site_id, long, and lat
+#' @importFrom sp SpatialPointsDataFrame CRS
+#' @importFrom dplyr collect copy_to src_sqlite src_tbls tbl %>%
+get_route_data <- function(){
+  p=CRS('+proj=longlat +datum=WGS84')
+  bbs_data <- get_bbs_data()
+  route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
+  spatial_routes <- route_locations %>%
+    dplyr::select(long, lat) %>%
+    SpatialPointsDataFrame(data=route_locations, proj4string=p)
+}
+
 #' Get combined environmental data
 #'
 #' Master function for acquiring all environmental in a single table
