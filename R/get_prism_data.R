@@ -125,7 +125,7 @@ extract_cmip_data=function(cmip_filename, clim_var){
 }
 
 ########################################################
-#Return cmip5 data from 2010-2015 for each site from the sqlite DB.
+#Return cmip5 data from 2010-2050 for each site from the sqlite DB.
 ########################################################
 get_cmip5_data=function(){
   if(db_engine(action='check', table_to_check = 'cmip5_bbs_data')){
