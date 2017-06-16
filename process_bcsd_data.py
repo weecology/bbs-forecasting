@@ -27,5 +27,7 @@ def process_data(filename, new_filename, scale_precip=False):
     ds.attrs = attributes
     ds.to_netcdf(new_filename)
 
-process_data('data/cmip5/bcsd5_pr/Extraction_pr.nc', 'data/cmip5/cmip5_precip.nc', scale_precip=True)
-process_data('data/cmip5/bcsd5_temp/Extraction_tas.nc', 'data/cmip5/cmip5_temp.nc')
+process_data('data/cmip5/bcsd5_pr/Extraction_pr.nc', 'data/cmip5/cmip5_ppt.nc', scale_precip=True)
+process_data('data/cmip5/bcsd5_tmean/Extraction_tas.nc', 'data/cmip5/cmip5_tmean.nc')
+process_data('data/cmip5/bcsd5_tmax/Extraction_tasmax.nc', 'data/cmip5/cmip5_tmax.nc')
+process_data('data/cmip5/bcsd5_tmin/Extraction_tasmin.nc', 'data/cmip5/cmip5_tmin.nc')
