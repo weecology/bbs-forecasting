@@ -204,7 +204,7 @@ get_route_data <- function(){
 #' @param timeframe Either 'past' or 'future' for 1981-2013 or 2014-2050, respectively. 
 #' @export
 #' @importFrom dplyr "%>%" filter group_by summarise ungroup inner_join full_join
-#' @importFrom tidyr gather
+#' @importFrom tidyr gather spread
 
 get_env_data <- function(timeframe = 'past'){
   ndvi_data_raw <- get_bbs_gimms_ndvi()
