@@ -235,7 +235,7 @@ get_env_data <- function(timeframe = 'past'){
   #If projecting forward, use NDVI averages for future NDVI values, and use
   #CMIP5 data for bioclim values
   if(timeframe == 'future') {
-    ndvi_long_term_averges = ndvi_data %>%
+    ndvi_long_term_averages = ndvi_data %>%
       filter(year %in% 2000:2013) %>%
       gather(season,value, -site_id, -year) %>%
       group_by(site_id, season) %>%
@@ -245,7 +245,7 @@ get_env_data <- function(timeframe = 'past'){
     all_sites = unique(ndvi_data$site_id)
     
     ndvi_data = expand.grid(site_id = all_sites, year=2014:2050) %>%
-      left_join(ndvi_long_term_averges, by='site_id') %>%
+      left_join(ndvi_long_term_averages, by='site_id') %>%
       spread(season, value)
     
     bioclim_data = get_bioclim_data(source='cmip5') %>%
