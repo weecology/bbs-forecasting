@@ -73,7 +73,7 @@ expand.grid(fun_name = c("naive", "auto.arima"),
 # GBM richness with observer effects:
 x_richness %>%
   group_by(iteration) %>%
-  by_slice(make_gbm_predictions, use_obs_model = TRUE, .collate = "rows") %>% 
+  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE, .collate = "rows") %>% 
   saveRDS(file = "gbm_TRUE.rds")
 
 # GBM richness without observer effects:
