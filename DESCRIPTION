@@ -21,7 +21,8 @@ Imports:
     yaml (>= 2.1.13),
     purrr (>= 0.2.2),
     gbm (>= 2.1.1),
-    randomForest (>= 4.6-12)
+    randomForest (>= 4.6-12),
+    purrrlyr (>= 0.0.2)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 6.0.1

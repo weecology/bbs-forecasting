@@ -64,9 +64,7 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     forecast_data = filter(forecast_data, iteration == 1)
   }
   
-  # TODO: by_slice will be deprecated. See if I can use mutate_all instead?
-  # Dropping x_richness$sd before joining so it can be replaced by forecast sd.
-  out = by_slice(forecast_data, make_forecast, fun_name = fun_name, 
+  out = purrrlyr::by_slice(forecast_data, make_forecast, fun_name = fun_name, 
                  use_obs_model = use_obs_model, settings = settings, ...,
                  .collate = "row") %>%
     left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
