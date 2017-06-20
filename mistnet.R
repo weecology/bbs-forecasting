@@ -33,7 +33,8 @@ fit_mistnet = function(iter,
   # Collect data for this iteration, then discard the rest to save
   # memory
   obs_model = readRDS("observer_model.rds")
-  data = filter(obs_model$data, iteration == iter) %>% 
+  data = obs_model$data %>% 
+    filter(iteration == iter) %>% 
     left_join(bbs, c("site_id", "year"))
   rm(obs_model)
   gc(TRUE)
