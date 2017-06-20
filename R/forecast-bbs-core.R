@@ -199,15 +199,22 @@ get_route_data <- function(){
     SpatialPointsDataFrame(data=route_locations, proj4string=p)
 }
 
-#' Get combined environmental data
+#' Master function for acquiring all environmental in a single table.
+#' Returns either past observed data from PRSISM + NDVI, or future
+#' forecasted data from CMIP5 and a naive NDVI forecast. 
 #'
-#' Master function for acquiring all environmental in a single table
+#' @param timeframe str Either 'past' or 'future' for 1981-2013 or 2014-2050, respectively. 
+#' @param ndvi_forecast_source_years vector Years of observed NDVI data to use for making 
+#' a naive NDVI forecast with site specific means. Ignored if timeframe is 'past'
+#' @param future_data_years vector Years of forecast environmental data to return. Ignored
+#' if timeframe is 'past'
+#' 
 #' @export
 #' @importFrom dplyr "%>%" filter group_by summarise ungroup inner_join full_join
+#' @importFrom tidyr gather spread
 
-get_env_data <- function(){
-  bioclim_data <- get_bioclim_data()
-  elev_data <- get_elev_data()
+get_env_data <- function(timeframe = 'past', ndvi_forecast_source_years=2000:2013,
+                         future_data_years=2014:2050){
   ndvi_data_raw <- get_bbs_gimms_ndvi()
   
   #Offset the NDVI year by 6 months so that the window for will be July 1 - June 30. 
@@ -215,7 +222,7 @@ get_env_data <- function(){
   ndvi_data_raw$year = with(ndvi_data_raw, ifelse(month %in% c('jul','aug','sep','oct','nov','dec'), year+1, year))
   
   ndvi_data_summer <- ndvi_data_raw %>%
-    filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
+    filter(!is.na(ndvi), month %in% c('apr', 'may', 'jun'), year > 1981) %>%
     group_by(site_id, year) %>%
     summarise(ndvi_sum = mean(ndvi)) %>%
     ungroup()
@@ -229,12 +236,39 @@ get_env_data <- function(){
     group_by(site_id, year) %>%
     summarise(ndvi_ann = mean(ndvi)) %>%
     ungroup()
-  ndvi_data <- inner_join(ndvi_data_summer, ndvi_data_winter, by = c('site_id', 'year'))
-  ndvi_data <- inner_join(ndvi_data, ndvi_data_ann, by = c('site_id', 'year'))
-
-  env_data <- full_join(bioclim_data, ndvi_data, by = c('site_id', 'year'))
-  env_data <- full_join(env_data, elev_data, by = c('site_id'))
+    
+  ndvi_data = inner_join(ndvi_data_summer, ndvi_data_winter, by=c('site_id','year')) %>%
+    inner_join(ndvi_data_ann, by=c('site_id','year'))
+  
+  #If projecting forward, use NDVI averages for future NDVI values, and use
+  #CMIP5 data for bioclim values
+  if(timeframe == 'future') {
+    ndvi_long_term_averages = ndvi_data %>%
+      filter(year %in% ndvi_forecast_source_years) %>%
+      gather(season,value, -site_id, -year) %>%
+      group_by(site_id, season) %>%
+      summarise(value = mean(value)) %>%
+      ungroup()
+    
+    all_sites = unique(ndvi_data$site_id)
+    
+    ndvi_data = expand.grid(site_id = all_sites, year=future_data_years) %>%
+      left_join(ndvi_long_term_averages, by='site_id') %>%
+      spread(season, value)
+    
+    bioclim_data = get_bioclim_data(source='cmip5') %>%
+      filter(year>=2014)
+  } else if(timeframe=='past') {
+    bioclim_data = get_bioclim_data(source='prism')
+  } else {
+    stop(paste0('timeframe unknown: ',timeframe))
+  }
+  
+  elev_data <- get_elev_data()
+  env_data <- full_join(bioclim_data, ndvi_data, by = c('site_id', 'year')) %>%
+              full_join(elev_data, by = c('site_id'))
   save_provenance(env_data)
+  
   return(env_data)
 }
 

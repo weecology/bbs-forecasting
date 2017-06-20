@@ -2,10 +2,13 @@
 % Please edit documentation in R/forecast-bbs-core.R
 \name{get_env_data}
 \alias{get_env_data}
-\title{Get combined environmental data}
+\title{#' Master function for acquiring all environmental in a single table}
 \usage{
-get_env_data()
+get_env_data(timeframe = "past")
+}
+\arguments{
+\item{timeframe}{Either 'past' or 'future' for 1981-2013 or 2014-2050, respectively.}
 }
 \description{
-Master function for acquiring all environmental in a single table
+#' Master function for acquiring all environmental in a single table
 }
