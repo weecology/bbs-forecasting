@@ -199,14 +199,22 @@ get_route_data <- function(){
     SpatialPointsDataFrame(data=route_locations, proj4string=p)
 }
 
-#' #' Master function for acquiring all environmental in a single table
+#' Master function for acquiring all environmental in a single table.
+#' Returns either past observed data from PRSISM + NDVI, or future
+#' forecasted data from CMIP5 and a naive NDVI forecast. 
 #'
-#' @param timeframe Either 'past' or 'future' for 1981-2013 or 2014-2050, respectively. 
+#' @param timeframe str Either 'past' or 'future' for 1981-2013 or 2014-2050, respectively. 
+#' @param ndvi_forecast_source_years vector Years of observed NDVI data to use for making 
+#' a naive NDVI forecast with site specific means. Ignored if timeframe is 'past'
+#' @param future_data_years vector Years of forecast environmental data to return. Ignored
+#' if timeframe is 'past'
+#' 
 #' @export
 #' @importFrom dplyr "%>%" filter group_by summarise ungroup inner_join full_join
 #' @importFrom tidyr gather spread
 
-get_env_data <- function(timeframe = 'past'){
+get_env_data <- function(timeframe = 'past', ndvi_forecast_source_years=2000:2013,
+                         future_data_years=2014:2050){
   ndvi_data_raw <- get_bbs_gimms_ndvi()
   
   #Offset the NDVI year by 6 months so that the window for will be July 1 - June 30. 
@@ -236,7 +244,7 @@ get_env_data <- function(timeframe = 'past'){
   #CMIP5 data for bioclim values
   if(timeframe == 'future') {
     ndvi_long_term_averages = ndvi_data %>%
-      filter(year %in% 2000:2013) %>%
+      filter(year %in% ndvi_forecast_source_years) %>%
       gather(season,value, -site_id, -year) %>%
       group_by(site_id, season) %>%
       summarise(value = mean(value)) %>%
@@ -244,7 +252,7 @@ get_env_data <- function(timeframe = 'past'){
     
     all_sites = unique(ndvi_data$site_id)
     
-    ndvi_data = expand.grid(site_id = all_sites, year=2014:2050) %>%
+    ndvi_data = expand.grid(site_id = all_sites, year=future_data_years) %>%
       left_join(ndvi_long_term_averages, by='site_id') %>%
       spread(season, value)
     
