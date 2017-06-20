@@ -4,7 +4,7 @@
 \alias{filter_ts}
 \title{Filter BBS to specified time series period and number of samples}
 \usage{
-filter_ts(bbs_data, start_yr, end_yr, min_num_yrs)
+filter_ts(bbs_data, start_yr, end_yr, last_train_year, min_year_percentage)
 }
 \arguments{
 \item{bbs_data}{dataframe that contains BBS site_id and year columns}
@@ -13,7 +13,10 @@ filter_ts(bbs_data, start_yr, end_yr, min_num_yrs)
 
 \item{end_yr}{num last year of time-series}
 
-\item{min_num_yrs}{num minimum number of years of data between start_yr & end_yr}
+\item{last_train_year}{last year of the time-series' training portion}
+
+\item{min_year_percentage}{num minimum percentage of years between 
+start_yr & last_train_year that have data}
 }
 \value{
 dataframe with original data and associated environmental data
@@ -21,4 +24,3 @@ dataframe with original data and associated environmental data
 \description{
 Filter BBS to specified time series period and number of samples
 }
-

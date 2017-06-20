@@ -70,20 +70,20 @@ filter_species <- function(df){
   species_table = get_species_data()
 
   is_unidentified = function(names) {
-    #Befor filter account for this one hybrid of 2 subspecies so it's kept
+    #Before filtering, account for this one hybrid of 2 subspecies so it's kept
     names[names=='auratus auratus x auratus cafer']='auratus auratus'
     grepl('sp\\.| x |\\/', names)
   }
 
   valid_taxa = species_table %>%
     filter(!is_unidentified(species)) %>%
-    filter(aou > 2880) %>%
-    filter(aou < 3650 | aou > 3810) %>%
-    filter(aou < 3900 | aou > 3910) %>%
-    filter(aou < 4160 | aou > 4210) %>%
-    filter(aou != 7010)
+    filter(AOU > 2880) %>%
+    filter(AOU < 3650 | AOU > 3810) %>%
+    filter(AOU < 3900 | AOU > 3910) %>%
+    filter(AOU < 4160 | AOU > 4210) %>%
+    filter(AOU != 7010)
 
-  filter(df, species_id %in% valid_taxa$aou)
+  filter(df, species_id %in% valid_taxa$AOU)
 }
 
 #' Combine subspecies into their common species
@@ -97,20 +97,20 @@ combine_subspecies = function(df){
 
   # Subspecies have two spaces separated by non-spaces
   subspecies_names = species_table %>%
-    filter(species_table$aou %in% unique(df$species_id)) %>%
+    filter(species_table$AOU %in% unique(df$species_id)) %>%
     magrittr::extract2("spanish_common_name") %>%
     grep(" [^ ]+ ", ., value = TRUE)
 
   subspecies_ids = species_table %>%
     filter(spanish_common_name %in% subspecies_names) %>%
-    extract2("aou")
+    extract2("AOU")
 
   # Drop all but the first two words to get the root species name,
   # then find the AOU code
   new_subspecies_ids = species_table %>%
     slice(match(word(subspecies_names, 1,2),
                 species_table$spanish_common_name)) %>%
-    extract2("aou")
+    extract2("AOU")
 
   # replace the full subspecies names with species-level names
   for (i in seq_along(subspecies_ids)) {
@@ -158,7 +158,7 @@ get_bbs_data <- function(){
                   (counts.statenum*1000) + counts.Route AS site_id,
                   Latitude AS lat,
                   Longitude AS long,
-                  Aou AS species_id,
+                  AOU AS species_id,
                   counts.Year AS year,
                   speciestotal AS abundance
                 FROM
@@ -183,6 +183,22 @@ get_bbs_data <- function(){
   }
 }
 
+#' Get route locations in a SpatialPointsDataFrame
+#'
+#' @param projection string projection for route data
+#'
+#' @return a spatial data frame including site_id, long, and lat
+#' @importFrom sp SpatialPointsDataFrame CRS
+#' @importFrom dplyr collect copy_to src_sqlite src_tbls tbl %>%
+get_route_data <- function(){
+  p=CRS('+proj=longlat +datum=WGS84')
+  bbs_data <- get_bbs_data()
+  route_locations <- unique(dplyr::select(bbs_data, site_id, long, lat))
+  spatial_routes <- route_locations %>%
+    dplyr::select(long, lat) %>%
+    SpatialPointsDataFrame(data=route_locations, proj4string=p)
+}
+
 #' Get combined environmental data
 #'
 #' Master function for acquiring all environmental in a single table
@@ -193,7 +209,11 @@ get_env_data <- function(){
   bioclim_data <- get_bioclim_data()
   elev_data <- get_elev_data()
   ndvi_data_raw <- get_bbs_gimms_ndvi()
-
+  
+  #Offset the NDVI year by 6 months so that the window for will be July 1 - June 30. 
+  #See https://github.com/weecology/bbs-forecasting/issues/114
+  ndvi_data_raw$year = with(ndvi_data_raw, ifelse(month %in% c('jul','aug','sep','oct','nov','dec'), year+1, year))
+  
   ndvi_data_summer <- ndvi_data_raw %>%
     filter(!is.na(ndvi), month %in% c('may', 'jun', 'jul'), year > 1981) %>%
     group_by(site_id, year) %>%
@@ -220,27 +240,30 @@ get_env_data <- function(){
 
 #' Get BBS population time-series data with environmental variables
 #'
-#' Selects sites with data spanning 1982 through 2013 containing at least 25
-#' samples during that period.
+#' Selects data from the subset of sites that were visited in at least 
+#' `min_year_percentage` percent of years in the training set, and from
+#' all years between `start_yr` to `end_yr`.
 #'
-#' Attaches associated environmental data
+#' Also attaches associated environmental data
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year num last year of the time-series' training portion
+#' @param min_year_percentage num percent of years of non-missing data between 
+#'         start_yr & last_train_year
 #'
 #' @return dataframe with site_id, lat, long, year, species_id, and abundance
 #' @export
 #' @importFrom dplyr "%>%" filter select
-get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
+get_pop_ts_env_data <- function(start_yr, end_yr, last_train_year, 
+                                min_year_percentage){
   pop_ts_env_data = get_bbs_data() %>%
-    filter_ts(start_yr, end_yr, min_num_yrs) %>%
+    filter_ts(start_yr, end_yr, last_train_year, min_year_percentage) %>%
     complete(site_id, year) %>% 
     add_env_data() %>%
     filter(!is.na(bio1), !is.na(ndvi_sum), !is.na(elevs)) %>%
-    group_by(site_id) %>%
     #Filter min_num_years again after accounting for missing environmental data
-    filter(length(unique(year)) >= min_num_yrs) %>%
+    filter_ts(start_yr, end_yr, last_train_year, min_year_percentage) %>%
     ungroup() %>%
     add_observers()
 
@@ -254,14 +277,17 @@ get_pop_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #'
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year num last year of time series' training portion
+#' @param min_year_percentage num minimum number of years of data between start_yr & end_yr
 #'
 #' @return dataframe with site_id, year, and richness
 #' @export
 #' @importFrom dplyr "%>%" left_join select distinct group_by summarise ungroup filter
 #' @importFrom tidyr complete
-get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
-  richness_ts_env_data = get_pop_ts_env_data(start_yr, end_yr, min_num_yrs) %>%
+get_richness_ts_env_data <- function(start_yr, end_yr, last_train_year,
+                                     min_year_percentage){
+  richness_ts_env_data = get_pop_ts_env_data(start_yr, end_yr, last_train_year,
+                                             min_year_percentage) %>%
     collapse_to_richness()
   save_provenance(richness_ts_env_data)
   return(richness_ts_env_data)
@@ -270,7 +296,7 @@ get_richness_ts_env_data <- function(start_yr, end_yr, min_num_yrs){
 #' Replace species-level information with richness values, eliminating redundant rows
 #' @param df a data frame, such as produced by get_bbs_data or get_pop_ts_env_data
 #' @export
-#' @importFrom dplyr n
+#' @importFrom dplyr n group_by mutate select ungroup distinct right_join
 collapse_to_richness = function(df){
 
   # Code below assumes that NA abundance always means no observations for the
@@ -332,17 +358,21 @@ add_observers = function(bbs_data) {
 #' @param bbs_data dataframe that contains BBS site_id and year columns
 #' @param start_yr num first year of time-series
 #' @param end_yr num last year of time-series
-#' @param min_num_yrs num minimum number of years of data between start_yr & end_yr
+#' @param last_train_year last year of the time-series' training portion
+#' @param min_year_percentage num minimum percentage of years between 
+#'         start_yr & last_train_year that have data
 #'
 #' @return dataframe with original data and associated environmental data
 #' @importFrom dplyr "%>%" filter group_by summarise ungroup
-filter_ts <- function(bbs_data, start_yr, end_yr, min_num_yrs){
+filter_ts <- function(bbs_data, start_yr, end_yr, last_train_year, 
+                      min_year_percentage){
+  min_num_years = (last_train_year - start_yr + 1) * min_year_percentage / 100
   sites_to_keep = bbs_data %>%
-    filter(year >= start_yr, year <= end_yr) %>%
+    filter(year >= start_yr, year <= last_train_year) %>%
     group_by(site_id) %>%
     summarise(num_years=length(unique(year))) %>%
     ungroup() %>%
-    filter(num_years >= min_num_yrs)
+    filter(num_years >= min_num_years)
 
   filterd_data <- bbs_data %>%
     filter(year >= start_yr, year <= end_yr) %>%

@@ -9,4 +9,3 @@ combine_subspecies(df)
 \description{
 Combine subspecies into their common species
 }
-

@@ -10,8 +10,8 @@ pacman::p_load(dplyr, forecast, ggplot2, Hmisc, tidyr, mgcv, sp, raster,
 	       broom, devtools, doParallel, dplyr, forecast, ggplot2,
 	       gimms, Hmisc, maptools, mgcv, prism, raster, stringr, sp,
 	       tidyr, rgdal, rgeos, DBI, RSQLite, lme4, caret, mapproj,
-               viridis, git2r, rstan, readr, purr, gbm, randomForest)
-pacman::p_load_gh('seantuck12/MODISTools', 'ropensci/ecoretriever')
+               viridis, git2r, rstan, readr, purrr, gbm, randomForest)
+pacman::p_load_gh('seantuck12/MODISTools', 'ropensci/rdataretriever')
 
 
 # Install IRkernal packages and spec

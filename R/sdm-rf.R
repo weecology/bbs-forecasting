@@ -40,7 +40,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model){
   write.csv(results, file = gzfile(path), row.names = FALSE)
   
   results %>% 
-    group_by(site_id, year, species_id, richness) %>% 
+    group_by(site_id, year, species_id, richness, use_obs_model) %>% 
     summarize(mean = mean(mean))
 }
 

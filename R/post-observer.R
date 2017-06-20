@@ -31,18 +31,25 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
                          seasonal = FALSE)
   }
   
-  fcst = fun(y = x[[response_variable]], ...) %>% 
-    forecast::forecast(h = h, level = level)
+  model = fun(y = x[[response_variable]], ...)
+  fcst = forecast::forecast(model, h = h, level = level)
   
   if (any(is.na(fcst$mean))) {
     warning("NA in predictions")
     return(list(NA))
   }
   
+  coef_names = if (length(coef(model)) > 0) {
+    list(names(coef(model)))
+  } else {
+    list(NA)
+  }
+  
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
-         model = fun_name, use_obs_model = use_obs_model)
+         model = fun_name, use_obs_model = use_obs_model,
+         coef_names = coef_names)
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
@@ -69,7 +76,8 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     out = mutate(out, mean = mean + observer_effect)
   }
   
-  select(out, site_id, year, mean, sd, iteration, richness, model, use_obs_model)
+  select(out, site_id, year, mean, sd, iteration, richness, model, 
+         use_obs_model, coef_names)
 }
 
 make_gbm_predictions = function(x, use_obs_model){

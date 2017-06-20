@@ -3,12 +3,11 @@
 \name{get_bbs_data}
 \alias{get_bbs_data}
 \title{Get the primary bbs data file which compiles the counts, route info, and weather
-data. Install it via ecodataretriever if needed.}
+data. Install it via rdataretriever if needed.}
 \usage{
 get_bbs_data()
 }
 \description{
 Get the primary bbs data file which compiles the counts, route info, and weather
-data. Install it via ecodataretriever if needed.
+data. Install it via rdataretriever if needed.
 }
-
