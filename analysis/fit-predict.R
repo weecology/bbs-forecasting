@@ -5,11 +5,14 @@
 library(tidyverse)
 devtools::load_all()
 settings = yaml::yaml.load_file("settings.yaml")
+dir.create("results", FALSE)
 
 if (!file.exists("observer_model.rds")) {
   fit_observer_model()
 }
 obs_model = readRDS("observer_model.rds")
+observer_variance = mean(obs_model$observer_sigma^2)
+
 
 # Discard unnecessary data to save memory
 bioclim_to_discard = colnames(obs_model$data) %>% 
@@ -28,6 +31,7 @@ x_richness = obs_model$data %>%
 rm(obs_model)
 gc()
 
+future = get_env_data(timeframe = "future")
 
 # Fit & save models --------------------------------------------------------
 
@@ -37,7 +41,17 @@ x_richness %>%
   mutate(mean = intercept + observer_effect + site_effect,
          model = "average", use_obs_model = TRUE) %>% 
   select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
-  saveRDS(file = "avg_TRUE.rds")
+  saveRDS(file = "results/avg_TRUE.rds")
+
+# Average model for 2050. Use the observer model to figure out what the
+# median observer would have seen at each site (observer effect == 0), then 
+# expand to use that same value across all future years.
+x_richness %>% 
+  group_by(site_id) %>% 
+  summarize(mean = mean(intercept + site_effect), 
+            sd = sqrt(observer_variance + var(intercept + site_effect))) %>% 
+  right_join(select(future, site_id, year), "site_id") %>% 
+  saveRDS(file = "results/avg_2050.rds")
 
 # "Average" model without observer effects
 # Use site-level means and sds from the training set as test-set predictions
@@ -49,7 +63,7 @@ x_richness %>%
   left_join(select(x_richness, -sd), "site_id") %>% 
   filter(!in_train) %>% 
   select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
-  saveRDS(file = "avg_FALSE.rds")
+  saveRDS(file = "results/avg_FALSE.rds")
 
 
 # Forecast-based predictions
