@@ -31,7 +31,8 @@ x_richness = obs_model$data %>%
 rm(obs_model)
 gc()
 
-future = get_env_data(timeframe = "future")
+future = get_env_data(timeframe = "future") %>% 
+  filter(site_id %in% !!x_richness$site_id)
 
 # Fit & save models --------------------------------------------------------
 
@@ -47,9 +48,12 @@ x_richness %>%
 # median observer would have seen at each site (observer effect == 0), then 
 # expand to use that same value across all future years.
 x_richness %>% 
-  group_by(site_id) %>% 
-  summarize(mean = mean(intercept + site_effect), 
-            sd = sqrt(observer_variance + var(intercept + site_effect))) %>% 
+  mutate(model = "average", use_obs_model = TRUE, 
+         mean = intercept + site_effect,
+         sd = sqrt(observer_variance + sd^2),
+         year = 0, richness = 0) %>% 
+  combine_predictions() %>% 
+  select(-year, -richness) %>% 
   right_join(select(future, site_id, year), "site_id") %>% 
   saveRDS(file = "results/avg_2050.rds")
 
