@@ -157,7 +157,7 @@ get_bbs_data <- function(){
                   (counts.statenum*1000) + counts.Route AS site_id,
                   Latitude AS lat,
                   Longitude AS long,
-                  AOU AS species_id,
+                  aou AS species_id,
                   counts.Year AS year,
                   speciestotal AS abundance
                 FROM
