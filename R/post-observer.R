@@ -35,7 +35,7 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
     response_variable = "richness"
   }
   
-  h = settings$end_yr - settings$last_train_year
+  h = settings$future_year - settings$last_train_year
   
   # Set the `level` so that `upper` and `lower` are 2 sd apart.
   level = pnorm(0.5)
