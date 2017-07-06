@@ -11,23 +11,28 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
   
   my_formula = as.formula(paste("present ~", 
                                 paste(vars, collapse = "+")))
-   
+  
   rf = randomForest(
     my_formula, 
     filter(d, in_train),
     ntree = 1
   )  
   
-  test = filter(d, !in_train, iteration == iter)
+  test = filter(d, !in_train, iteration == iter | is_future)
   test$mean = predict(rf, test, type = "prob")[,2]
   test$use_obs_model = use_obs_model
+  test$iteration = iter
   
-  select(test, site_id, year, species_id, mean, richness, use_obs_model, iteration)
+  select(test, site_id, year, species_id, mean, richness, use_obs_model, 
+         iteration, is_future)
 }
 
 rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model){
   vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
-  iters = sort(unique(x_richness$iteration))
+  iters = x_richness %>% 
+    filter(iteration > 0) %>% 
+    pull(iteration) %>% 
+    unique()
   results = lapply(iters, one_rf_tree,
                    bbs = bbs, sp_id = sp_id, use_obs_model = use_obs_model, 
                    vars = vars,

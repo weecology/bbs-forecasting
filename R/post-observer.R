@@ -1,3 +1,27 @@
+iter_rep = function(df, .f, ...) {
+  # Get all distinct non-future iteration numbers
+  iters = df %>% 
+    ungroup() %>% 
+    filter(!is_future) %>% 
+    distinct(iteration) %>% 
+    pull(iteration)
+  
+  parallel::mclapply(
+    iters,
+    function(i){
+      # Run the function on the target iteration, retaining "future" rows for
+      # prediction. Finally, mark everything (including "future" predictions)
+      # with the iteration number.
+      df %>% 
+        filter(iteration == !!i | is_future) %>% 
+        .f(...) %>% 
+        mutate(iteration = !!i)
+    },
+    mc.cores = 8,
+    mc.preschedule = FALSE
+  )
+}
+
 #' @importFrom forecast Arima auto.arima
 make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   # `Forecast` functions want NAs for missing years, & want the years in order
@@ -11,7 +35,7 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
     response_variable = "richness"
   }
   
-  h = settings$end_yr - settings$last_train_year
+  h = settings$future_year - settings$last_train_year
   
   # Set the `level` so that `upper` and `lower` are 2 sd apart.
   level = pnorm(0.5)
@@ -46,7 +70,8 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   }
   
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
-  data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
+  tibble::data_frame(year = seq(settings$last_train_year + 1, 
+                                settings$future_year), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
          model = fun_name, use_obs_model = use_obs_model,
          coef_names = coef_names)
@@ -64,10 +89,15 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     forecast_data = filter(forecast_data, iteration == 1)
   }
   
+  # Joining by iteration creates NAs for the "future" data, which are all
+  # listed as "iteration 0". Filling those in with `mutate`, keeping in mind
+  # that the "future" observer effect is defined as zero.
   out = purrrlyr::by_slice(forecast_data, make_forecast, fun_name = fun_name, 
                  use_obs_model = use_obs_model, settings = settings, ...,
                  .collate = "row") %>%
-    left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
+    left_join(select(x_richness, -sd), c("site_id", "year", "iteration")) %>% 
+    mutate(is_future = ifelse(is.na(is_future), TRUE, FALSE),
+           observer_effect = ifelse(is_future, observer_effect, 0))
   
   if (use_obs_model) {
     # Observer effect was subtraced out in make_forcast. Add it back in here.
@@ -75,7 +105,7 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
   }
   
   select(out, site_id, year, mean, sd, iteration, richness, model, 
-         use_obs_model, coef_names)
+         use_obs_model, coef_names, is_future)
 }
 
 make_gbm_predictions = function(x, use_obs_model){
@@ -107,8 +137,8 @@ make_gbm_predictions = function(x, use_obs_model){
   
   cbind(test, mean = mean, model = "richness_gbm",  use_obs_model = use_obs_model, 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, richness, model, use_obs_model) %>% 
-    mutate(sd = sd)
+    select(site_id, year, mean, richness, model, use_obs_model, is_future) %>% 
+    mutate(sd = !!sd)
 }
 
 
