@@ -18,9 +18,10 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
     ntree = 1
   )  
   
-  test = filter(d, !in_train, iteration == iter)
+  test = filter(d, !in_train, iteration == iter | is_future)
   test$mean = predict(rf, test, type = "prob")[,2]
   test$use_obs_model = use_obs_model
+  test$iteration = iter
   
   select(test, site_id, year, species_id, mean, richness, use_obs_model, iteration)
 }

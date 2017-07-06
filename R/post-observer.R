@@ -1,3 +1,27 @@
+iter_rep = function(df, .f, ...) {
+  # Get all distinct non-future iteration numbers
+  iters = df %>% 
+    ungroup() %>% 
+    filter(!is_future) %>% 
+    distinct(iteration) %>% 
+    pull(iteration)
+  
+  parallel::mclapply(
+    iters,
+    function(i){
+      # Run the function on the target iteration, retaining "future" rows for
+      # prediction. Finally, mark everything (including "future" predictions)
+      # with the iteration number.
+      df %>% 
+        filter(iteration == !!i | is_future) %>% 
+        .f(...) %>% 
+        mutate(iteration = !!i)
+    },
+    mc.cores = 8,
+    mc.preschedule = FALSE
+  )
+}
+
 #' @importFrom forecast Arima auto.arima
 make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   # `Forecast` functions want NAs for missing years, & want the years in order
@@ -107,8 +131,8 @@ make_gbm_predictions = function(x, use_obs_model){
   
   cbind(test, mean = mean, model = "richness_gbm",  use_obs_model = use_obs_model, 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, richness, model, use_obs_model) %>% 
-    mutate(sd = sd)
+    select(site_id, year, mean, richness, model, use_obs_model, is_future) %>% 
+    mutate(sd = !!sd)
 }
 
 

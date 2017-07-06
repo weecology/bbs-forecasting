@@ -24,7 +24,8 @@ bioclim_to_discard = colnames(obs_model$data) %>%
 x_richness = obs_model$data %>% 
   mutate(intercept = c(obs_model$intercept[iteration]), 
          sd = c(obs_model$sigma[iteration]),
-         expected_richness = richness - observer_effect) %>% 
+         expected_richness = richness - observer_effect,
+         is_future = FALSE) %>% 
   select(-ndvi_ann, -lat, -long, -site_index, -one_of(bioclim_to_discard))
 
 # Reclaim memory
@@ -32,7 +33,12 @@ rm(obs_model)
 gc()
 
 future = get_env_data(timeframe = "future") %>% 
-  filter(site_id %in% !!x_richness$site_id)
+  filter(site_id %in% !!x_richness$site_id) %>% 
+  select(which(colnames(.) %in% !!colnames(x_richness))) %>% 
+  mutate(richness = 0, iteration = 0,
+         observer_effect = 0, is_future = TRUE)
+
+x_richness = bind_rows(x_richness, future)
 
 # Fit & save models --------------------------------------------------------
 
@@ -89,18 +95,14 @@ expand.grid(fun_name = c("naive", "auto.arima"),
   saveRDS(file = "forecast.rds")
 
 # GBM richness with observer effects:
-x_richness %>%
-  group_by(iteration) %>%
-  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE, .collate = "rows") %>% 
+iter_rep(x_richness, make_gbm_predictions, use_obs_model = TRUE) %>% 
+  bind_rows() %>% 
   saveRDS(file = "gbm_TRUE.rds")
 
 # GBM richness without observer effects:
-# Don't need to group/by_slice because only fitting one iteration
-x_richness %>%
-  filter(iteration == 1) %>%
-  make_gbm_predictions(use_obs_model = FALSE) %>% 
-  saveRDS(file = "gbm_FALSE.rds")
-
+iter_rep(x_richness, make_gbm_predictions, use_obs_model = FALSE) %>% 
+  bind_rows() %>% 
+  saveRDS(file = "gbm_TRUE.rds")
 
 # fit random forest SDMs -------------------------------------------------------
 
