@@ -70,7 +70,8 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   }
   
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
-  data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
+  tibble::data_frame(year = seq(settings$last_train_year + 1, 
+                                settings$future_year), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
          model = fun_name, use_obs_model = use_obs_model,
          coef_names = coef_names)
@@ -88,10 +89,15 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     forecast_data = filter(forecast_data, iteration == 1)
   }
   
+  # Joining by iteration creates NAs for the "future" data, which are all
+  # listed as "iteration 0". Filling those in with `mutate`, keeping in mind
+  # that the "future" observer effect is defined as zero.
   out = purrrlyr::by_slice(forecast_data, make_forecast, fun_name = fun_name, 
                  use_obs_model = use_obs_model, settings = settings, ...,
                  .collate = "row") %>%
-    left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
+    left_join(select(x_richness, -sd), c("site_id", "year", "iteration")) %>% 
+    mutate(is_future = ifelse(is.na(is_future), TRUE, FALSE),
+           observer_effect = ifelse(is_future, observer_effect, 0))
   
   if (use_obs_model) {
     # Observer effect was subtraced out in make_forcast. Add it back in here.
@@ -99,7 +105,7 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
   }
   
   select(out, site_id, year, mean, sd, iteration, richness, model, 
-         use_obs_model, coef_names)
+         use_obs_model, coef_names, is_future)
 }
 
 make_gbm_predictions = function(x, use_obs_model){

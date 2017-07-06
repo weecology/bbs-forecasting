@@ -33,7 +33,8 @@ rm(obs_model)
 gc()
 
 future = get_env_data(timeframe = "future") %>% 
-  filter(site_id %in% !!x_richness$site_id) %>% 
+  filter(site_id %in% !!x_richness$site_id,
+         year > !!settings$end_yr) %>% 
   select(which(colnames(.) %in% !!colnames(x_richness))) %>% 
   mutate(richness = 0, iteration = 0,
          observer_effect = 0, is_future = TRUE)
@@ -82,11 +83,11 @@ x_richness %>%
 expand.grid(fun_name = c("naive", "auto.arima"), 
             use_obs_model = c(TRUE, FALSE),
             stringsAsFactors = FALSE) %>% 
-  transpose() %>% 
+  purrr::transpose() %>% 
   parallel::mclapply(
     function(grid_row){
       do.call(make_all_forecasts, 
-             c(x = list(x_richness), settings = list(settings), grid_row))
+              c(x = list(x_richness), settings = list(settings), grid_row))
     },
     mc.cores = 8, 
     mc.preschedule = FALSE
@@ -132,3 +133,5 @@ rf_sdm_no_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness,
                                     settings = settings, use_obs_model = FALSE,
                                     mc.cores = 8) %>% 
   saveRDS(file = "rf_predictions/all_FALSE.rds")
+
+
