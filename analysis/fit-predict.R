@@ -1,4 +1,5 @@
 library(tidyverse)
+library(purrrlyr) # for by_slice
 devtools::load_all()
 timeframe = "train_32"
 
@@ -143,10 +144,12 @@ dir.create("rf_predictions", showWarnings = FALSE)
 
 gc() # Minimize memory detritus before forking
 
-rf_sdm_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                 settings = settings, use_obs_model = TRUE) %>% 
+rf_predict_richness(bbs = bbs, x_richness = x_richness, 
+                    settings = settings, use_obs_model = TRUE,
+                    future, future_observer_effects) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_TRUE.rds"))
 
-rf_sdm_no_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                    settings = settings, use_obs_model = FALSE) %>% 
+rf_predict_richness(bbs = bbs, x_richness = x_richness, 
+                    settings = settings, use_obs_model = FALSE,
+                    future, future_observer_effects) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_FALSE.rds"))
