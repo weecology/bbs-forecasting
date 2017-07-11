@@ -114,29 +114,30 @@ of each BBS route.
 ### Accounting for observer effects
 
 Observer effects are inherent in large data sets taken by different observers,
-and are known to occur in BBS [@sauer1994]. We estimated the observer effects,
-and associated uncertainty about those effects, with a linear mixed model with
-observer as a random effect. Because observer and site are strongly related (an
-observer tends to repeatedly sample the same site), site was also included as a
-random effect to ensure that inferred deviations were actually observer-related
-(as opposed to being related to the sites that a given observer happened to
-see). The resulting model partitions the variance in observed richness values
-into site-level variance, observer-level variance, and residual variance
-(e.g. variation within a site from year to year), and can therefore also be used
-directly as the "average" baseline model (see below). The estimated observer
-effects can be subtracted from the richness values for a particular observer to
-provide an estimate of how many species would have been found by a "typical"
-observer. To incorporate uncertainty in these "corrected" richness values into
-the forecasting models we collected [[N]] Monte Carlo samples from the model's
-posterior distribution, using Stan, and fit each of the downstream models with
-each of the Monte Carlo samples.
+and are known to occur in BBS [@sauer1994]. We estimated the observer effects
+(and associated uncertainty about those effects) with a linear mixed model with
+observer as a random effect built in the Stan probabilistic programming language
+[@stan] and its R interface [@rstan]. Because observer and site are strongly
+related (an observer tends to repeatedly sample the same site), site was also
+included as a random effect to ensure that inferred deviations were actually
+observer-related (as opposed to being related to the sites that a given observer
+happened to see). The resulting model partitions the variance in observed
+richness values into site-level variance, observer-level variance, and residual
+variance (e.g. variation within a site from year to year), and can therefore
+also be used directly as the "average" baseline model (see below). The estimated
+observer effects can be subtracted from the richness values for a particular
+observer to provide an estimate of how many species would have been found by a
+"typical" observer. To incorporate uncertainty in these "corrected" richness
+values into the forecasting models we collected 500 Monte Carlo samples from the
+model's posterior distribution, and fit each of the downstream models with each
+of the Monte Carlo samples.
 
 ### Site-level models
 
 We fit three sets of models that were fit to each site independently. These
 models were fit to each BBS route both on the raw richness values and on the
 residuals from our observer model. When correcting for observer effects, we
-averaged across [[N]] models that were fit separately to the [[N]] Monte Carlo
+averaged across 500 models that were fit separately to the 500 Monte Carlo
 estimates of the observer effects, to account for our uncertainty in the true
 values of those effects. All of these models use a Gaussian error distribution.
 
@@ -145,11 +146,11 @@ the fits of more complex models. These baselines treated site-level richness
 observations either as uncorrelated noise around a site-level constant (the
 "average" model) or as an autoregressive model with a single year of history
 (the "naive" model) [@hyndman2014]. Predictions from the "average" model are
-centered on the average richness and the confidence intervals are narrow and
-constant-width. The "naive" model, in contrast, predicts that future
-observations will be similar to the final observed value (e.g. the value
-observed in `$r settings$last_train_year`), and the confidence intervals expand
-rapidly as the predictions extend farther into the future.
+centered on the average richness observed during training, and the confidence
+intervals are narrow and constant-width. The "naive" model, in contrast,
+predicts that future observations will be similar to the final observed value
+(e.g. the value observed in `$r settings$last_train_year`), and the confidence
+intervals expand rapidly as the predictions extend farther into the future.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
 function in @hyndman2016] to represent a array of different time-series modeling
@@ -160,14 +161,12 @@ autocorrelation) and an integration/differencing component (so that the analysis
 could be performed on sequential differences of the raw data, accommodating more
 complex patterns including trends). The `auto.arima` function chooses whether to
 include each of these components, and how many terms to include for each one,
-using AICc [@hyndman2016]. Since there is no seasonable component to the BBS
-time-series we did not include a season component in these models. Otherwise we
+using AICc [@hyndman2016]. Since there is no seasonal component to the BBS
+time-series, we did not include a season component in these models. Otherwise we
 used the default settings for this function. [[Note: should probably record
 somewhere what order model the auto.arima function tends to choose.  Eyeballing
 the results, seems to be most similar to the naive model, but would be good to
-check.]] We also fit an "Auto-ARIMA + environment" model, in which each
-site-level time series could also be predicted by annual changes in our
-environmental variables at that site.
+check.]]
 
 ### Continental-scale models
 
@@ -175,47 +174,49 @@ In contrast to the time-series models, most attempts to predict species richness
 focusing on using correlative models to predict richness changes over time from
 environmental data. We tested three common variants of this approach - direct
 modeling of species richness, stacking individual species distribution models,
-and joint species distribution models. Following the standard approach,
+and joint species distribution models (JSDMs). Following the standard approach,
 site-level random effects were not included in these models as predictors,
 meaning that this approach implicitly assumes that two sites with identical
 Bioclim, elevation, and NDVI values should have identical richness
 distributions. As above, we included observer effects & the associated
-uncertainty by running these models [[N]] times (once per MCMC sample).
+uncertainty by running these models 500 times (once per MCMC sample).
 
-**"Macroecological" model.** We used a generalized boosted regression tree model
-using the `gbm` package [@ridgeway2017] to directly model species richness as a function of
-environmental variables. Boosted regression trees are a form of tree based
+**"Macroecological" model.** We used a boosted regression tree model using the
+`gbm` package [@ridgeway2017] to directly model species richness as a function
+of environmental variables. Boosted regression trees are a form of tree based
 modeling that work by fitting thousands of small tree-structured models
-sequentially, with each tree optimized to reduce the error of its
-predecessors. They are flexible models that are considered well suited for
-prediction [@elith2008]. This model was optimized using a Gaussian
-likelihood. [[other gbm settings go here.]]
+sequentially, with each tree optimized to reduce the error of its predecessors.
+They are flexible models that are considered well suited for prediction
+[@elith2008]. This model was optimized using a Gaussian likelihood, with a 
+maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000 trees.
+The number of trees was selected using the "out of bag" estimator, and 
+[[summarize how many trees were typically chosen here, for both observer-based
+and observer-free models]].
 
-**Species Distribution Models.** Species distribution models (SDMs) model
-individual species' occurrence probabilities using environmental
-variables. Species level models are used to predict richness by summing the
-predicted probability of occupancy across all species at a site. We fit SDMs
-using random forests, a common approach in the species distribution modeling
-literature [[refs; would be good to provide a source that says these are a good
-choice]]. Predicted probabilities of occurrence were summed directly to predict
-the number of species. This avoids known problems with the use of thresholds for
-determining whether or not a species will be present at a site [[refs]]. When
-incorporating observer effects we avoided fitting [[N x S]] models ([[N]] MCMC
-samples * [[S]] species) by fitting one regression tree using each of the Monte
-Carlo estimates of our observer effects and averaging the predictions of the
-resulting forest [[citation?]]. We used Gaussian approximations for uncertainty,
-based on the means and variances of the sums of independent Bernoulli random
-variables [[cite Calabrese et al.]].
+**Species Distribution Models.** Species distribution models (SDMs) predict
+individual species' occurrence probabilities using environmental variables.
+Species-level models are used to predict richness by summing the predicted
+probability of occupancy across all species at a site; following [[Calabrese et
+al.]], we calculated the uncertainty in our richness estimate by treating
+richness as a sum over independent Bernoulli random variables (one per species).
+This avoids known problems with the use of thresholds for determining whether or
+not a species will be present at a site [[refs]]. We represented SDMs in this
+analysis using random forests, a common approach in the species distribution
+modeling literature based on fitting hundreds of independent regression trees to
+randomly-perturbed versions of the data [[refs; would be good to provide a
+source that says these are a good choice]]. Each of the 500 trees in our
+species-level random forests used a different Monte Carlo estimate of the
+observer effects as a predictor variable.
 
 **Joint Species Distribution Models.** Joint species distribution models (JSDMs)
 are a new approach that makes predictions about the full composition of a
-community instead of modeling each species independently. JSDMs remove the
-assumed independence among species and explicitly account for the possibility
-that a site will be much more (or less) suitable for birds in general, or
-particular groups of birds, than one would expect based on the available
-environmental measurements alone. As a result, JSDMs do a better job of
-representing our uncertainty about richness, while stacked SDMs underestimate it
-[@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
+community instead of modeling each species independently as above. JSDMs remove
+the assumed independence among species and explicitly account for the
+possibility that a site will be much more (or less) suitable for birds in
+general, or particular groups of birds, than one would expect based on the
+available environmental measurements alone. As a result, JSDMs do a better job
+of representing our uncertainty about richness, while stacked SDMs underestimate
+it [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
 [@harris2015] because it is the only JSDM that describes species' environmental
 associations with nonlinear functions.
 
