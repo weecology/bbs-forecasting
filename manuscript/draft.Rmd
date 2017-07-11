@@ -78,25 +78,31 @@ these approaches improve ecological forecasting in the future.
 Bird species richness was obtained from the Breeding Bird Survey (BBS)
 [@pardieck2017] using the Data Retriever software [@morris2013] and
 rdataretriever R package [@mcglinn2017]. The BBS data was filtered to exclude
-all nocturnal, cepuscular, and aquatic species
-[since these species are not well sampled by BBS methods; @hurlbert2005], as
-well as unidentified species, and hybrids. All data from routes that did not
-meet BBS acceptable criteria were excluded. Only routes within the continental
-United States were used so as to match the climate dataset. The resulting
-dataset included [[N]] species and [[N]] sites. Among sites richness varied from
-[[N]] to [[N]] with an average richness of [[N]] species. Within-site richness
-variation (among years) was small (~5 species).
+all nocturnal, cepuscular, and aquatic species [since these species are not well
+sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
+hybrids. Due to limitations of the environmental data (below), we did not
+include any data from outside the continental United States. Observed richness
+from 1982 (the first complete year of NDVI data) to 2003 were used for training
+the models, and data from 2004 to 2013 was used for testing their performance.
+Only BBS routes that were sampled during 70% of the years in the training period
+were used (i.e., routes with at least 16 annual observations). All data from
+routes that did not meet BBS acceptable criteria were excluded, as were routes
+that had not been visited during at least 70% of the years in our model-training
+window. The resulting dataset included [[N]] species and [[N]] sites. Among
+sites,  richness varied from [[N]] to [[N]] with an average richness of [[N]]
+species. Within-site richness variation (among years) was small (standard
+deviation of about 5 species, after controlling for observer effects).
 
 Environmental data included a combination of elevation, bioclimatic variables
 and a remotely sensed vegetation index (the normalized difference vegetation
-index; NDVI), all of which are know to influence richness and distribution in
+index; NDVI), all of which are known to influence richness and distribution in
 the BBS data. We used the 4 km resolution PRISM data [@prism] to calculate eight
 bioclimatic variables identified as relevant to bird distributions [@harris2015]
 for each year in the dataset: mean diurnal range, isothermality, max temperature
 of the warmest month, mean temperature of the wettest quarter, mean temperature
 of the driest quarter, precipitation seasonality, precipitation of the wettest
-quarter, precipitation of the warmest quarter. Satellite derived NDVI, a primary
-correlated of richness in BBS data [@hurlbert2002], with an 8 km resolution was
+quarter, precipitation of the warmest quarter. Satellite-derived NDVI, a primary
+correlate of richness in BBS data [@hurlbert2002], with an 8 km resolution was
 obtained from the NDIV3g dataset [@pinzon2014] and was available from the time
 period 1981-2013. Average summer (May, June, July) and winter (December,
 January, Feburary) NDVI values were used as predictors. Elevation was from the
@@ -104,12 +110,6 @@ SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster
 [@hijmans2016]. All environmental variables were aggregated to the average
 values within a 40 km radius (the length of a BBS route) of the starting point
 of each BBS route.
-
-Data from `r settings$start_yr` (the first complete year of NDVI data) to `r
-settings$last_train_year` were used for training models and data from `r
-settings$last_train_year + 1` to `r settings$end_yr` was used for testing. Only
-BBS routes with at least `r settings$min_num_yrs` annual observations in the
-years 1982-2015 were used.
 
 ### Accounting for observer effects
 
