@@ -193,7 +193,7 @@ The number of trees was selected using the "out of bag" estimator, and
 [[summarize how many trees were typically chosen here, for both observer-based
 and observer-free models]].
 
-**Species Distribution Models.** Species distribution models (SDMs) predict
+**Species Distribution Model.** Species distribution models (SDMs) predict
 individual species' occurrence probabilities using environmental variables.
 Species-level models are used to predict richness by summing the predicted
 probability of occupancy across all species at a site; following [[Calabrese et
@@ -223,29 +223,29 @@ associations with nonlinear functions.
 
 ### Model evaluation
 
+Variance in species richness within sites was lower than predicted by several
+common count models, such as the Poisson or binomial (i.e. richness was
+underdispersed), so these count models would have had difficulty fitting the
+data. Since richness had a relatively large mean ([[N]]) and all models already
+produce continuous richness estimates (due to summing probabilities in the
+(J)SDM case), we defined model performance for all models in terms of continuous
+Gaussian errors instead of using discrete count distributions. When a model was
+run multiple times for the purpose of correcting for observer effects, we used
+the mean of those runs' point estimates as our final point estimate and we
+calculated the uncertainty using the law of total variance (i.e.  the average of
+the model runs' variance, plus the variance in the point estimates).
+
 We evaluated the performance of each model for forecasting using the data for
 each year between `r settings$last_train_year` and `r settings$end_yr`. We used
 three metrics for evaluating performance: 1) root-mean-square error (RMSE) to
 determine how far, on average, the models' predictions were from the observed
 value; 2) the 95% prediction interval coverage to determine how well the models
-did at predicting uncertainty; and 3) deviance as an integrative measure of fit
-incorporating good point estimates, precision, and coverage. When a model was
-run multiple times for the purpose of correcting for observer effects, we used
-the mean of those runs' point estimates as our final point estimate and we
-calculated the uncertainty using the law of total variance (i.e.  the average of
-the model runs' variance, plus the variance in the point estimates). In addition
-to looking at forecast performance in general we evaluated how performance
-changed as the time horizon of forecasting increased by plotting performance
-metrics against the forecast horizon.
-
-Variance in species richness within sites was lower than predicted by several
-common count models (i.e. richness was underdispersed), so these count models
-would have difficulty fitting the data. Since richness also had a relatively
-large mean ([[N]]) and all models already produce continuous richness estimates
-(due to summing probabilities in the (J)SDM case), we defined model performance
-for all models in terms of continuous Gaussian errors instead of using discrete
-count distributions.
-
+predicted the range of possible outcomes; and 3) deviance (i.e. negative 2 times
+the Gaussian log-likelihood) as an integrative measure of fit incorporating good
+point estimates, precision, and coverage.  In addition to looking at forecast
+performance in general we evaluated how performance changed as the time horizon
+of forecasting increased by plotting performance metrics against the forecast
+horizon.
 
 ## Results
 
@@ -260,37 +260,42 @@ on these time scales once observer differences are accounted for.
 When comparing forecasts for richness across sites all methods performed well
 (Figure 2; R^2 XX-XX%). However stacked and joint SDMs and the macroecological
 model both failed to successfully forecast the highest richness sites resulting
-in a noteable clustering of predicted values near ~60 species and the poorest
+in a notable clustering of predicted values near ~60 species and the poorest
 performance in the cross-site comparison (R^2 XX-XX%).
 
 For most combinations of metric and forecast time lag, the best-performing model
-for forecasting within site variability was either the "average" baseline model
-or the ARIMA model (Figure 3). In general, each model's error increased
-more-or-less linearly with time, although the slopes and initial error rates
-varied across models (Figure 3). The site-level models (i.e. the baselines and
-the ARIMA methods) tended to do very well (Figure 3) on short time horizons,
-especially in terms of RMSE.
+for forecasting within-site variability was either the "average" baseline model
+or the ARIMA model [[Not sure what the bit about within-site variability means
+here. Also, didn't Naive usually win when observer effects weren't corrected
+for?]] (Figure 3). In general, each model's error increased more-or-less
+linearly with time, although the slopes and initial error rates varied across
+models (Figure 3). The site-level models (i.e. the baselines and the ARIMA
+methods) tended to do very well (Figure 3) on short time horizons, especially in
+terms of RMSE.
 
 In general, the models produced confidence intervals that were too narrow,
 indicating overconfident predictions. Of these, the random forest-based SDM
-stack was the most overconfident. As noted elsewhere [@harris2015], these models
-are generally far too confident, with observed richness values frequently
-falling well outside their confidence limits (Figure 3C). The "naive" model was
-the only model whose confidence intervals were too wide (Figure 3), which can be
-attributed to the rapid rate at which these intervals expand as the time lag
-increases (Figure 1). The JSDM and macroecological model has the best coverage.
+stack was the most overconfident, with observed richness values frequently
+falling well outside their confidence limits (Figure 3C). As noted elsewhere
+[@harris2015], this overconfidence is a product of the assumption in stacked
+SDMs that errors in the species-level predictions are independent. The JSDM and
+macroecological model has the best coverage, though each model still
+underestimated the possible variation in richness. The "naive" model
+was the only model whose confidence intervals were too wide (Figure 3), which
+can be attributed to the rapid rate at which these intervals expand as the time
+lag increases (Figure 1).
 
 RMSE and deviance produced qualitatively similar results in most cases, with the
 notable exception of the stacked SDMs (Figure 3A and 3B). Deviance, unlike RMSE,
 depends on the full predictive distribution of a model, including the model's
 estimated uncertainty. As a result, the stacked SDMs' deviance was notably
 higher than the next-worst model even though its RMSE was not unusual. On the
-other hand, the richness-GBM model and especially the mistnet JSDM had
-reasonably well-calibrated uncertainty estimates, even in the presence of
-uncorrected observer biases (Figure 3C). This prevented their deviance from
-rising as quickly as the site-level models when the observer population changed
-and resulted in better comparative performance for these models using deviance
-(Figure 3B).
+other hand, the GBM-based "macroecological" model and especially the mistnet
+JSDM had reasonably well-calibrated uncertainty estimates, even in the presence
+of uncorrected observer biases (Figure 3C). This prevented their deviance from
+rising as quickly as the site-level models as the observer population evolved
+and resulted in better comparative performance for these models in terms of
+deviance (Figure 3B).
 
 Accounting for the uncertainty associated with differences among observers
 resulted in improvements to all metrics of fit (Figure 4). The one exception was
@@ -298,21 +303,20 @@ RMSE of the "Naive" model, which remained unchanged. The improvements in point
 estimates primarily resulted from large improvements in a small number of
 forecasts, presumably ones where a large difference between observers resulted
 in a large shift in predicted richness values that the models could not
-otherwise accommodate. Most forecasts exhibited only small changes in
-RMSE. However these changes were sufficient to reorder which models performed
-best overall. For example, the "naive" model generally had the lowest average
+otherwise accommodate. Most forecasts exhibited only small changes in RMSE.
+However these changes were sufficient to change the rank ordering of model
+performance. For example, the "naive" model generally had the lowest average
 error when observer effects were not explicitly accounted for, switching to the
-average and ARIMA models once observer differences were corrected. Improvements
-in coverage were notable for all models except the naive and JSDM, meaning that
+"average" and ARIMA model once observer differences were corrected. Improvements
+in coverage were notable for all models except Naive and JSDM, meaning that
 incorporating observer effects resulted in improved quantification of
 uncertainty. The lack of change in the mistnet JSDM seems to indicate that its
-latent variables were already accounting for observer-related uncertainty. In
-combination changes in point estimates and coverage resulted in changes in the
-best models based on deviance at different time scales. The macroecological
-model and the JSDM appeared to narrowly outperform the average and ARIMA models
-when the forecast horizon was greater than five years when not correcting for
-observers, but after the correction the average and ARIMA models maintained a
-small average advantage out to at least ten years.
+latent variables were already accounting for observer-related uncertainty. These
+differences meant that, in terms of deviance, neither the JSDM nor the
+macroecological model model benefitted as much from the as the site-level models
+did from the observer corrections. As a result, the average and ARIMA models
+maintained a small average advantage over the JSDM in terms of deviance at
+longer time scales, rather than falling behind after about five years.
 
 
 ## Discussion
