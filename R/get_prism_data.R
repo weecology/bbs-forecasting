@@ -106,6 +106,11 @@ get_prism_data=function(){
 extract_cmip_data=function(cmip_filename, clim_var){
   cmip_raster = raster::stack(cmip_filename)
 
+  #Missing values from water bodies are set as NaN but need to be NA
+  #for the aggregation step, otherwise missing values propagate along
+  #coasts. 
+  cmip_raster[is.nan(cmip_raster)] = NA
+  
   #Aggregate the 12km cell size close to 40km
   cmip_raster = raster::aggregate(cmip_raster, fact=3, fun=mean)
 
