@@ -1,5 +1,6 @@
 #' @importFrom forecast Arima auto.arima
-make_forecast = function(x, fun_name, use_obs_model, settings, ...){
+make_forecast = function(x, fun_name, use_obs_model, settings, 
+                         future_observer_effects, ...){
   # `Forecast` functions want NAs for missing years, & want the years in order
   x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 
     arrange(year)
@@ -45,15 +46,18 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
     list(NA)
   }
   
+  i = unique(x$iteration)
+  
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
          model = fun_name, use_obs_model = use_obs_model,
-         coef_names = coef_names)
+         coef_names = coef_names, 
+         observer_effect = future_observer_effects[[i]])
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
-                              settings, ...){
+                              settings, future_observer_effects, ...){
   forecast_data = x %>% 
     filter(year <= settings$last_train_year) %>% 
     group_by(site_id, iteration)
@@ -78,9 +82,23 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
          use_obs_model, coef_names)
 }
 
-make_gbm_predictions = function(x, use_obs_model){
+make_test_set = function(x, future, future_observer_effects, settings){
+  if (settings$timeframe == "future") {
+    i = unique(x$iteration)
+    test = mutate(future, 
+                  observer_effect = !!future_observer_effects[[i]],
+                  expected_richness = richness - observer_effect)
+  } else{
+    test = filter(x, year > !!settings$last_train_year)
+  }
+  
+  test
+}
+
+make_gbm_predictions = function(x, use_obs_model, settings, future,
+                                future_observer_effects) {
   train = filter(x, year <= settings$last_train_year)
-  test = filter(x, year > settings$last_train_year)
+  test = make_test_set(x, future, future_observer_effects)
   
   if (use_obs_model) {
     train$y = train$expected_richness
@@ -88,7 +106,9 @@ make_gbm_predictions = function(x, use_obs_model){
     train$y = train$richness
   }
   
-  g = gbm::gbm(as.formula(settings$formula), 
+  formula = paste("y ~", paste(settings$vars, collapse = " + "))
+  
+  g = gbm::gbm(as.formula(formula), 
                data = train,
                distribution = "gaussian",
                interaction.depth = 5,
@@ -105,10 +125,10 @@ make_gbm_predictions = function(x, use_obs_model){
     mean = mean + test$observer_effect
   }
   
-  cbind(test, mean = mean, model = "richness_gbm",  use_obs_model = use_obs_model, 
+  cbind(test, mean = mean, model = "richness_gbm", 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, richness, model, use_obs_model) %>% 
-    mutate(sd = sd)
+    select(site_id, year, mean, richness, model) %>% 
+    mutate(sd = !!sd, n.trees = !!n.trees, use_obs_model = !!use_obs_model)
 }
 
 

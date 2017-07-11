@@ -1,15 +1,24 @@
-# TODO: ensure that sd is correct for all models
-# TODO: better names for columns/functions
-# TODO: Check namespaces
-
 library(tidyverse)
 devtools::load_all()
-settings = yaml::yaml.load_file("settings.yaml")
+timeframe = "train_32"
 
-if (!file.exists("observer_model.rds")) {
-  fit_observer_model()
+
+# Ingest the `settings` and put the timeframe of interest at the top level
+# of the list.
+settings = yaml::yaml.load_file("settings.yaml")
+settings = c(settings, settings$timeframes[[timeframe]])
+settings$timeframes = NULL
+
+
+prepend_timeframe = function(x) {
+  paste0("results", "/", timeframe, "/", x)
 }
-obs_model = readRDS("observer_model.rds")
+dir.create(prepend_timeframe(NULL), showWarnings = FALSE)
+
+if (!file.exists(prepend_timeframe("observer_model.rds"))) {
+  fit_observer_model(settings = settings)
+}
+obs_model = readRDS(prepend_timeframe("observer_model.rds"))
 
 # Discard unnecessary data to save memory
 bioclim_to_discard = colnames(obs_model$data) %>% 
@@ -24,6 +33,23 @@ x_richness = obs_model$data %>%
          expected_richness = richness - observer_effect) %>% 
   select(-ndvi_ann, -lat, -long, -site_index, -one_of(bioclim_to_discard))
 
+
+if (settings$timeframe == "future") {
+  future = get_env_data(timeframe = "future") %>% 
+    filter(site_id %in% !!x_richness$site_id,
+           year > !!settings$last_train_year) %>% 
+    select(which(colnames(.) %in% !!colnames(x_richness)))
+  
+  # Randomly-sampled observers for each `iteration`. Not used for the
+  # "average" model, which will just use observer_sigma directly without
+  # simulations.
+  future_observer_effects = obs_model$observer_sigma %>% 
+    purrr::map(~rnorm(nrow(future), 0, .x))
+} else {
+  future = NULL
+  future_observer_effects = NULL
+}
+
 # Reclaim memory
 rm(obs_model)
 gc()
@@ -31,13 +57,25 @@ gc()
 
 # Fit & save models --------------------------------------------------------
 
-# "Average" model with observer effects
+# For "future" predictions of the "average" model, we'll need to know how 
+# much uncertainty to use at the observer level. Otherwise, this is already
+# taken care of elsewhere.
+observer_sigma = if (settings$timeframe == "future") {
+  sqrt(mean(obs_model$observer_sigma^2))
+} else{
+  0
+}
+
+# "Average" model with observer effects. Observer_sigma is only nonzero in
+# the "future", where we haven't already simulated the observer-related 
+# uncertainty
 x_richness %>% 
   filter(!in_train) %>% 
   mutate(mean = intercept + observer_effect + site_effect,
-         model = "average", use_obs_model = TRUE) %>% 
+         model = "average", use_obs_model = TRUE,
+         sd = sqrt(sd^2 + !!observer_sigma^2)) %>% 
   select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
-  saveRDS(file = "avg_TRUE.rds")
+  saveRDS(file = prepend_timeframe("avg_TRUE.rds"))
 
 # "Average" model without observer effects
 # Use site-level means and sds from the training set as test-set predictions
@@ -49,7 +87,7 @@ x_richness %>%
   left_join(select(x_richness, -sd), "site_id") %>% 
   filter(!in_train) %>% 
   select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
-  saveRDS(file = "avg_FALSE.rds")
+  saveRDS(file = prepend_timeframe("avg_FALSE.rds"))
 
 
 # Forecast-based predictions
@@ -68,21 +106,23 @@ expand.grid(fun_name = c("naive", "auto.arima"),
     mc.preschedule = FALSE
   ) %>% 
   bind_rows() %>% 
-  saveRDS(file = "forecast.rds")
+  saveRDS(file = prepend_timeframe("forecast.rds"))
 
 # GBM richness with observer effects:
 x_richness %>%
-  group_by(iteration) %>%
-  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE, .collate = "rows") %>% 
-  saveRDS(file = "gbm_TRUE.rds")
+  group_by(iteration) %>% 
+  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
+                     settings = settings, future = future,
+                     future_observer_effects = future_observer_effects) %>% 
+  saveRDS(file = prepend_timeframe("gbm_TRUE.rds"))
 
 # GBM richness without observer effects:
-# Don't need to group/by_slice because only fitting one iteration
 x_richness %>%
-  filter(iteration == 1) %>%
-  make_gbm_predictions(use_obs_model = FALSE) %>% 
-  saveRDS(file = "gbm_FALSE.rds")
-
+  group_by(iteration) %>% 
+  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
+                     settings = settings, future = future,
+                     future_observer_effects = future_observer_effects) %>% 
+  saveRDS(file = prepend_timeframe("gbm_FALSE.rds"))
 
 # fit random forest SDMs -------------------------------------------------------
 
@@ -104,11 +144,9 @@ dir.create("rf_predictions", showWarnings = FALSE)
 gc() # Minimize memory detritus before forking
 
 rf_sdm_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                 settings = settings, use_obs_model = TRUE,
-                                 mc.cores = 8) %>% 
-  saveRDS(file = "rf_predictions/all_TRUE.rds")
+                                 settings = settings, use_obs_model = TRUE) %>% 
+  saveRDS(file = prepend_timeframe("rf_predictions/all_TRUE.rds"))
 
 rf_sdm_no_obs = rf_predict_richness(bbs = bbs, x_richness = x_richness, 
-                                    settings = settings, use_obs_model = FALSE,
-                                    mc.cores = 8) %>% 
-  saveRDS(file = "rf_predictions/all_FALSE.rds")
+                                    settings = settings, use_obs_model = FALSE) %>% 
+  saveRDS(file = prepend_timeframe("rf_predictions/all_FALSE.rds"))

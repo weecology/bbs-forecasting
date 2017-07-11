@@ -1,8 +1,18 @@
 start_yr: 1982
-end_yr: 2013
-last_train_year: 2003
+timeframes:
+  train_12:
+    last_train_year: 1993
+    end_yr: 2013
+    timeframe: "past"
+  train_22:
+    last_train_year: 2003
+    end_yr: 2013
+    timeframe: "past"
+  train_32:
+    last_train_year: 2013
+    end_yr: 2050
+    timeframe: "future"
 min_year_percentage: 70
-formula: y ~ bio2 + bio3 + bio5 + bio8 + bio9 + bio15 + bio16 + bio18 + ndvi_sum + ndvi_win + elevs
 vars: 
   - bio2 #Mean Diurnal Range (Mean of monthly (max temp - min temp))
   - bio3 #Isothermality (BIO2/BIO7) (* 100)

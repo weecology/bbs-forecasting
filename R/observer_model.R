@@ -8,12 +8,11 @@
 fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
                               output_file = "observer_model.rds", 
                               chains = 2, cores = 2, iter = 2000,
-                              thin = 4, ...){
+                              thin = 4, settings...){
   library(rstan) # prevent annoying NAMESPACE issue described in
   # https://github.com/stan-dev/rstan/issues/353
   
   set.seed(seed)
-  settings = yaml::yaml.load_file("settings.yaml")
   
   # If we don't have any observed richness, we can't use the row, so omit
   # anything with is.na(richness)
