@@ -75,22 +75,13 @@ these approaches improve ecological forecasting in the future.
 
 ### Data
 
-Bird species richness was obtained from the Breeding Bird Survey (BBS)
-[@pardieck2017] using the Data Retriever software [@morris2013] and
+Bird species richness was obtained from the North American Breeding Bird Survey
+(BBS) [@pardieck2017] using the Data Retriever software [@morris2013] and
 rdataretriever R package [@mcglinn2017]. The BBS data was filtered to exclude
 all nocturnal, cepuscular, and aquatic species [since these species are not well
 sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
-hybrids. Due to limitations of the environmental data (below), we did not
-include any data from outside the continental United States. Observed richness
-from 1982 (the first complete year of NDVI data) to 2003 were used for training
-the models, and data from 2004 to 2013 was used for testing their performance.
-Only BBS routes that were sampled during 70% of the years in the training period
-were used (i.e., routes with at least 16 annual observations). All data from
-routes that did not meet BBS acceptable criteria were excluded, as were routes
-that had not been visited during at least 70% of the years in our model-training
-window. The resulting dataset included [[N]] species and [[N]] sites. Among
-sites,  richness varied from [[N]] to [[N]] with an average richness of [[N]]
-species.
+hybrids. All data from routes that did not meet BBS acceptable criteria were
+also excluded.
 
 Environmental data included a combination of elevation, bioclimatic variables
 and a remotely sensed vegetation index (the normalized difference vegetation
@@ -109,6 +100,16 @@ SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster
 [@hijmans2016]. All environmental variables were aggregated to the average
 values within a 40 km radius (the length of a BBS route) of the starting point
 of each BBS route.
+
+We used observed richness values from 1982 (the first complete year of NDVI
+data) to 2003 for training the models, and data from 2004 to 2013 was used for
+testing their performance. We only used BBS routes from the continental United
+States (i.e. routes where PRISM data was available), and restricted the analysis
+to routes that were sampled during 70% of the years in the training period were
+used (i.e., routes with at least 16 annual observations). The resulting dataset
+included [[N]] transect runs of [[N]] unique sites, and included [[N]] species.
+Site-level richness varied from [[N]] to [[N]] with an average richness of [[N]]
+species.
 
 ### Accounting for observer effects
 
