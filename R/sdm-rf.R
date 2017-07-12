@@ -35,8 +35,9 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
                    vars = vars,
                    x_richness = x_richness,
                    last_train_year = settings$last_train_year,
-                   future, future_observer_effects,
-                   settings) %>% 
+                   future = future, 
+                   future_observer_effects = future_observer_effects,
+                   settings = settings) %>% 
     bind_rows()
   
   path = paste0("rf_predictions/sp_", sp_id, "_", use_obs_model, ".csv.gz")
@@ -57,7 +58,8 @@ rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
       rf_predict_species(sp_id, bbs = bbs, x_richness = x_richness, 
                          settings = settings, 
                          use_obs_model = use_obs_model,
-                         future, future_observer_effects)
+                         future = future, 
+                         future_observer_effects = future_observer_effects)
     },
     mc.cores = 8,
     mc.preschedule = FALSE

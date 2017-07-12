@@ -47,8 +47,8 @@ if (settings$timeframe == "future") {
   future_observer_effects = obs_model$observer_sigma %>% 
     purrr::map(~rnorm(nrow(future), 0, .x))
 } else {
-  future = NULL
-  future_observer_effects = NULL
+    future = NULL
+    future_observer_effects = NULL
 }
 
 # Reclaim memory
@@ -101,7 +101,7 @@ expand.grid(fun_name = c("naive", "auto.arima"),
   parallel::mclapply(
     function(grid_row){
       do.call(make_all_forecasts, 
-             c(x = list(x_richness), settings = list(settings), grid_row))
+              c(x = list(x_richness), settings = list(settings), grid_row))
     },
     mc.cores = 8, 
     mc.preschedule = FALSE
