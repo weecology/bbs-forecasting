@@ -14,7 +14,7 @@ settings$timeframes = NULL
 prepend_timeframe = function(x) {
   paste0("results", "/", timeframe, "/", x)
 }
-dir.create(prepend_timeframe(NULL), showWarnings = FALSE)
+dir.create(prepend_timeframe(NULL), showWarnings = FALSE, recursive = TRUE)
 
 if (!file.exists(prepend_timeframe("observer_model.rds"))) {
   fit_observer_model(settings = settings, output_dir = prepend_timeframe(""))
