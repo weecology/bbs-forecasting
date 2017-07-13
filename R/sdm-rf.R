@@ -53,7 +53,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
 rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
                                future, observer_sigmas) {
   
-  out = lapply(
+  out = parallel::mclapply(
     unique(bbs$species_id), 
     function(sp_id){
       rf_predict_species(sp_id, bbs = bbs, x_richness = x_richness, 
