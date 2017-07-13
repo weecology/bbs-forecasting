@@ -5,7 +5,8 @@
 #' 
 #' @return \code{NULL}. Saves a list of relevant values in `output_file`
 #'   and the `stanfit` object to disk.
-fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
+fit_observer_model = function(settings, output_dir,
+                              stan_file = "mixed.stan", seed = 1,
                               output_file = "observer_model.rds", 
                               chains = 2, cores = 2, iter = 2000,
                               thin = 4, ...){
@@ -13,7 +14,6 @@ fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
   # https://github.com/stan-dev/rstan/issues/353
   
   set.seed(seed)
-  settings = yaml::yaml.load_file("settings.yaml")
   
   # If we don't have any observed richness, we can't use the row, so omit
   # anything with is.na(richness)

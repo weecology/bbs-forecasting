@@ -53,7 +53,7 @@ make_forecast = function(x, fun_name, use_obs_model, settings, ...){
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
-                              settings, ...){
+                              settings, observer_sigmas, ...){
   forecast_data = x %>% 
     filter(year <= settings$last_train_year) %>% 
     group_by(site_id, iteration)
@@ -70,6 +70,11 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
   
   if (use_obs_model) {
+    if (settings$timeframe == "future") {
+      # Calculate random observer effects
+      out$observer_effect = rnorm(nrow(out), 
+                                  sd = observer_sigmas[out$iteration])
+    }
     # Observer effect was subtraced out in make_forcast. Add it back in here.
     out = mutate(out, mean = mean + observer_effect)
   }
@@ -78,9 +83,23 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
          use_obs_model, coef_names)
 }
 
-make_gbm_predictions = function(x, use_obs_model){
+make_test_set = function(x, future, observer_sigmas, settings){
+  if (settings$timeframe == "future") {
+    obs_sd = unique(x$observer_sigma)
+    test = mutate(future, 
+                  observer_effect = !!rnorm(nrow(future), sd = obs_sd),
+                  richness = NA)
+  } else{
+    test = filter(x, year > !!settings$last_train_year)
+  }
+  
+  test
+}
+
+make_gbm_predictions = function(x, use_obs_model, settings, future,
+                                observer_sigmas) {
   train = filter(x, year <= settings$last_train_year)
-  test = filter(x, year > settings$last_train_year)
+  test = make_test_set(x, future, observer_sigmas, settings)
   
   if (use_obs_model) {
     train$y = train$expected_richness
@@ -88,7 +107,9 @@ make_gbm_predictions = function(x, use_obs_model){
     train$y = train$richness
   }
   
-  g = gbm::gbm(as.formula(settings$formula), 
+  formula = paste("y ~", paste(settings$vars, collapse = " + "))
+  
+  g = gbm::gbm(as.formula(formula), 
                data = train,
                distribution = "gaussian",
                interaction.depth = 5,
@@ -105,10 +126,10 @@ make_gbm_predictions = function(x, use_obs_model){
     mean = mean + test$observer_effect
   }
   
-  cbind(test, mean = mean, model = "richness_gbm",  use_obs_model = use_obs_model, 
+  cbind(test, mean = mean, model = "richness_gbm", 
         stringsAsFactors = FALSE) %>% 
-    select(site_id, year, mean, richness, model, use_obs_model) %>% 
-    mutate(sd = sd)
+    select(site_id, year, mean, richness, model) %>% 
+    mutate(sd = !!sd, n.trees = !!n.trees, use_obs_model = !!use_obs_model)
 }
 
 
