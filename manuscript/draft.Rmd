@@ -75,28 +75,24 @@ these approaches improve ecological forecasting in the future.
 
 ### Data
 
-Bird species richness was obtained from the Breeding Bird Survey (BBS)
-[@pardieck2017] using the Data Retriever software [@morris2013] and
+Bird species richness was obtained from the North American Breeding Bird Survey
+(BBS) [@pardieck2017] using the Data Retriever software [@morris2013] and
 rdataretriever R package [@mcglinn2017]. The BBS data was filtered to exclude
-all nocturnal, cepuscular, and aquatic species
-[since these species are not well sampled by BBS methods; @hurlbert2005], as
-well as unidentified species, and hybrids. All data from routes that did not
-meet BBS acceptable criteria were excluded. Only routes within the continental
-United States were used so as to match the climate dataset. The resulting
-dataset included [[N]] species and [[N]] sites. Among sites richness varied from
-[[N]] to [[N]] with an average richness of [[N]] species. Within-site richness
-variation (among years) was small (~5 species).
+all nocturnal, cepuscular, and aquatic species [since these species are not well
+sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
+hybrids. All data from routes that did not meet BBS acceptable criteria were
+also excluded.
 
 Environmental data included a combination of elevation, bioclimatic variables
 and a remotely sensed vegetation index (the normalized difference vegetation
-index; NDVI), all of which are know to influence richness and distribution in
+index; NDVI), all of which are known to influence richness and distribution in
 the BBS data. We used the 4 km resolution PRISM data [@prism] to calculate eight
 bioclimatic variables identified as relevant to bird distributions [@harris2015]
 for each year in the dataset: mean diurnal range, isothermality, max temperature
 of the warmest month, mean temperature of the wettest quarter, mean temperature
 of the driest quarter, precipitation seasonality, precipitation of the wettest
-quarter, precipitation of the warmest quarter. Satellite derived NDVI, a primary
-correlated of richness in BBS data [@hurlbert2002], with an 8 km resolution was
+quarter, precipitation of the warmest quarter. Satellite-derived NDVI, a primary
+correlate of richness in BBS data [@hurlbert2002], with an 8 km resolution was
 obtained from the NDIV3g dataset [@pinzon2014] and was available from the time
 period 1981-2013. Average summer (May, June, July) and winter (December,
 January, Feburary) NDVI values were used as predictors. Elevation was from the
@@ -105,38 +101,43 @@ SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster
 values within a 40 km radius (the length of a BBS route) of the starting point
 of each BBS route.
 
-Data from `r settings$start_yr` (the first complete year of NDVI data) to `r
-settings$last_train_year` were used for training models and data from `r
-settings$last_train_year + 1` to `r settings$end_yr` was used for testing. Only
-BBS routes with at least `r settings$min_num_yrs` annual observations in the
-years 1982-2015 were used.
+We used observed richness values from 1982 (the first complete year of NDVI
+data) to 2003 for training the models, and data from 2004 to 2013 was used for
+testing their performance. We only used BBS routes from the continental United
+States (i.e. routes where PRISM data was available), and restricted the analysis
+to routes that were sampled during 70% of the years in the training period
+(i.e., routes with at least 16 annual observations). The resulting dataset
+included [[N]] transect runs of [[N]] unique sites, and included [[N]] species.
+Site-level richness varied from [[N]] to [[N]] with an average richness of [[N]]
+species.
 
 ### Accounting for observer effects
 
 Observer effects are inherent in large data sets taken by different observers,
-and are known to occur in BBS [@sauer1994]. We estimated the observer effects,
-and associated uncertainty about those effects, with a linear mixed model with
-observer as a random effect. Because observer and site are strongly related (an
-observer tends to repeatedly sample the same site), site was also included as a
-random effect to ensure that inferred deviations were actually observer-related
-(as opposed to being related to the sites that a given observer happened to
-see). The resulting model partitions the variance in observed richness values
-into site-level variance, observer-level variance, and residual variance
-(e.g. variation within a site from year to year), and can therefore also be used
-directly as the "average" baseline model (see below). The estimated observer
-effects can be subtracted from the richness values for a particular observer to
-provide an estimate of how many species would have been found by a "typical"
-observer. To incorporate uncertainty in these "corrected" richness values into
-the forecasting models we collected [[N]] Monte Carlo samples from the model's
-posterior distribution, using Stan, and fit each of the downstream models with
-each of the Monte Carlo samples.
+and are known to occur in BBS [@sauer1994]. We estimated the observer effects
+(and associated uncertainty about those effects) with a linear mixed model with
+observer as a random effect built in the Stan probabilistic programming language
+[@stan] and its R interface [@rstan]. Because observer and site are strongly
+related (an observer tends to repeatedly sample the same site), site was also
+included as a random effect to ensure that inferred deviations were actually
+observer-related (as opposed to being related to the sites that a given observer
+happened to see). The resulting model partitions the variance in observed
+richness values into site-level variance, observer-level variance, and residual
+variance (e.g. variation within a site from year to year), and can therefore
+also be used directly as the "average" baseline model (see below). The estimated
+observer effects can be subtracted from the richness values for a particular
+observer to provide an estimate of how many species would have been found by a
+"typical" observer. To incorporate uncertainty in these "corrected" richness
+values into the forecasting models we collected 500 Monte Carlo samples from the
+model's posterior distribution, and fit each of the downstream models with each
+of the Monte Carlo samples.
 
 ### Site-level models
 
 We fit three sets of models that were fit to each site independently. These
 models were fit to each BBS route both on the raw richness values and on the
 residuals from our observer model. When correcting for observer effects, we
-averaged across [[N]] models that were fit separately to the [[N]] Monte Carlo
+averaged across 500 models that were fit separately to the 500 Monte Carlo
 estimates of the observer effects, to account for our uncertainty in the true
 values of those effects. All of these models use a Gaussian error distribution.
 
@@ -145,11 +146,11 @@ the fits of more complex models. These baselines treated site-level richness
 observations either as uncorrelated noise around a site-level constant (the
 "average" model) or as an autoregressive model with a single year of history
 (the "naive" model) [@hyndman2014]. Predictions from the "average" model are
-centered on the average richness and the confidence intervals are narrow and
-constant-width. The "naive" model, in contrast, predicts that future
-observations will be similar to the final observed value (e.g. the value
-observed in `$r settings$last_train_year`), and the confidence intervals expand
-rapidly as the predictions extend farther into the future.
+centered on the average richness observed during training, and the confidence
+intervals are narrow and constant-width. The "naive" model, in contrast,
+predicts that future observations will be similar to the final observed value
+(e.g. the value observed in `$r settings$last_train_year`), and the confidence
+intervals expand rapidly as the predictions extend farther into the future.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
 function in @hyndman2016] to represent a array of different time-series modeling
@@ -160,14 +161,12 @@ autocorrelation) and an integration/differencing component (so that the analysis
 could be performed on sequential differences of the raw data, accommodating more
 complex patterns including trends). The `auto.arima` function chooses whether to
 include each of these components, and how many terms to include for each one,
-using AICc [@hyndman2016]. Since there is no seasonable component to the BBS
-time-series we did not include a season component in these models. Otherwise we
+using AICc [@hyndman2016]. Since there is no seasonal component to the BBS
+time-series, we did not include a season component in these models. Otherwise we
 used the default settings for this function. [[Note: should probably record
 somewhere what order model the auto.arima function tends to choose.  Eyeballing
 the results, seems to be most similar to the naive model, but would be good to
-check.]] We also fit an "Auto-ARIMA + environment" model, in which each
-site-level time series could also be predicted by annual changes in our
-environmental variables at that site.
+check.]]
 
 ### Continental-scale models
 
@@ -175,76 +174,78 @@ In contrast to the time-series models, most attempts to predict species richness
 focusing on using correlative models to predict richness changes over time from
 environmental data. We tested three common variants of this approach - direct
 modeling of species richness, stacking individual species distribution models,
-and joint species distribution models. Following the standard approach,
+and joint species distribution models (JSDMs). Following the standard approach,
 site-level random effects were not included in these models as predictors,
 meaning that this approach implicitly assumes that two sites with identical
 Bioclim, elevation, and NDVI values should have identical richness
 distributions. As above, we included observer effects & the associated
-uncertainty by running these models [[N]] times (once per MCMC sample).
+uncertainty by running these models 500 times (once per MCMC sample).
 
-**"Macroecological" model.** We used a generalized boosted regression tree model
-using the `gbm` package [@ridgeway2017] to directly model species richness as a function of
-environmental variables. Boosted regression trees are a form of tree based
+**"Macroecological" model.** We used a boosted regression tree model using the
+`gbm` package [@ridgeway2017] to directly model species richness as a function
+of environmental variables. Boosted regression trees are a form of tree based
 modeling that work by fitting thousands of small tree-structured models
-sequentially, with each tree optimized to reduce the error of its
-predecessors. They are flexible models that are considered well suited for
-prediction [@elith2008]. This model was optimized using a Gaussian
-likelihood. [[other gbm settings go here.]]
+sequentially, with each tree optimized to reduce the error of its predecessors.
+They are flexible models that are considered well suited for prediction
+[@elith2008]. This model was optimized using a Gaussian likelihood, with a 
+maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000 trees.
+The number of trees was selected using the "out of bag" estimator, and 
+[[summarize how many trees were typically chosen here, for both observer-based
+and observer-free models]].
 
-**Species Distribution Models.** Species distribution models (SDMs) model
-individual species' occurrence probabilities using environmental
-variables. Species level models are used to predict richness by summing the
-predicted probability of occupancy across all species at a site. We fit SDMs
-using random forests, a common approach in the species distribution modeling
-literature [[refs; would be good to provide a source that says these are a good
-choice]]. Predicted probabilities of occurrence were summed directly to predict
-the number of species. This avoids known problems with the use of thresholds for
-determining whether or not a species will be present at a site [[refs]]. When
-incorporating observer effects we avoided fitting [[N x S]] models ([[N]] MCMC
-samples * [[S]] species) by fitting one regression tree using each of the Monte
-Carlo estimates of our observer effects and averaging the predictions of the
-resulting forest [[citation?]]. We used Gaussian approximations for uncertainty,
-based on the means and variances of the sums of independent Bernoulli random
-variables [[cite Calabrese et al.]].
+**Species Distribution Model.** Species distribution models (SDMs) predict
+individual species' occurrence probabilities using environmental variables.
+Species-level models are used to predict richness by summing the predicted
+probability of occupancy across all species at a site; following [[Calabrese et
+al.]], we calculated the uncertainty in our richness estimate by treating
+richness as a sum over independent Bernoulli random variables (one per species).
+This avoids known problems with the use of thresholds for determining whether or
+not a species will be present at a site [[refs]]. We represented SDMs in this
+analysis using random forests, a common approach in the species distribution
+modeling literature based on fitting hundreds of independent regression trees to
+randomly-perturbed versions of the data [[refs; would be good to provide a
+source that says these are a good choice]]. Each of the 500 trees in our
+species-level random forests used a different Monte Carlo estimate of the
+observer effects as a predictor variable.
 
 **Joint Species Distribution Models.** Joint species distribution models (JSDMs)
 are a new approach that makes predictions about the full composition of a
-community instead of modeling each species independently. JSDMs remove the
-assumed independence among species and explicitly account for the possibility
-that a site will be much more (or less) suitable for birds in general, or
-particular groups of birds, than one would expect based on the available
-environmental measurements alone. As a result, JSDMs do a better job of
-representing our uncertainty about richness, while stacked SDMs underestimate it
-[@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
+community instead of modeling each species independently as above. JSDMs remove
+the assumed independence among species and explicitly account for the
+possibility that a site will be much more (or less) suitable for birds in
+general, or particular groups of birds, than one would expect based on the
+available environmental measurements alone. As a result, JSDMs do a better job
+of representing our uncertainty about richness, while stacked SDMs underestimate
+it [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
 [@harris2015] because it is the only JSDM that describes species' environmental
 associations with nonlinear functions.
 
 
 ### Model evaluation
 
+Variance in species richness within sites was lower than predicted by several
+common count models, such as the Poisson or binomial (i.e. richness was
+underdispersed), so these count models would have had difficulty fitting the
+data. Since richness had a relatively large mean ([[N]]) and all models already
+produce continuous richness estimates (due to summing probabilities in the
+(J)SDM case), we defined model performance for all models in terms of continuous
+Gaussian errors instead of using discrete count distributions. When a model was
+run multiple times for the purpose of correcting for observer effects, we used
+the mean of those runs' point estimates as our final point estimate and we
+calculated the uncertainty using the law of total variance (i.e.  the average of
+the model runs' variance, plus the variance in the point estimates).
+
 We evaluated the performance of each model for forecasting using the data for
 each year between `r settings$last_train_year` and `r settings$end_yr`. We used
 three metrics for evaluating performance: 1) root-mean-square error (RMSE) to
 determine how far, on average, the models' predictions were from the observed
 value; 2) the 95% prediction interval coverage to determine how well the models
-did at predicting uncertainty; and 3) deviance as an integrative measure of fit
-incorporating good point estimates, precision, and coverage. When a model was
-run multiple times for the purpose of correcting for observer effects, we used
-the mean of those runs' point estimates as our final point estimate and we
-calculated the uncertainty using the law of total variance (i.e.  the average of
-the model runs' variance, plus the variance in the point estimates). In addition
-to looking at forecast performance in general we evaluated how performance
-changed as the time horizon of forecasting increased by plotting performance
-metrics against the forecast horizon.
-
-Variance in species richness within sites was lower than predicted by several
-common count models (i.e. richness was underdispersed), so these count models
-would have difficulty fitting the data. Since richness also had a relatively
-large mean ([[N]]) and all models already produce continuous richness estimates
-(due to summing probabilities in the (J)SDM case), we defined model performance
-for all models in terms of continuous Gaussian errors instead of using discrete
-count distributions.
-
+predicted the range of possible outcomes; and 3) deviance (i.e. negative 2 times
+the Gaussian log-likelihood) as an integrative measure of fit incorporating good
+point estimates, precision, and coverage.  In addition to looking at forecast
+performance in general we evaluated how performance changed as the time horizon
+of forecasting increased by plotting performance metrics against the forecast
+horizon.
 
 ## Results
 
@@ -252,67 +253,58 @@ The site-observer model found that 70% of the variance in richness in the
 training set could be explained by differences among sites, and 21% could be
 explained by differences among observers. The remaining 9% represents residual
 variation, where a given observer might report a different number of species in
-different years. There was little temporal autocorrelation in these residuals
-([[about 0.04, +/- something]]), suggesting that richness is close to stationary
-on these time scales once observer differences are accounted for.
+different years. In the training set, the residuals had a standard deviation of
+about [[+/- 5]] species. After correcting for observer differences, there was
+little temporal autocorrelation in these residuals ([[about 0.04, +/-
+something]]), suggesting that richness is approximately stationary on these time
+scales.
 
 When comparing forecasts for richness across sites all methods performed well
-(Figure 2; R^2 XX-XX%). However stacked and joint SDMs and the macroecological
-model both failed to successfully forecast the highest richness sites resulting
-in a noteable clustering of predicted values near ~60 species and the poorest
-performance in the cross-site comparison (R^2 XX-XX%).
+(Figure 2; R^2 XX-XX%). However SDMs (both stacked and joint) and the
+macroecological model all failed to successfully forecast the highest-richness
+sites resulting in a notable clustering of predicted values near ~60 species and
+the poorest performance in the cross-site comparison (R^2 XX-XX%). 
 
-For most combinations of metric and forecast time lag, the best-performing model
-for forecasting within site variability was either the "average" baseline model
-or the ARIMA model (Figure 3). In general, each model's error increased
-more-or-less linearly with time, although the slopes and initial error rates
-varied across models (Figure 3). The site-level models (i.e. the baselines and
-the ARIMA methods) tended to do very well (Figure 3) on short time horizons,
-especially in terms of RMSE.
+While the models generally did well in absolute terms (Figure 2), they tended
+not to outperform the "average" baseline from the generalized linear mixed model
+(Figure 3A). [[Stats go here]].  The auto-ARIMA was generally the best-performing
+non-baseline model, but in many cases, the best-fitting ARIMA model chosen by
+the model selection procedure was no different from the "average" model. 
 
-In general, the models produced confidence intervals that were too narrow,
-indicating overconfident predictions. Of these, the random forest-based SDM
-stack was the most overconfident. As noted elsewhere [@harris2015], these models
-are generally far too confident, with observed richness values frequently
-falling well outside their confidence limits (Figure 3C). The "naive" model was
-the only model whose confidence intervals were too wide (Figure 3), which can be
-attributed to the rapid rate at which these intervals expand as the time lag
-increases (Figure 1). The JSDM and macroecological model has the best coverage.
+Most models produced confidence intervals that were too narrow, indicating
+overconfident predictions (Figure 3B). The random forest-based SDM stack was the
+most overconfident model, with only XX% of observations falling inside its 95%
+confidence intervals. This stacked SDM's narrow predictive distribution also
+caused it to have notably higher deviance (Figure 3C) than the next-worst model,
+even though its point estimates were not unusually bad in terms of RMSE (3A). As
+discussed elsewhere [@harris2015], this overconfidence is a product of the
+assumption in stacked SDMs that errors in the species-level predictions are
+independent. Because they avoided this assumption, the GBM-based
+"macroecological" model and especially the mistnet JSDM had reasonably
+well-calibrated uncertainty estimates (Figure 3B); as a result, their relative
+performance was higher in terms of deviance than in terms of RMSE. The "naive"
+model was the only model whose confidence intervals were too wide (Figure 3B),
+which can be attributed to the rapid rate at which these intervals expand as the
+time lag increases (Figure 1).
 
-RMSE and deviance produced qualitatively similar results in most cases, with the
-notable exception of the stacked SDMs (Figure 3A and 3B). Deviance, unlike RMSE,
-depends on the full predictive distribution of a model, including the model's
-estimated uncertainty. As a result, the stacked SDMs' deviance was notably
-higher than the next-worst model even though its RMSE was not unusual. On the
-other hand, the richness-GBM model and especially the mistnet JSDM had
-reasonably well-calibrated uncertainty estimates, even in the presence of
-uncorrected observer biases (Figure 3C). This prevented their deviance from
-rising as quickly as the site-level models when the observer population changed
-and resulted in better comparative performance for these models using deviance
-(Figure 3B).
+In general, each model's error increased more-or-less linearly with time,
+although the slopes and initial error rates varied across models (Figure 4). The
+mistnet JSDM and GBM-based macroecological model's deviance tended to rise less
+rapidly over time than the baseline models' deviance did; for the ten-year
+forecasts, these environment-based models outperformed the Naive model and 
+nearly matched the performance of the Average model.
 
-Accounting for the uncertainty associated with differences among observers
-resulted in improvements to all metrics of fit (Figure 4). The one exception was
-RMSE of the "Naive" model, which remained unchanged. The improvements in point
-estimates primarily resulted from large improvements in a small number of
-forecasts, presumably ones where a large difference between observers resulted
-in a large shift in predicted richness values that the models could not
-otherwise accommodate. Most forecasts exhibited only small changes in
-RMSE. However these changes were sufficient to reorder which models performed
-best overall. For example, the "naive" model generally had the lowest average
-error when observer effects were not explicitly accounted for, switching to the
-average and ARIMA models once observer differences were corrected. Improvements
-in coverage were notable for all models except the naive and JSDM, meaning that
-incorporating observer effects resulted in improved quantification of
-uncertainty. The lack of change in the mistnet JSDM seems to indicate that its
-latent variables were already accounting for observer-related uncertainty. In
-combination changes in point estimates and coverage resulted in changes in the
-best models based on deviance at different time scales. The macroecological
-model and the JSDM appeared to narrowly outperform the average and ARIMA models
-when the forecast horizon was greater than five years when not correcting for
-observers, but after the correction the average and ARIMA models maintained a
-small average advantage out to at least ten years.
-
+When the differences among observers were not explicitly accounted for, nearly
+all metrics of fit worsened (Figure 5). The increased error resulted from a
+small number of forecasts where observer turnover caused a large shift in the
+reported richness values. The Naive model was less sensitive to these shifts,
+because it largely ignored the richness values reported by observers that had
+retired by the end of the training period (Figure 1). The Average model, which
+gave equal weight to observations from the whole training period, showed a
+larger decline in performance -- especially in terms of coverage. The mistnet
+JSDM was notable here because the coverage of its prediction intervals retained
+very good coverage in the presence of this observer-based noise, which we
+attribute to its ability to model this variation with its latent variables.
 
 ## Discussion
 
