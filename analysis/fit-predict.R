@@ -81,7 +81,7 @@ if (settings$timeframe == "future") {
     group_by(site_id) %>% 
     summarize(mean = mean(richness), sd = sd(richness))
   map_df(years_to_use, function(x) cbind(avg_false, year = x)) %>% 
-    saveRDS(file = prepend_timeframe("avg_false.rds"))
+    saveRDS(file = prepend_timeframe("avg_FALSE.rds"))
 } else {
   # "Average" model with observer effects
   x_richness %>% 
@@ -89,7 +89,7 @@ if (settings$timeframe == "future") {
     mutate(mean = intercept + observer_effect + site_effect,
            model = "average", use_obs_model = TRUE) %>% 
     select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
-    saveRDS(file = "avg_TRUE.rds")
+    saveRDS(file = prepend_timeframe("avg_TRUE.rds"))
   
   # "Average" model without observer effects
   # Use site-level means and sds from the training set as test-set predictions
@@ -101,7 +101,7 @@ if (settings$timeframe == "future") {
     left_join(select(x_richness, -sd), "site_id") %>% 
     filter(!in_train) %>% 
     select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
-    saveRDS(file = "avg_FALSE.rds")
+    saveRDS(file = prepend_timeframe("avg_FALSE.rds"))
 }
 
 
