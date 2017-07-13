@@ -341,7 +341,7 @@ approaches when conducting ecological forecasts, and in particular the value of
 comparing results to simple baselines to avoid over-interpreting the information
 present in these forecasts (Box 1).  Disciplines that have more mature forecasting
 cultures often do this by reporting "forecast skill", which is the improvement
-in the forecast relative to a simple baseline [[weather citation]]. We recommend
+in the forecast relative to a simple baseline [@jolliffe2003]. We recommend
 following Ye et al. [@ye2015] and adopting this approach in future ecological
 forecasting research. It also highlights the need for using hindcasting and
 time-series data for assessing the effectiveness of forecasting methods, since
@@ -464,25 +464,25 @@ forecasts. We evaluated forecasts using yearly timesteps up to a decade into the
 future. In contrast, many ecological forecasts are temporally aggregated to 5-30
 year timesteps and projected up to a century into the future. These are commonly
 beyond the career or even lifespan of the researchers, making reasonable model
-assessment impossible. Currently assessments at these long time-scales can be
+assessment impossible. Currently assessments at these long time-scales can
 only be made with a small number of opportune datasets. For examples hindcasts
-have been used to asses models of species richness [@alger2009, distler2015] and
-distribution [@rappacciuolo2012, @moran-ordonez2017, @araujo2005,
+have been used to asses models of species richness [@alger2009, @distler2015]
+and distribution [@rappacciuolo2012, @moran-ordonez2017, @araujo2005,
 @eskildsen2013] using data aggregated across similar time scales. More
 evaluation studies like these are needed but there is a paucity of adequate long
 term data available. Short term forecasts will allow for relatively rapid
 validation of models by researchers without needing to wait for enough data to
-accumulate [tredennick2016; @dietze2016]. This does not mean that they should
+accumulate [@tredennick2016; @dietze2016]. This does not mean that they should
 replace large scale long-term forecasts. As discussed above, drivers of species
 richness are likely to differ at different temporal scales [@rosenzweig1995,
 @white2004, @white2007]. Thus short-term forecasts should be expected to add
 value to end users and inform, not replace, long-term forecasts. Hopefully by
-evaluating trends in the error shorter term forecasts as done here it will be
+evaluating trends in the shorter term forecasts as done here it will be
 possible to also use the information from short-term forecasting to improve
 longer-term estimates.
 
 The science of forecasting biodiversity, and ecology more broadly, remains in
-its infancy and it is important to consider the general inability the
+its infancy and it is important to consider the general inability of
 forecasting methods to improve on simple baselines in that context. When weather
 forecasting first started the forecasts were likewise worse than simple
 baselines [@mcgill2012]. One of the things that helped weather forecasts improve
