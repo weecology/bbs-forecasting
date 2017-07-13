@@ -59,28 +59,50 @@ gc()
 
 # Fit & save models --------------------------------------------------------
 
-# "Average" model with observer effects. Observer_sigma is only nonzero in
-# the "future", where we haven't already simulated the observer-related 
-# uncertainty
-x_richness %>% 
-  filter(!in_train) %>% 
-  mutate(mean = intercept + observer_effect + site_effect,
-         model = "average", use_obs_model = TRUE,
-         sd = sqrt(sd^2 + !!observer_sigma^2)) %>% 
-  select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
-  saveRDS(file = prepend_timeframe("avg_TRUE.rds"))
 
-# "Average" model without observer effects
-# Use site-level means and sds from the training set as test-set predictions
-x_richness %>% 
-  filter(in_train) %>% 
-  group_by(site_id) %>% 
-  summarize(mean = mean(richness), sd = sd(richness), model = "average", 
-            use_obs_model = FALSE) %>% 
-  left_join(select(x_richness, -sd), "site_id") %>% 
-  filter(!in_train) %>% 
-  select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
-  saveRDS(file = prepend_timeframe("avg_FALSE.rds"))
+
+if (settings$timeframe == "future") {
+  year_grid = expand.grid(iteration = unique(x_richness$iteration), 
+                          year = years_to_use)
+  
+  # Calculate expected richness for "typical" observer, add in noise for
+  # unknown observers. Then repeat for all year/iteration combinations
+  x_richness %>% 
+    mutate(mean = intercept + site_effect,
+           sd = sqrt(sd^2 + observer_sigma^2)) %>% 
+    distinct(iteration, site_id, mean, sd) %>% 
+    left_join(year_grid, "iteration") %>% 
+    saveRDS(file = prepend_timeframe("avg_TRUE.rds"))
+  
+  # When there's no observer effect, just calculate the empirical mean and sd 
+  # for each site, then replicate across years.
+  avg_false = x_richness %>% 
+    filter(in_train) %>% 
+    group_by(site_id) %>% 
+    summarize(mean = mean(richness), sd = sd(richness))
+  map_df(years_to_use, function(x) cbind(avg_false, year = x)) %>% 
+    saveRDS(file = prepend_timeframe("avg_false.rds"))
+} else {
+  # "Average" model with observer effects
+  x_richness %>% 
+    filter(!in_train) %>% 
+    mutate(mean = intercept + observer_effect + site_effect,
+           model = "average", use_obs_model = TRUE) %>% 
+    select(site_id, year, mean, sd, iteration, richness, model, use_obs_model) %>% 
+    saveRDS(file = "avg_TRUE.rds")
+  
+  # "Average" model without observer effects
+  # Use site-level means and sds from the training set as test-set predictions
+  x_richness %>% 
+    filter(in_train) %>% 
+    group_by(site_id) %>% 
+    summarize(mean = mean(richness), sd = sd(richness), model = "average", 
+              use_obs_model = FALSE) %>% 
+    left_join(select(x_richness, -sd), "site_id") %>% 
+    filter(!in_train) %>% 
+    select(site_id, year, mean, sd, richness, model, use_obs_model) %>% 
+    saveRDS(file = "avg_FALSE.rds")
+}
 
 
 # Forecast-based predictions
