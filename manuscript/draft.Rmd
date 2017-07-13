@@ -247,6 +247,16 @@ performance in general we evaluated how performance changed as the time horizon
 of forecasting increased by plotting performance metrics against the forecast
 horizon.
 
+All analyses were conducted using R [@R]. Primary R packages used in the
+analysis included dplyr [@dplyr], tidyr [@tidyr], gimms [@gimms], sp
+[@sp1; @sp2], raster [@raster], prism [@prism], rdataretriever
+[@rdataretriever], forecasts [@forecast1; @forecast2], git2r [@git2r], ggplot
+[@ggplot2], viridius [@viridis], rstan [@rstan], yaml [@yaml], purrr [@purrr],
+gbm [@gbm], randomForest [@randomForest], purrrlyr [@purrrlyr]. Code to fully
+reproduce this analysis is available on GitHub
+(https://github.com/weecology/bbs-forecasting) and archived on Zenodo ().
+
+
 ## Results
 
 The site-observer model found that 70% of the variance in richness in the
@@ -512,6 +522,17 @@ uncertainty in both model building and forecast evaluation, and rigorously
 assessing forecasts using a combination of hindcasting, archived forecasts, and
 comparisons to simple baselines.
 
+## Acknowledgments
+
+This research was supported by the Gordon and Betty Moore Foundation's
+Data-Driven Discovery Initiative through Grant GBMF4563 to E.P. White. We thank
+the developers and providers of the data and software that made this research
+possible including: the PRISM Climate Group at Oregon State University, the
+staff at USGS and volunteer citizen scientists associated with the North
+American Breeding Bird Survey, NASA, the World Climate Research Programme's
+Working Group on Coupled Modelling and its working groups, the
+U.S. Department of Energy's Program for Climate Model Diagnosis and
+Intercomparison, and the Global Organization for Earth System Science Portals.
 
 ## Box 1: Ten simple rules for making and evaluating ecological forecasts
 
