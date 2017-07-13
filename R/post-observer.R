@@ -1,6 +1,5 @@
 #' @importFrom forecast Arima auto.arima
-make_forecast = function(x, fun_name, use_obs_model, settings, 
-                         future_observer_effects, ...){
+make_forecast = function(x, fun_name, use_obs_model, settings, ...){
   # `Forecast` functions want NAs for missing years, & want the years in order
   x = complete(x, year = settings$start_yr:settings$last_train_year) %>% 
     arrange(year)
@@ -46,18 +45,15 @@ make_forecast = function(x, fun_name, use_obs_model, settings,
     list(NA)
   }
   
-  i = unique(x$iteration)
-  
   # Distance between `upper` and `lower` is 2 sd, so divide by 2
   data_frame(year = seq(settings$last_train_year + 1, settings$end_yr), 
          mean = c(fcst$mean), sd = c(fcst$upper - fcst$lower) / 2, 
          model = fun_name, use_obs_model = use_obs_model,
-         coef_names = coef_names, 
-         observer_effect = future_observer_effects[[i]])
+         coef_names = coef_names)
 }
 
 make_all_forecasts = function(x, fun_name, use_obs_model, 
-                              settings, future_observer_effects, ...){
+                              settings, observer_sigmas, ...){
   forecast_data = x %>% 
     filter(year <= settings$last_train_year) %>% 
     group_by(site_id, iteration)
@@ -74,6 +70,11 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
     left_join(select(x_richness, -sd), c("site_id", "year", "iteration"))
   
   if (use_obs_model) {
+    if (settings$timeframe == "future") {
+      # Calculate random observer effects
+      out$observer_effect = rnorm(nrow(out), 
+                                  sd = observer_sigmas[out$iteration])
+    }
     # Observer effect was subtraced out in make_forcast. Add it back in here.
     out = mutate(out, mean = mean + observer_effect)
   }
@@ -82,12 +83,12 @@ make_all_forecasts = function(x, fun_name, use_obs_model,
          use_obs_model, coef_names)
 }
 
-make_test_set = function(x, future, future_observer_effects, settings){
+make_test_set = function(x, future, observer_sigmas, settings){
   if (settings$timeframe == "future") {
-    i = unique(x$iteration)
+    obs_sd = unique(x$observer_sigma)
     test = mutate(future, 
-                  observer_effect = !!future_observer_effects[[i]],
-                  expected_richness = richness - observer_effect)
+                  observer_effect = !!rnorm(nrow(future), sd = obs_sd),
+                  richness = NA)
   } else{
     test = filter(x, year > !!settings$last_train_year)
   }
@@ -96,9 +97,9 @@ make_test_set = function(x, future, future_observer_effects, settings){
 }
 
 make_gbm_predictions = function(x, use_obs_model, settings, future,
-                                future_observer_effects) {
+                                observer_sigmas) {
   train = filter(x, year <= settings$last_train_year)
-  test = make_test_set(x, future, future_observer_effects)
+  test = make_test_set(x, future, observer_sigmas, settings)
   
   if (use_obs_model) {
     train$y = train$expected_richness

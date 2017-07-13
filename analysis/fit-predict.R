@@ -17,7 +17,7 @@ prepend_timeframe = function(x) {
 dir.create(prepend_timeframe(NULL), showWarnings = FALSE)
 
 if (!file.exists(prepend_timeframe("observer_model.rds"))) {
-  fit_observer_model(settings = settings)
+  fit_observer_model(settings = settings, output_dir = prepend_timeframe(""))
 }
 obs_model = readRDS(prepend_timeframe("observer_model.rds"))
 
@@ -41,14 +41,15 @@ if (settings$timeframe == "future") {
            year > !!settings$last_train_year) %>% 
     select(which(colnames(.) %in% !!colnames(x_richness)))
   
-  # Randomly-sampled observers for each `iteration`. Not used for the
-  # "average" model, which will just use observer_sigma directly without
-  # simulations.
-  future_observer_effects = obs_model$observer_sigma %>% 
-    purrr::map(~rnorm(nrow(future), 0, .x))
+  # Standard deviation of "future" observers for each iteration, add as a 
+  # column in x_richness
+  observer_sigmas = obs_model$observer_sigma
+  x_richness = enframe(observer_sigmas, name = "iteration", 
+                       value = "observer_sigma") %>% 
+    right_join(x_richness, "iteration")
 } else {
     future = NULL
-    future_observer_effects = NULL
+    observer_sigmas = NULL
 }
 
 # Reclaim memory
@@ -57,15 +58,6 @@ gc()
 
 
 # Fit & save models --------------------------------------------------------
-
-# For "future" predictions of the "average" model, we'll need to know how 
-# much uncertainty to use at the observer level. Otherwise, this is already
-# taken care of elsewhere.
-observer_sigma = if (settings$timeframe == "future") {
-  sqrt(mean(obs_model$observer_sigma^2))
-} else{
-  0
-}
 
 # "Average" model with observer effects. Observer_sigma is only nonzero in
 # the "future", where we haven't already simulated the observer-related 
@@ -98,13 +90,15 @@ expand.grid(fun_name = c("naive", "auto.arima"),
             use_obs_model = c(TRUE, FALSE),
             stringsAsFactors = FALSE) %>% 
   transpose() %>% 
-  parallel::mclapply(
+  lapply(
     function(grid_row){
-      do.call(make_all_forecasts, 
-              c(x = list(x_richness), settings = list(settings), grid_row))
-    },
-    mc.cores = 8, 
-    mc.preschedule = FALSE
+      make_all_forecasts(x = x_richness, settings = settings, 
+                         observer_sigmas = observer_sigmas,
+                         fun_name = grid_row$fun_name, 
+                         use_obs_model = grid_row$use_obs_model)
+    }#,
+    #mc.cores = 8, 
+    #mc.preschedule = FALSE
   ) %>% 
   bind_rows() %>% 
   saveRDS(file = prepend_timeframe("forecast.rds"))
@@ -114,15 +108,17 @@ x_richness %>%
   group_by(iteration) %>% 
   purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
                      settings = settings, future = future,
-                     future_observer_effects = future_observer_effects) %>% 
+                     observer_sigmas = observer_sigmas) %>% 
+  bind_rows()
   saveRDS(file = prepend_timeframe("gbm_TRUE.rds"))
 
 # GBM richness without observer effects:
-x_richness %>%
-  group_by(iteration) %>% 
-  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
-                     settings = settings, future = future,
-                     future_observer_effects = future_observer_effects) %>% 
+  x_richness %>%
+    group_by(iteration) %>% 
+    purrrlyr::by_slice(make_gbm_predictions, use_obs_model = FALSE,
+                       settings = settings, future = future,
+                       observer_sigmas = NULL) %>% 
+    bind_rows()
   saveRDS(file = prepend_timeframe("gbm_FALSE.rds"))
 
 # fit random forest SDMs -------------------------------------------------------
@@ -146,10 +142,12 @@ gc() # Minimize memory detritus before forking
 
 rf_predict_richness(bbs = bbs, x_richness = x_richness, 
                     settings = settings, use_obs_model = TRUE,
-                    future, future_observer_effects) %>% 
+                    future = future, 
+                    observer_sigmas = observer_sigmas) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_TRUE.rds"))
 
 rf_predict_richness(bbs = bbs, x_richness = x_richness, 
                     settings = settings, use_obs_model = FALSE,
-                    future, future_observer_effects) %>% 
+                    future = future, 
+                    observer_sigmas = observer_sigmas) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_FALSE.rds"))

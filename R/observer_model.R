@@ -5,10 +5,11 @@
 #' 
 #' @return \code{NULL}. Saves a list of relevant values in `output_file`
 #'   and the `stanfit` object to disk.
-fit_observer_model = function(stan_file = "mixed.stan", seed = 1,
+fit_observer_model = function(settings, output_dir,
+                              stan_file = "mixed.stan", seed = 1,
                               output_file = "observer_model.rds", 
                               chains = 2, cores = 2, iter = 2000,
-                              thin = 4, settings, ...){
+                              thin = 4, ...){
   library(rstan) # prevent annoying NAMESPACE issue described in
   # https://github.com/stan-dev/rstan/issues/353
   
