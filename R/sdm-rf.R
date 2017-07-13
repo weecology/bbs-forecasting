@@ -1,6 +1,6 @@
 #' @importFrom randomForest randomForest
 one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
-                       last_train_year, future, future_observer_effects,
+                       last_train_year, future, observer_sigmas,
                        settings){
   d = bbs %>% 
     select(site_id, year, species_id, abundance) %>% 
@@ -19,7 +19,8 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
     ntree = 1
   )  
   
-  test = make_test_set(d, future, future_observer_effects, settings)
+  test = cbind(make_test_set(d, future, observer_sigmas, settings),
+               species_id = sp_id, iteration = unique(d$iteration))
   test$mean = predict(rf, test, type = "prob")[,2]
   test$use_obs_model = use_obs_model
   
@@ -27,7 +28,7 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
 }
 
 rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
-                              future, future_observer_effects){
+                              future, observer_sigmas){
   vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
   iters = sort(unique(x_richness$iteration))
   results = lapply(iters, one_rf_tree,
@@ -36,7 +37,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
                    x_richness = x_richness,
                    last_train_year = settings$last_train_year,
                    future = future, 
-                   future_observer_effects = future_observer_effects,
+                   observer_sigmas = observer_sigmas,
                    settings = settings) %>% 
     bind_rows()
   
@@ -50,16 +51,16 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
 }
 
 rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
-                               future, future_observer_effects) {
+                               future, observer_sigmas) {
   
-  out = parallel::mclapply(
+  out = lapply(
     unique(bbs$species_id), 
     function(sp_id){
       rf_predict_species(sp_id, bbs = bbs, x_richness = x_richness, 
                          settings = settings, 
                          use_obs_model = use_obs_model,
                          future = future, 
-                         future_observer_effects = future_observer_effects)
+                         observer_sigmas = observer_sigmas)
     },
     mc.cores = 8,
     mc.preschedule = FALSE

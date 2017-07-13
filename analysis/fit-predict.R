@@ -90,15 +90,15 @@ expand.grid(fun_name = c("naive", "auto.arima"),
             use_obs_model = c(TRUE, FALSE),
             stringsAsFactors = FALSE) %>% 
   transpose() %>% 
-  lapply(
+  mclapply(
     function(grid_row){
       make_all_forecasts(x = x_richness, settings = settings, 
                          observer_sigmas = observer_sigmas,
                          fun_name = grid_row$fun_name, 
                          use_obs_model = grid_row$use_obs_model)
-    }#,
-    #mc.cores = 8, 
-    #mc.preschedule = FALSE
+    },
+    mc.cores = 8, 
+    mc.preschedule = FALSE
   ) %>% 
   bind_rows() %>% 
   saveRDS(file = prepend_timeframe("forecast.rds"))
