@@ -4,19 +4,20 @@ author:
 - David J. Harris
 - Shawn D. Taylor
 - Ethan P. White
+bibliography: refs.bib
 output:
   pdf_document: default
   html_document: default
 ---
 
-`r settings = yaml::yaml.load_file("settings.yaml")`
+`r settings = yaml::yaml.load_file("../settings.yaml")`
 
 ## Introduction
 
 Forecasting the future state of ecological systems is increasingly important for
 planning, management, and evaluating how well ecological models capture the key
 ecological processes governing a system [@clark2001; @houlahan2017;
-@dietz2017]. One area of particular interest for forecasting is biodiversity
+@dietze2017]. One area of particular interest for forecasting is biodiversity
 since it is important for ecosystem function, central to conservation planning,
 and expected to be influenced by anthropogenic global change [@cardinale2012;
 @diaz2015; @tilman2017]. Anticipating potential changes in biodiversity is
@@ -39,7 +40,7 @@ However, despite the emerging interest in forecasting species richness and other
 aspects of biodiversity, little is known about how effectively we can anticipate
 their dynamics. This is due in part to the long time scales over which many
 ecological forecasts are applied and the resulting difficulty in assessing
-whether the predicted changes occurred [@dietzinreview]. What we do know comes
+whether the predicted changes occurred [@dietze2016]. What we do know comes
 from a small number of hindcasting studies, where models are built using data on
 species occurrence and richness from the past and evaluated on their ability to
 predict contemporary patterns [e.g., @algar2009; @distler2015]. These studies
@@ -47,12 +48,12 @@ are a valuable first step, but lack several components that are important for
 developing good forecasting models and understanding how accurately these models
 can predict the future. These components of good forecasting and evaluation (Box
 1) broadly involve: 1) expanding the use of data to include biological and
-environmental time-series [@treddenick2016]; 2) accounting for uncertainty in
+environmental time-series [@tredennick2016]; 2) accounting for uncertainty in
 observations, processes, model choice, and forecast evaluation
-[@clark2001, @dietz2017]; and 3) conducting meaningful evaluations of the
+[@clark2001, @dietze2017]; and 3) conducting meaningful evaluations of the
 forecasts by hindcasting, archiving short-term forecasts, and comparing
 forecasts to baselines to determine if the forecasts are more accurate than
-assuming the system is basically static [@Perretti2013].
+assuming the system is basically static [@perretti2013].
 
 In this paper we attempt to forecast the species richness of breeding birds at
 hundreds of locations throughout North America while following the best
@@ -153,7 +154,7 @@ predicts that future observations will be similar to the final observed value
 intervals expand rapidly as the predictions extend farther into the future.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
-function in @hyndman2016] to represent a array of different time-series modeling
+function in @forecast1] to represent a array of different time-series modeling
 approaches. These models can include an autoregressive component (as in the
 "naive" model, but with the possibility of longer-term dependencies in the
 underlying process), a moving average component (where the noise can have serial
@@ -161,7 +162,7 @@ autocorrelation) and an integration/differencing component (so that the analysis
 could be performed on sequential differences of the raw data, accommodating more
 complex patterns including trends). The `auto.arima` function chooses whether to
 include each of these components, and how many terms to include for each one,
-using AICc [@hyndman2016]. Since there is no seasonal component to the BBS
+using AICc [@forecast1]. Since there is no seasonal component to the BBS
 time-series, we did not include a season component in these models. Otherwise we
 used the default settings for this function. [[Note: should probably record
 somewhere what order model the auto.arima function tends to choose.  Eyeballing
@@ -383,9 +384,9 @@ convergence at longer time scales highlights the importance of considering how
 forecasting method performance changes with the distance into the future being
 predicted (Box 1). The value of this approach, and associated forecast horizons,
 has been raised for knowing how far into the future a model can be effectively
-used for forecasting [@petchy2015], but our results suggest a broader value to
+used for forecasting [@petchey2015], but our results suggest a broader value to
 this approach for considering the potential importance of different models and
-processes for making forecasts at different scales. [[Should make sure Petchy et
+processes for making forecasts at different scales. [[Should make sure Petchey et
 al. don't make this point]] Our results show that for forecasts 1-3 years in the
 future, baselines and time-series based approaches outperform all other methods
 using integrative metrics. At these time scales, environmental changes are
@@ -462,7 +463,7 @@ environmental conditions themselves have to be forecast and those forecasts have
 uncertainty and bias. This will cause ecological forecasts that use
 environmental data to be more uncertain than observed in current hindcasting
 efforts. It is important to correctly incorporate this uncertainty in the
-predictor variables into forecasting models [@clark2001; @dietz2017]. Difficulty
+predictor variables into forecasting models [@clark2001; @dietze2017]. Difficulty
 in forecasting future environmental conditions at small scales will present
 continued challenges for models incorporating these conditions and this may
 result in a continued advantage to simple time-series based approaches.
@@ -474,8 +475,8 @@ year timesteps and projected up to a century into the future. These are commonly
 beyond the career or even lifespan of the researchers, making reasonable model
 assessment impossible. Currently assessments at these long time-scales can
 only be made with a small number of opportune datasets. For examples hindcasts
-have been used to asses models of species richness [@alger2009, @distler2015]
-and distribution [@rappacciuolo2012, @moran-ordonez2017, @araujo2005,
+have been used to assess models of species richness [@algar2009, @distler2015]
+and distribution [@rapacciuolo2012, @moran-ordonez2017, @araujo2005,
 @eskildsen2013] using data aggregated across similar time scales. More
 evaluation studies like these are needed but there is a paucity of adequate long
 term data available. Short term forecasts will allow for relatively rapid
@@ -502,7 +503,7 @@ poorly, and to make these forecasts publicly available for assessment. These
 forecasts should include both short-term predictions, which can be assessed
 quickly, and mid to long-term forecasts to help assess long time-scale processes
 and determine how far into the future we can successfully forecast
-[@tredenick2016; @dietz2017]. Forecasts based on the models in this paper from
+[@tredennick2016; @dietze2017]. Forecasts based on the models in this paper from
 now until 2050 are openly archived on Dryad so that we and others can assess how
 well they perform and we plan to evaluate these forecasts and report the results
 as each new year of BBS data becomes available. Weather forecasting has
@@ -552,7 +553,7 @@ Forecasts describe how systems are expected to change through time. While some
 areas of ecological forecasting focus primarily on time-series data, others
 primarily focus on using spatial models and space-for time substitutions. Using
 ecological and environmental time-series data allows the consideration of actual
-dynamics from both a process and error structure perspective [@treddenick2016a].
+dynamics from both a process and error structure perspective [@tredennick2016].
 
 ### 3. Pay attention to uncertainty
 
@@ -561,8 +562,8 @@ the average or expected outcome. Failing to account for uncertainty can result
 in overconfidence in highly uncertain outcomes leading to poor decision making
 and erosion of confidence in ecological forecasts. Models should explicitly
 include sources of uncertainty and propagate them through the forecast where
-possible [@clark2001; @dietz2017]. Evaluations of forecasts should assess the
-accuracy of uncertainties as well as point estimates [@dietz2017].
+possible [@clark2001; @dietze2017]. Evaluations of forecasts should assess the
+accuracy of uncertainties as well as point estimates [@dietze2017].
 
 ### 4. Use predictors related to the question
 
@@ -586,7 +587,7 @@ gradients [@harris2015].
 ### 6. Assess how forecast accuracy changes with time-lag
 
 In general the accuracy of forecasts decreases with the length of time into the
-future being forecast [@petch2015]. This decay in accuracy and the potential for
+future being forecast [@petchey2015]. This decay in accuracy and the potential for
 different rates of decay to result in different relative model performance at
 different lead times should be considered when evaluating forecasts and
 comparing models.
@@ -615,4 +616,4 @@ performance.
 In cases where long-term predictions are the primary goal, short-term should
 also be made to accommodate the time-scales of planning and management decisions
 and to allow the accuracy of the forecasts to be quickly evaluated
-[@treddenick2016].
+[@tredennick2016].
