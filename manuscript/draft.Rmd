@@ -106,7 +106,7 @@ dataset as the source for climatic variables. Precipitation and temperature from
 37 downscaled model runs [@brekke2013, see Table S1] using the RCP6.0 scenario
 were averaged together to create a single ensemble used to calculate the
 bioclimatic variables for North America. For NDVI we used the per-site average
-values from 2000-2013 as a naive forecast. For observer effects (see below) each
+values from 2000-2013 as a simple forecast. For observer effects (see below) each
 site was set to have zero observer bias.
 
 We used observed richness values from 1982 (the first complete year of NDVI
