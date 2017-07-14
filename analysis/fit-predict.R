@@ -17,7 +17,7 @@ prepend_timeframe = function(x) {
 dir.create(prepend_timeframe(NULL), showWarnings = FALSE, recursive = TRUE)
 
 if (!file.exists(prepend_timeframe("observer_model.rds"))) {
-  fit_observer_model(settings = settings, output_dir = prepend_timeframe(""))
+  fit_observer_model(settings = settings, output_file = prepend_timeframe("observer_model.rds"))
 }
 obs_model = readRDS(prepend_timeframe("observer_model.rds"))
 
