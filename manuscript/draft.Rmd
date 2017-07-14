@@ -101,6 +101,14 @@ SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster
 values within a 40 km radius (the length of a BBS route) of the starting point
 of each BBS route.
 
+We made long term forecasts from 2014-2050 using CMIP5 multi-model ensemble
+dataset as the source for climatic variables. Precipitation and temperature from
+37 downscaled model runs [@brekke2013, see Table S1] using the RCP6.0 scenario
+were averaged together to create a single ensemble used to calculate the
+bioclimatic variables for North America. For NDVI we used the per-site average
+values from 2000-2013 as a simple forecast. For observer effects (see below) each
+site was set to have zero observer bias.
+
 We used observed richness values from 1982 (the first complete year of NDVI
 data) to 2003 for training the models, and data from 2004 to 2013 was used for
 testing their performance. We only used BBS routes from the continental United
@@ -187,9 +195,9 @@ of environmental variables. Boosted regression trees are a form of tree based
 modeling that work by fitting thousands of small tree-structured models
 sequentially, with each tree optimized to reduce the error of its predecessors.
 They are flexible models that are considered well suited for prediction
-[@elith2008]. This model was optimized using a Gaussian likelihood, with a 
+[@elith2008]. This model was optimized using a Gaussian likelihood, with a
 maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000 trees.
-The number of trees was selected using the "out of bag" estimator, and 
+The number of trees was selected using the "out of bag" estimator, and
 [[summarize how many trees were typically chosen here, for both observer-based
 and observer-free models]].
 
@@ -273,13 +281,13 @@ When comparing forecasts for richness across sites all methods performed well
 (Figure 2; R^2 XX-XX%). However SDMs (both stacked and joint) and the
 macroecological model all failed to successfully forecast the highest-richness
 sites resulting in a notable clustering of predicted values near ~60 species and
-the poorest performance in the cross-site comparison (R^2 XX-XX%). 
+the poorest performance in the cross-site comparison (R^2 XX-XX%).
 
 While the models generally did well in absolute terms (Figure 2), they tended
 not to outperform the "average" baseline from the generalized linear mixed model
 (Figure 3A). [[Stats go here]].  The auto-ARIMA was generally the best-performing
 non-baseline model, but in many cases, the best-fitting ARIMA model chosen by
-the model selection procedure was no different from the "average" model. 
+the model selection procedure was no different from the "average" model.
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 3B). The random forest-based SDM stack was the
@@ -301,7 +309,7 @@ In general, each model's error increased more-or-less linearly with time,
 although the slopes and initial error rates varied across models (Figure 4). The
 mistnet JSDM and GBM-based macroecological model's deviance tended to rise less
 rapidly over time than the baseline models' deviance did; for the ten-year
-forecasts, these environment-based models outperformed the Naive model and 
+forecasts, these environment-based models outperformed the Naive model and
 nearly matched the performance of the Average model.
 
 When the differences among observers were not explicitly accounted for, nearly
