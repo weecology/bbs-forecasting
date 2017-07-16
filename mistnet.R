@@ -3,9 +3,20 @@ library(tidyverse)
 library(mistnet)
 library(progress)
 devtools::load_all() 
-if (!file.exists("observer_model.rds")) {
-  fit_observer_model()
+
+
+timeframe = "train_32"
+prepend_timeframe = function(x) {
+  paste0("results", "/", timeframe, "/", x)
 }
+
+
+# Ingest the `settings` and put the timeframe of interest at the top level
+# of the list.
+settings = yaml::yaml.load_file("settings.yaml")
+settings = c(settings, settings$timeframes[[timeframe]])
+settings$timeframes = NULL
+is_future = settings$timeframe == "future"
 
 bbs = get_bbs_data() %>% 
   mutate(species_id = paste0("sp", species_id), presence = abundance > 0) %>% 
@@ -28,16 +39,29 @@ fit_mistnet = function(iter,
                        updater_arglist,
                        CV = FALSE){
   
-  settings = yaml::yaml.load_file("settings.yaml")
-  
   # Collect data for this iteration, then discard the rest to save
   # memory
-  obs_model = readRDS("observer_model.rds")
+  obs_model = readRDS(prepend_timeframe("observer_model.rds"))
   data = obs_model$data %>% 
     filter(iteration == iter) %>% 
     left_join(bbs, c("site_id", "year"))
+  
+  if (is_future) {
+    future = get_env_data(timeframe = "future") %>% 
+      filter(site_id %in% !!data$site_id,
+             year > !!settings$last_train_year) %>% 
+      select(which(colnames(.) %in% !!colnames(data))) %>% 
+      mutate(observer_effect = rnorm(nrow(.), mean = 0, 
+                                     sd = obs_model$observer_sigma[[iter]]),
+             in_train = FALSE)
+    data = bind_rows(data, future)
+    
+    rm(future)
+  }
   rm(obs_model)
   gc(TRUE)
+  
+  
   
   # Cross-validation
   if (CV) {
@@ -65,7 +89,7 @@ fit_mistnet = function(iter,
   # once.
   y = data %>% 
     select(matches("^sp[0-9]+$")) %>% 
-    select(which(colSums(.) > 0)) %>% 
+    select(which(colSums(. , na.rm = TRUE) > 0)) %>% 
     as.matrix()
   
   # Drop columns we won't need below
@@ -139,16 +163,21 @@ fit_mistnet = function(iter,
   # Streaming mean & variance in expected values
   moments = moment_stream$new() 
   residual_variance = 0 # Variance in richness, given occurrence probabilities
-  ll = matrix(NA, sum(!data$in_train), n_prediction_samples)
+  ll = matrix(NA, sum(!data$in_train, na.rm = TRUE), n_prediction_samples)
+  newdata = as.matrix(x[!data$in_train, ])
+
   for (i in 1:n_prediction_samples) {
+    
     p = predict(net, 
-                newdata = x[!data$in_train, ], 
+                newdata = newdata, 
                 n.importance.samples = 1)
     
-    ll[,i] = rowSums(dbinom(x = y[!data$in_train, ], 
-                             size = 1, 
-                             prob = p, 
-                             log = TRUE))
+    if (!is_future) {
+      ll[,i] = rowSums(dbinom(x = y[!data$in_train, ], 
+                              size = 1, 
+                              prob = p, 
+                              log = TRUE))
+    }
     
     moments$update(list(rowSums(p)))
     residual_variance = residual_variance + 
@@ -168,6 +197,8 @@ fit_mistnet = function(iter,
   
   # Save the predictions
   dir.create("mistnet_output", showWarnings = FALSE)
-  saveRDS(out, file = paste0("mistnet_output/", "iteration_", iter, 
-                             "_", ifelse(CV, "CV", use_obs_model), ".rds"))
+  saveRDS(out, file = prepend_timeframe(paste0("mistnet_output/", "iteration_", 
+                                               iter, "_", 
+                                               ifelse(CV, "CV", use_obs_model), 
+                                               ".rds")))
 }
