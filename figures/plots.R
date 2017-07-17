@@ -3,11 +3,18 @@ library(tidyverse)
 library(cowplot)
 settings = yaml::yaml.load_file("settings.yaml")
 
-forecast_results = readRDS("forecast.rds") %>% 
+timeframe = "train_22"
+prepend_timeframe = function(x) {
+  paste0("results", "/", timeframe, "/", x)
+}
+
+
+forecast_results = readRDS(prepend_timeframe("forecast.rds")) %>% 
   filter(!is.na(richness))
 gbm_results = bind_rows(readRDS("gbm_TRUE.rds"),
                         readRDS("gbm_FALSE.rds"))
-mistnet_results = lapply(dir("mistnet_output/", full.names = TRUE,
+mistnet_results = lapply(dir(prepend_timeframe("mistnet_output/"), 
+                             full.names = TRUE,
                              pattern = "TRUE|FALSE"),
                          readRDS) 
 
@@ -15,15 +22,16 @@ mistnet_results = lapply(dir("mistnet_output/", full.names = TRUE,
 mean(map_dbl(mistnet_results, ~mean(.x$mean - .x$richness)))
 
 
-average_results = bind_rows(readRDS("avg_TRUE.rds"), readRDS("avg_FALSE.rds"))
+average_results = bind_rows(readRDS(prepend_timeframe("avg_TRUE.rds")), 
+                            readRDS(prepend_timeframe("avg_FALSE.rds")))
 
 my_var = function(x){
   ifelse(length(x) == 1, 0, var(x))
 }
 
 
-rf_results = bind_rows(readRDS("rf_predictions/all_FALSE.rds"),
-                       readRDS("rf_predictions/all_TRUE.rds"))
+rf_results = bind_rows(readRDS(prepend_timeframe("rf_predictions/all_FALSE.rds")),
+                       readRDS(prepend_timeframe("rf_predictions/all_TRUE.rds")))
 
 bound = bind_rows(forecast_results, gbm_results, average_results, 
                   rf_results, mistnet_results) %>% 
@@ -32,6 +40,16 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
   mutate(diff = richness - mean, z = diff / sd,
          p = pnorm(richness, mean, sd),
          deviance = -2 * dnorm(richness, mean, sd, log = TRUE))
+
+bound %>% 
+  filter(model == "average") %>% 
+  left_join(filter(bound, model != "average"), 
+            c("site_id", "year", "use_obs_model")) %>% 
+  mutate(y = deviance.y - deviance.x) %>% 
+  filter(use_obs_model) %>% 
+  ggplot(aes(x = model.y, y = y)) +
+  ggforce::geom_sina(binwidth = .1, size = .25) +
+  geom_hline(yintercept = 0)
 
 
 for_violins = bound %>% 
@@ -60,7 +78,7 @@ d = bound %>%
 # c("#000000", dichromat::colorschemes$Categorical.12[c(4, 6, 10, 11, 12)])
 
 d %>% 
-  filter(!use_obs_model) %>% 
+  filter(use_obs_model) %>% 
   gather(key = "variable", value = "value", mse, mean_deviance, coverage) %>% 
   mutate(variable = forcats::fct_relevel(variable, "mse", "mean_deviance", 
                                          "coverage")) %>% 
@@ -88,81 +106,31 @@ plot_grid(plotlist = plots, nrow = 3)
 
 # digging into observer error ---------------------------------------------
 
-obs_model = readRDS("observer_model.rds")
-av_point = average_results %>% 
-  group_by(year, site_id, richness) %>% 
-  summarize(mean = mean(mean))
-
-obs_model$data %>% 
-  filter(!in_train) %>% 
-  group_by(year, training_observer, observer_id) %>% 
-  summarize(resid_var = var(observer_effect)) %>% 
-  group_by(year, training_observer) %>% 
-  summarize(mean_var = mean(resid_var)) %>% 
-  ggplot(aes(year, mean_var, color = training_observer)) +
-  geom_line()
-
-
-obs_model$data %>% 
-  filter(!in_train) %>% 
-  group_by(year) %>% 
-  summarize(`% new` = mean(!training_observer)) %>% 
-  plot()
+obs_model = readRDS(prepend_timeframe("observer_model.rds"))
 
 observer_uncertainties = obs_model$data %>% 
   filter(!in_train) %>% 
-  group_by(observer_id, year, site_id, training_observer) %>% 
-  summarize(observer_sd = sd(observer_effect)) %>% 
-  right_join(av_point, by = c("year", "site_id")) %>% 
-  mutate(squared_error = (richness - mean)^2, log = TRUE) %>% 
-  ungroup()
+  group_by(observer_id, year, site_id) %>% 
+  summarize(observer_sd = sd(observer_effect)) 
 
+observer_uncertainties %>% 
+  ggplot(aes(x = observer_sd^2, y = factor(year), 
+             fill = year)) + 
+  viridis::scale_fill_viridis(option = "B", guide = FALSE,
+                              direction = 1) + 
+  geom_joy(scale = 5, bandwidth = .75, color = "gray40") + 
+  theme_joy() +
+  ylab(expression("Year" %->% "")) + 
+  xlab("Observer-level uncertainty") + 
+  theme(axis.title.x = element_text(hjust = .5),
+        axis.title.y = element_text(hjust = .5))
 
-plot(gam(log(squared_error) ~ s(year) + s(observer_sd), 
-         data = observer_uncertainties))
+library(lme4)
+lmer_data = filter(bound, model == "average", use_obs_model) %>% 
+  left_join(observer_uncertainties, by = c("site_id", "year")) %>% 
+  mutate(squared_diff = diff^2)
 
-breaks = hist(observer_uncertainties$observer_sd, breaks = 15, 
-              plot = FALSE)$breaks
-binned = observer_uncertainties %>% 
-  mutate(`observer sd` = cut(observer_sd, breaks = breaks)) %>% 
-  group_by(`observer sd`, year) %>% 
-  summarize(mse = mean(squared_error), count = n()) %>% 
-  group_by(year) %>% 
-  mutate(proportion = count / sum(count))
-
-binned %>% 
-  ggplot(aes(year, `observer sd`, fill = mse)) + 
-  geom_raster() +
-  viridis::scale_fill_viridis() + 
-  coord_cartesian(expand = FALSE) + 
-  ggtitle("error by observer sd estimate & time")
-
-binned %>% 
-  ggplot(aes(year, `observer sd`, fill = proportion)) + 
-  geom_raster() +
-  viridis::scale_fill_viridis() + 
-  coord_cartesian(expand = FALSE) + 
-  ggtitle("observer sd estimates over time")
-
-library(gbm_results)
-g = gbm_results(squared_error ~ ordered(year) + observer_sd, 
-                data = observer_uncertainties,
-                distribution = "gaussian",
-                var.monotone = c(1, 1),
-                n.trees = 1E4,
-                shrinkage = 5E-4,
-                interaction.depth = 3)
-n.trees = gbm.perf(g)
-plot(g, c("ordered(year)", "observer_sd"), 
-     n.trees = n.trees,
-     continuous.resolution = 100,
-     return.grid = TRUE) %>% 
-  rename(mse = y) %>% 
-  ggplot(aes(`ordered(year)`, observer_sd, fill = mse)) +
-  geom_raster() +
-  viridis::scale_fill_viridis(option = "A", trans = "log",
-                              breaks = c(25, 50, 75)) +
-  coord_cartesian(expand = FALSE)
-
-
-summary(g, n.trees = n.trees)
+# Variance associated with observer differences versus year
+lmer(squared_diff ~ poly(observer_sd, 2) + (1|site_id) + year, 
+     data = lmer_data) %>% 
+  anova()
