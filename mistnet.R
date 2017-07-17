@@ -5,7 +5,7 @@ library(progress)
 devtools::load_all() 
 
 
-timeframe = "train_32"
+timeframe = "train_22"
 prepend_timeframe = function(x) {
   paste0("results", "/", timeframe, "/", x)
 }
@@ -196,7 +196,7 @@ fit_mistnet = function(iter,
            log_lik = apply(ll, 1, mistnet:::logMeanExp))
   
   # Save the predictions
-  dir.create("mistnet_output", showWarnings = FALSE)
+  dir.create(prepend_timeframe("mistnet_output"), showWarnings = FALSE)
   saveRDS(out, file = prepend_timeframe(paste0("mistnet_output/", "iteration_", 
                                                iter, "_", 
                                                ifelse(CV, "CV", use_obs_model), 

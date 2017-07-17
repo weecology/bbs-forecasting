@@ -131,7 +131,7 @@ x_richness %>%
   purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
                      settings = settings, future = future,
                      observer_sigmas = observer_sigmas) %>% 
-  bind_rows()
+  bind_rows() %>% 
   saveRDS(file = prepend_timeframe("gbm_TRUE.rds"))
 
 # GBM richness without observer effects:
@@ -140,8 +140,8 @@ x_richness %>%
     purrrlyr::by_slice(make_gbm_predictions, use_obs_model = FALSE,
                        settings = settings, future = future,
                        observer_sigmas = NULL) %>% 
-    bind_rows()
-  saveRDS(file = prepend_timeframe("gbm_FALSE.rds"))
+    bind_rows() %>% 
+    saveRDS(file = prepend_timeframe("gbm_FALSE.rds"))
 
 # fit random forest SDMs -------------------------------------------------------
 
