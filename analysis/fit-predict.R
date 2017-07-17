@@ -1,5 +1,6 @@
 library(tidyverse)
 library(purrrlyr) # for by_slice
+library(parallel)
 devtools::load_all()
 timeframe = "train_32"
 
@@ -127,20 +128,28 @@ expand.grid(fun_name = c("naive", "auto.arima"),
 
 # GBM richness with observer effects:
 x_richness %>%
-  group_by(iteration) %>% 
-  purrrlyr::by_slice(make_gbm_predictions, use_obs_model = TRUE,
-                     settings = settings, future = future,
-                     observer_sigmas = observer_sigmas) %>% 
-  bind_rows()
+  split(., .$iteration) %>% 
+  mclapply(make_gbm_predictions, 
+           use_obs_model = TRUE,
+           settings = settings, 
+           future = future,
+           observer_sigmas = NULL,
+           mc.cores = 8,
+           mc.preschedule = FALSE) %>% 
+  bind_rows() %>% 
   saveRDS(file = prepend_timeframe("gbm_TRUE.rds"))
 
 # GBM richness without observer effects:
-  x_richness %>%
-    group_by(iteration) %>% 
-    purrrlyr::by_slice(make_gbm_predictions, use_obs_model = FALSE,
-                       settings = settings, future = future,
-                       observer_sigmas = NULL) %>% 
-    bind_rows()
+x_richness %>%
+  split(., .$iteration) %>% 
+  mclapply(make_gbm_predictions, 
+           use_obs_model = FALSE,
+           settings = settings, 
+           future = future,
+           observer_sigmas = NULL,
+           mc.cores = 8,
+           mc.preschedule = FALSE) %>% 
+  bind_rows() %>% 
   saveRDS(file = prepend_timeframe("gbm_FALSE.rds"))
 
 # fit random forest SDMs -------------------------------------------------------

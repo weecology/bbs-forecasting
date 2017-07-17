@@ -1,7 +1,7 @@
 CV = FALSE
 
 if (CV) {
-  N_files = 100
+  N_files = 250
 } else {
   N_files = 500
 }
@@ -38,7 +38,7 @@ script = "#!/bin/bash
 
 # Memory per cpu core. Default is megabytes, but units can be specified 
 # with M or G for megabytes or Gigabytes.
-#SBATCH --mem-per-cpu=9G
+#SBATCH --mem-per-cpu=6G
 
 # Job run time in [DAYS]
 # HOURS:MINUTES:SECONDS
