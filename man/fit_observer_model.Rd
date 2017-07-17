@@ -16,4 +16,3 @@ fit_observer_model(stan_file = "mixed.stan", seed = 1,
 The default `mixed.stan` file is a linear mixed model for richness
 using site_id and observer_id as random effects.
 }
-

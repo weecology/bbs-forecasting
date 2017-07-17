@@ -15,4 +15,3 @@ Data frame with real zeros added
 \description{
 For population dynamics data that lacks real zeros, add them
 }
-
