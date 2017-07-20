@@ -209,21 +209,18 @@ observer_colors = RColorBrewer::brewer.pal(4, "PuOr")
 # before 2004.
 ggplot(time_series_data, aes(x = year)) +
   geom_ribbon(aes(ymin = mean - 1.96 * sd, ymax = mean + 1.96 * sd),
-              fill = "gray90") +
+              fill = "gray80") +
   geom_ribbon(aes(ymin = mean - 1 * sd, ymax = mean + 1 * sd),
               fill = "gray60") +
-  geom_line(aes(y = mean), size = 2, color = "gray30") +
+  geom_line(aes(y = mean), size = 1.5, color = "gray30") +
   facet_grid(use_obs_model ~ model) +
   geom_line(aes(y = richness, alpha = as.numeric(year < min(bound$year - 1)))) + 
   geom_point(aes(y = richness, fill = factor(observer_id)),
              size = 3.5, shape = 21) +
   scale_alpha(range = c(0, 1), guide = FALSE) + 
-  coord_cartesian(xlim = c(1981, 2014), 
-                  ylim = c(40, 65), expand = FALSE) +
+  coord_cartesian(ylim = c(41, 65), expand = TRUE) +
   ylab("Richness") +
   scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
-  theme(
-    panel.border = element_rect(color = alpha(1, .5), size = 1, linetype = 1),
-    panel.grid.major = theme_light()$panel.grid.major,
-    panel.grid.minor = theme_light()$panel.grid.minor)
+  theme(panel.grid.major = theme_light()$panel.grid.major,
+        panel.grid.minor = theme_light()$panel.grid.minor)
 
