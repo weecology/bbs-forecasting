@@ -44,27 +44,45 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
 
 # scatterplot -------------------------------------------------------------
 
+ts_models = c("average", "naive", "auto.arima")
+env_models = c("richness_gbm", "naive", "mistnet")
+models = c(ts_models, env_models)
+warning("no rf_sdm")
+
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
   mutate(x = min(mean), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   summarize(R2 = paste("R^2: ", 
                        format(1 - var(mean - richness) / var(richness),
                               digits = 2, nsmall = 2)))
-            
-ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2013)), 
-       aes(x = mean, y = richness)) +
-  geom_hex() + 
-  geom_abline(intercept = 0, slope = 1, alpha = .5) +
-  facet_grid(year ~ model) +
-  coord_equal() + 
-  scale_fill_continuous(low = "gray90", high = "navy") +
-  geom_text(inherit.aes = FALSE,
-            data = R2s,
-            aes(x = x, y = y, label = R2),
-            hjust = 0, vjust = 1,
-            size = 3) +
-  theme_light()
 
+make_scatterplots = function(models){
+  x_range = range(bound$mean)
+  ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2013),
+                       model %in% models), 
+         aes(x = mean, y = richness)) +
+    geom_hex() + 
+    geom_abline(intercept = 0, slope = 1, alpha = .5) +
+    facet_grid(year ~ model) +
+    coord_equal() + 
+    scale_fill_continuous(low = "gray90", high = "navy",
+                          limits = c(1, 30)) +
+    geom_text(inherit.aes = FALSE,
+              data = filter(R2s, model %in% models),
+              aes(x = x, y = y, label = R2),
+              hjust = 0, vjust = 1,
+              size = 3) +
+    theme_light(base_size = 14, ) +
+    xlim(x_range)
+}
+
+plot_grid(
+  make_scatterplots(ts_models),
+  make_scatterplots(env_models),
+  align = "h",
+  nrow = 2,
+  labels = c("A. Time-series models", "B. Environmental models"))
+ggsave(filename = "test.png", width = 7.5, height = 10)
 
 # Violins -----------------------------------------------------------------
 
@@ -180,17 +198,15 @@ observer_uncertainties %>%
 
 # Time series -------------------------------------------------------------
 
-#sample_site_id = unique(bound$site_id)[i]
+#sample_site_id = sample(unique(bound$site_id), 1)
 #sample_site_id = 82006
 #sample_site_id = 88005
 #sample_site_id = 2022
 #sample_site_id = 91012
 #sample_site_id = 2024
 sample_site_id = 82003
-sample_site_id = sample(unique(bound$site_id), 1)
 
-models = c("average", "naive", "auto.arima")
-grid = crossing(model = models,
+grid = crossing(model = c(ts_models, env_models),
                 use_obs_model = c(TRUE, FALSE),
                 year = unique(obs_model$data$year))
 
@@ -200,7 +216,7 @@ time_series_data = obs_model$data %>%
   left_join(grid, by = "year") %>% 
   left_join(select(bound, -richness), by = c("year", "model", "use_obs_model",
                                              "site_id")) %>% 
-  mutate(model = forcats::fct_relevel(model, models),
+  mutate(model = forcats::fct_relevel(model, unique(models)),
          observer_id = ifelse(use_obs_model, observer_id, 0)) %>% 
   select(site_id, year, model, use_obs_model, mean, sd, richness, observer_id)
 
@@ -209,25 +225,37 @@ observer_colors = RColorBrewer::brewer.pal(4, "PuOr")
 
 # The warning about missing values is just saying that there are no predictions
 # before 2004.
-ggplot(time_series_data, aes(x = year)) +
-  geom_ribbon(aes(ymin = mean - 1.96 * sd, ymax = mean + 1.96 * sd),
-              fill = "gray80") +
-  geom_ribbon(aes(ymin = mean - 1 * sd, ymax = mean + 1 * sd),
-              fill = "gray60") +
-  geom_line(aes(y = mean), size = 1.5, color = "gray30") +
-  facet_grid(use_obs_model ~ model) +
-  geom_line(aes(y = richness, alpha = as.numeric(year < min(bound$year - 1)))) + 
-  geom_point(aes(y = richness, fill = factor(observer_id)),
-             size = 3.5, shape = 21) +
-  scale_alpha(range = c(0, 1), guide = FALSE) + 
-  coord_cartesian(ylim = c(35, 70), expand = TRUE) +
-  ylab("Richness") +
-  scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
-  theme(panel.grid.major = theme_light()$panel.grid.major,
-        panel.grid.minor = theme_light()$panel.grid.minor)
+make_ts_plots = function(models){
+  ggplot(filter(time_series_data, model %in% models), aes(x = year)) +
+    geom_ribbon(aes(ymin = mean - 1.96 * sd, ymax = mean + 1.96 * sd),
+                fill = "gray80") +
+    geom_ribbon(aes(ymin = mean - 1 * sd, ymax = mean + 1 * sd),
+                fill = "gray60") +
+    geom_line(aes(y = mean), size = 1.5, color = "gray30") +
+    facet_grid(use_obs_model ~ model) +
+    geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
+    geom_point(aes(y = richness, fill = factor(observer_id)),
+               size = 2, shape = 21) +
+    scale_alpha(range = c(0, 1), guide = FALSE) + 
+    coord_cartesian(ylim = c(33, 70), expand = TRUE) +
+    ylab("Richness") +
+    scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
+    theme(panel.grid.major = theme_light()$panel.grid.major,
+          panel.grid.minor = theme_light()$panel.grid.minor,
+          plot.margin = unit(c(12, 7, 0, 7), units = "pt"))
+}
 
-forecast_results %>% filter(site_id == sample_site_id, model == "auto.arima", use_obs_model) %>% pull(coef_names)
-
+ts_plots = plot_grid(
+  make_ts_plots(ts_models),
+  make_ts_plots(env_models),
+  nrow = 2,
+  align = "h",
+  labels = c("A. Time-series models", "B. Environmental models"),
+  hjust = 0,
+  vjust = 0,
+  scale = .95
+)
+ggsave(filename = "test.png", plot = ts_plots, width = 7.5, height = 9)
 
 # Auto.arima --------------------------------------------------------------
 
@@ -236,11 +264,13 @@ forecast_results %>%
   pull(coef_names) %>% 
   map_chr(paste, collapse = " ") %>% 
   table() %>% 
-  sort()
+  sort() %>% 
+  (function(x) 100 * x / sum(x)) %>% round()
 
 forecast_results %>% 
   filter(model == "auto.arima", use_obs_model) %>% 
   pull(coef_names) %>% 
   map_chr(paste, collapse = " ") %>% 
   table() %>% 
-  sort()
+  sort() %>% 
+  (function(x) 100 * x / sum(x)) %>% round()
