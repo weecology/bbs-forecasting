@@ -20,6 +20,10 @@ output:
 
 `r settings = yaml::yaml.load_file("../settings.yaml")`
 
+## Abstract
+
+
+
 ## Introduction
 
 Forecasting the future state of ecological systems is increasingly important for
@@ -180,10 +184,7 @@ complex patterns including trends). The `auto.arima` function chooses whether to
 include each of these components, and how many terms to include for each one,
 using AICc [@forecast1]. Since there is no seasonal component to the BBS
 time-series, we did not include a season component in these models. Otherwise we
-used the default settings for this function. [[Note: should probably record
-somewhere what order model the auto.arima function tends to choose.  Eyeballing
-the results, seems to be most similar to the naive model, but would be good to
-check.]]
+used the default settings for this function. 
 
 ### Continental-scale models
 
@@ -294,9 +295,11 @@ the poorest performance in the cross-site comparison (R^2 XX-XX%).
 
 While the models generally did well in absolute terms (Figure 2), they tended
 not to outperform the "average" baseline from the generalized linear mixed model
-(Figure 3A). [[Stats go here]].  The auto-ARIMA was generally the best-performing
-non-baseline model, but in many cases, the best-fitting ARIMA model chosen by
-the model selection procedure was no different from the "average" model.
+(Figure 3A). [[Stats go here]].  The auto-ARIMA was generally the
+best-performing non-baseline model, but in many cases (67% of the time), the
+best-fitting ARIMA model chosen by the model selection procedure had no
+autoregressive, drift, or moving average terms, making it similar to the
+"Average" model.
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 3B). The random forest-based SDM stack was the
