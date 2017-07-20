@@ -5,6 +5,14 @@ author:
 - Shawn D. Taylor
 - Ethan P. White
 bibliography: refs.bib
+geometry: margin=1in
+fontsize: 12pt
+header-includes:
+    - \usepackage{times}
+    - \usepackage{setspace}
+    - \doublespacing
+    - \usepackage{lineno}
+    - \linenumbers
 output:
   pdf_document: default
   html_document: default
@@ -617,3 +625,6 @@ In cases where long-term predictions are the primary goal, short-term should
 also be made to accommodate the time-scales of planning and management decisions
 and to allow the accuracy of the forecasts to be quickly evaluated
 [@tredennick2016].
+
+
+## References
