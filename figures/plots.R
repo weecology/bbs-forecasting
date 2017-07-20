@@ -44,18 +44,18 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
 
 # scatterplot -------------------------------------------------------------
 
-R2s = filter(bound, use_obs_model, year %in% c(2004, 2009, 2013)) %>% 
+R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
   mutate(x = min(mean), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   summarize(R2 = paste("R^2: ", 
                        format(1 - var(mean - richness) / var(richness),
                               digits = 2, nsmall = 2)))
             
-ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2009, 2013)), 
+ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2013)), 
        aes(x = mean, y = richness)) +
   geom_hex() + 
   geom_abline(intercept = 0, slope = 1, alpha = .5) +
-  facet_grid(model ~ year) +
+  facet_grid(year ~ model) +
   coord_equal() + 
   scale_fill_continuous(low = "gray90", high = "navy") +
   geom_text(inherit.aes = FALSE,
@@ -184,10 +184,12 @@ observer_uncertainties %>%
 #sample_site_id = 82006
 #sample_site_id = 88005
 #sample_site_id = 2022
-sample_site_id = 2024
-sample_site_id
+#sample_site_id = 91012
+#sample_site_id = 2024
+sample_site_id = 82003
+sample_site_id = sample(unique(bound$site_id), 1)
 
-models = c("average", "naive", "mistnet")
+models = c("average", "naive", "auto.arima")
 grid = crossing(model = models,
                 use_obs_model = c(TRUE, FALSE),
                 year = unique(obs_model$data$year))
@@ -218,9 +220,27 @@ ggplot(time_series_data, aes(x = year)) +
   geom_point(aes(y = richness, fill = factor(observer_id)),
              size = 3.5, shape = 21) +
   scale_alpha(range = c(0, 1), guide = FALSE) + 
-  coord_cartesian(ylim = c(41, 65), expand = TRUE) +
+  coord_cartesian(ylim = c(35, 70), expand = TRUE) +
   ylab("Richness") +
   scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
   theme(panel.grid.major = theme_light()$panel.grid.major,
         panel.grid.minor = theme_light()$panel.grid.minor)
 
+forecast_results %>% filter(site_id == sample_site_id, model == "auto.arima", use_obs_model) %>% pull(coef_names)
+
+
+# Auto.arima --------------------------------------------------------------
+
+forecast_results %>% 
+  filter(model == "auto.arima", !use_obs_model) %>% 
+  pull(coef_names) %>% 
+  map_chr(paste, collapse = " ") %>% 
+  table() %>% 
+  sort()
+
+forecast_results %>% 
+  filter(model == "auto.arima", use_obs_model) %>% 
+  pull(coef_names) %>% 
+  map_chr(paste, collapse = " ") %>% 
+  table() %>% 
+  sort()
