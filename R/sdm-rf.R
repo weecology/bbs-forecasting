@@ -19,8 +19,8 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
     ntree = 1
   )  
   
-  test = cbind(make_test_set(d, future, observer_sigmas, settings),
-               species_id = sp_id, iteration = unique(d$iteration))
+  test = make_test_set(d, future, observer_sigmas, settings) %>% 
+    mutate(species_id = sp_id)
   test$mean = predict(rf, test, type = "prob")[,2]
   test$use_obs_model = use_obs_model
   
@@ -28,7 +28,7 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
 }
 
 rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
-                              future, observer_sigmas, path){
+                              future, observer_sigmas, rf_dir){
   vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
   iters = sort(unique(x_richness$iteration))
   results = lapply(iters, one_rf_tree,
@@ -41,10 +41,8 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
                    settings = settings) %>% 
     bind_rows()
   
-  path = paste0(path, 
-                "rf_predictions/sp_", sp_id, "_", use_obs_model, 
-                ".csv.gz")
-  write.csv(results, file = gzfile(path), row.names = FALSE)
+  filename = paste0(rf_dir, "sp_", sp_id, "_", use_obs_model, ".csv.gz")
+  write.csv(results, file = gzfile(filename), row.names = FALSE)
   
   results %>% 
     group_by(site_id, year, species_id, richness, use_obs_model) %>% 
@@ -52,7 +50,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
 }
 
 rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
-                               future, observer_sigmas, path) {
+                               future, observer_sigmas, rf_dir) {
   
   out = parallel::mclapply(
     unique(bbs$species_id), 

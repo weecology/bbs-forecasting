@@ -170,12 +170,13 @@ bbs = bbs %>%
 dir.create("rf_predictions", showWarnings = FALSE)
 
 gc() # Minimize memory detritus before forking
-dir.create(prepend_timeframe("rf_predictions"))
+rf_dir = prepend_timeframe("rf_predictions")
+dir.create(rf_dir)
 rf_predict_richness(bbs = bbs, x_richness = x_richness, 
                     settings = settings, use_obs_model = TRUE,
                     future = future, 
                     observer_sigmas = observer_sigmas,
-                    path = prepend_timeframe("")) %>% 
+                    rf_dir = rf_dir) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_TRUE.rds"))
 
 rf_predict_richness(bbs = bbs, x_richness = x_richness, 
