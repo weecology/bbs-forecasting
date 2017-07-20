@@ -28,7 +28,7 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
 }
 
 rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
-                              future, observer_sigmas){
+                              future, observer_sigmas, path){
   vars = c(settings$vars, if (use_obs_model) {"observer_effect"})
   iters = sort(unique(x_richness$iteration))
   results = lapply(iters, one_rf_tree,
@@ -41,8 +41,9 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
                    settings = settings) %>% 
     bind_rows()
   
-  path = paste0("rf_predictions/sp_", sp_id, "_", use_obs_model, ".csv.gz")
-  dir.create("rf_predictions", showWarnings = FALSE)
+  path = paste0(path, 
+                "rf_predictions/sp_", sp_id, "_", use_obs_model, 
+                ".csv.gz")
   write.csv(results, file = gzfile(path), row.names = FALSE)
   
   results %>% 
@@ -51,7 +52,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
 }
 
 rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
-                               future, observer_sigmas) {
+                               future, observer_sigmas, path) {
   
   out = parallel::mclapply(
     unique(bbs$species_id), 
@@ -60,7 +61,7 @@ rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
                          settings = settings, 
                          use_obs_model = use_obs_model,
                          future = future, 
-                         observer_sigmas = observer_sigmas)
+                         observer_sigmas = observer_sigmas, path)
     },
     mc.cores = 8,
     mc.preschedule = FALSE
