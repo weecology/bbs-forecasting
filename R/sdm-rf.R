@@ -41,7 +41,7 @@ rf_predict_species = function(sp_id, bbs, settings, x_richness, use_obs_model,
                    settings = settings) %>% 
     bind_rows()
   
-  filename = paste0(rf_dir, "sp_", sp_id, "_", use_obs_model, ".csv.gz")
+  filename = paste0(rf_dir, "/sp_", sp_id, "_", use_obs_model, ".csv.gz")
   write.csv(results, file = gzfile(filename), row.names = FALSE)
   
   results %>% 
