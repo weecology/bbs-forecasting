@@ -59,7 +59,7 @@ rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
                          settings = settings, 
                          use_obs_model = use_obs_model,
                          future = future, 
-                         observer_sigmas = observer_sigmas, path)
+                         observer_sigmas = observer_sigmas, rf_dir)
     },
     mc.cores = 8,
     mc.preschedule = FALSE
