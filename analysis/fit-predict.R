@@ -183,5 +183,5 @@ rf_predict_richness(bbs = bbs, x_richness = x_richness,
                     settings = settings, use_obs_model = FALSE,
                     future = future, 
                     observer_sigmas = observer_sigmas,
-                    rf_dir = prepend_timeframe("")) %>% 
+                    rf_dir = rf_dir) %>% 
   saveRDS(file = prepend_timeframe("rf_predictions/all_FALSE.rds"))

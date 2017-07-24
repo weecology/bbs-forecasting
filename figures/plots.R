@@ -45,9 +45,8 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
 # scatterplot -------------------------------------------------------------
 
 ts_models = c("average", "naive", "auto.arima")
-env_models = c("richness_gbm", "naive", "mistnet")
+env_models = c("richness_gbm", "rf_sdm", "mistnet")
 models = c(ts_models, env_models)
-warning("no rf_sdm")
 
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
   mutate(x = min(mean), y = max(richness)) %>% 
@@ -72,7 +71,7 @@ make_scatterplots = function(models){
               aes(x = x, y = y, label = R2),
               hjust = 0, vjust = 1,
               size = 3) +
-    theme_light(base_size = 14, ) +
+    theme_light(base_size = 14) +
     xlim(x_range)
 }
 
@@ -89,10 +88,11 @@ ggsave(filename = "test.png", width = 7.5, height = 10)
 
 for_violins = bound %>% 
   filter(model == "average", use_obs_model) %>% 
-  left_join(filter(bound, model != "average"), 
+  left_join(filter(bound, model != "average", use_obs_model), 
             c("site_id", "year", "use_obs_model"),
             suffix = c(".avg", ".other")) %>% 
   mutate(dev_diff = deviance.other - deviance.avg,
+         squared_diff = diff.other^2 - diff.avg^2,
          abs_diff = abs(diff.other) - abs(diff.avg))
 
 for_violins %>% 
@@ -104,7 +104,7 @@ for_violins %>%
   ylab("Improvement over 'Average' (absolute error)")
 
 for_violins %>% 
-  ggplot(aes(x = model.other, y = plogis(dev_diff / 2))) + 
+  ggplot(aes(x = model.other, y = plogis(-dev_diff / 2))) + 
   geom_violin(fill = 2, size = 0, alpha = .5, adjust = .5) +
   geom_hline(yintercept = 0.5, color = alpha(1, .25)) +
   stat_summary(fun.data = "mean_cl_boot", colour = "darkred", geom = "point") +
@@ -112,6 +112,9 @@ for_violins %>%
   ylim(0, 1)
 
 
+
+
+# Metrics over time -------------------------------------------------------
 
 d = bound %>% 
   group_by(year, model, use_obs_model) %>% 
@@ -126,10 +129,6 @@ d = bound %>%
 # Possibly-useful alternative 6-color colorblind palette
 # c("#000000", dichromat::colorschemes$Categorical.12[c(4, 6, 10, 11, 12)])
 
-theme_gray_elements =  theme(panel.background = theme_gray()$panel.background,
-                             panel.grid.major = theme_gray()$panel.grid.major,
-                             panel.grid.minor = theme_gray()$panel.grid.minor)
-
 ggplot() +
   geom_line(data = data_frame(x = c(min(d$year), max(d$year)), 
                               y = c(.95, .95),
@@ -141,13 +140,25 @@ ggplot() +
   ylab("") +
   facet_grid(variable~., scales = "free_y", switch = "y") +
   scale_x_continuous(expand = c(0, 0)) +
-  theme_gray_elements
+  theme_light(base_size = 14)
   
 
 
 # digging into observer error ---------------------------------------------
 
 obs_model = readRDS(prepend_timeframe("observer_model.rds"))
+
+obs_model$data %>% 
+  filter(!in_train) %>% 
+  group_by(year, site_id) %>% 
+  summarize(moe = var(observer_effect)) %>% 
+  group_by(year) %>% 
+  summarize(moe=mean(moe))
+
+bound %>% 
+  filter(model == "average", use_obs_model) %>% 
+  group_by(year) %>% 
+  summarize(mse = mean(diff^2))
 
 observer_uncertainties = obs_model$data %>% 
   filter(!in_train) %>% 
@@ -171,7 +182,7 @@ observer_uncertainties %>%
   viridis::scale_fill_viridis(option = "B", guide = FALSE,
                               direction = 1) + 
   geom_joy(scale = 5, bandwidth = .75, color = "gray40") + 
-  theme_joy() +
+  theme_joy(font_size = 14) +
   ylab(expression("Year" %->% "")) + 
   xlab("Observer-level uncertainty") + 
   theme(axis.title.x = element_text(hjust = .5),
@@ -191,8 +202,8 @@ l = lmer(scale(diff^2) ~ bs[,-9] + (1|site_id) + scale(year),
 observer_uncertainties %>% 
   group_by(year) %>% 
   summarize(mse = mean((richness - mean)^2), moe = mean(observer_sd^2)) %>% 
-  gather(key = var, value = y, mse, moe) %>% 
-  ggplot(aes(x = year, y = y, color = var)) + 
+  mutate(y = moe / mse) %>% 
+  ggplot(aes(x = year, y = y)) + 
   geom_line()
 
 
@@ -240,9 +251,8 @@ make_ts_plots = function(models){
     coord_cartesian(ylim = c(33, 70), expand = TRUE) +
     ylab("Richness") +
     scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
-    theme(panel.grid.major = theme_light()$panel.grid.major,
-          panel.grid.minor = theme_light()$panel.grid.minor,
-          plot.margin = unit(c(12, 7, 0, 7), units = "pt"))
+    theme_light(base_size = 14) + 
+    theme(plot.margin = unit(c(12, 7, 0, 7), units = "pt"))
 }
 
 ts_plots = plot_grid(
@@ -255,9 +265,12 @@ ts_plots = plot_grid(
   vjust = 0,
   scale = .95
 )
+ts_plots
 ggsave(filename = "test.png", plot = ts_plots, width = 7.5, height = 9)
 
 # Auto.arima --------------------------------------------------------------
+
+# Percentages for each model type.
 
 forecast_results %>% 
   filter(model == "auto.arima", !use_obs_model) %>% 
@@ -274,3 +287,45 @@ forecast_results %>%
   table() %>% 
   sort() %>% 
   (function(x) 100 * x / sum(x)) %>% round()
+
+
+observer_deviance_data = bound %>% 
+  mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
+                                             no = "FALSE", 
+                                             yes = "TRUE")) %>% 
+  select(site_id, year, model, use_obs_model, deviance) %>% 
+  spread(key = use_obs_model, value = deviance) %>% 
+  mutate(y = plogis(0.5 * (no - yes)))
+
+observer_error_data = bound %>% 
+  mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
+                                             no = "FALSE", 
+                                             yes = "TRUE")) %>% 
+  select(site_id, year, model, use_obs_model, diff) %>% 
+  spread(key = use_obs_model, value = diff) %>% 
+  mutate(y = abs(no) - abs(yes))
+  
+observer_plot = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
+  data %>% 
+    ggplot(aes(x = model, y = y)) + 
+    geom_hline(yintercept = yintercept, alpha = .5) + 
+    stat_summary(fun.data = "mean_cl_boot", colour = "darkred", geom = "point") +
+    geom_violin(fill = alpha("red", .5), size = 0, adjust = adjust) +
+    coord_cartesian(ylim = ylim, expand = FALSE) +
+    ylab(ylab) +
+    xlab("Model type") +
+    ggtitle(main)
+}
+
+plot_grid(
+  observer_plot(observer_deviance_data, 
+                main = "Posterior weight of model\nincluding observer effect",
+                ylab = "Relative performance of observer model",
+                ylim = c(0, 1), 
+                yintercept = 0.5, 
+                adjust = 2),
+  observer_plot(observer_error_data, 
+              main = "Error reduction from\nobserver model",
+              ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
+              yintercept = 0)
+)
