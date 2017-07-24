@@ -314,18 +314,19 @@ observer_plot = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
     coord_cartesian(ylim = ylim, expand = FALSE) +
     ylab(ylab) +
     xlab("Model type") +
-    ggtitle(main)
+    ggtitle(main) +
+    theme_light(14)
 }
 
 plot_grid(
   observer_plot(observer_deviance_data, 
                 main = "Posterior weight of model\nincluding observer effect",
-                ylab = "Relative performance of observer model",
+                ylab = "Relative performance\nof observer model",
                 ylim = c(0, 1), 
                 yintercept = 0.5, 
                 adjust = 2),
   observer_plot(observer_error_data, 
-              main = "Error reduction from\nobserver model",
+              main = "Absolute error reduction\nfrom observer model",
               ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
               yintercept = 0)
 )
