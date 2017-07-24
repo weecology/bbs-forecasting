@@ -320,13 +320,15 @@ observer_plot = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
 
 plot_grid(
   observer_plot(observer_deviance_data, 
-                main = "Posterior weight of model\nincluding observer effect",
-                ylab = "Relative performance\nof observer model",
+                main = "Posterior weight of mode including observer effect",
+                ylab = "Posterior weight of\nobserver model",
                 ylim = c(0, 1), 
                 yintercept = 0.5, 
                 adjust = 2),
   observer_plot(observer_error_data, 
-              main = "Absolute error reduction\nfrom observer model",
+              main = "Absolute error reduction from observer model",
+              ylab = "Reduction in absolute\nrichness error (species)",
               ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
-              yintercept = 0)
+              yintercept = 0),
+  nrow = 2
 )
