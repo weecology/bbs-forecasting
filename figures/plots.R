@@ -314,6 +314,15 @@ ms_numbers = list(
   N_sites = obs_model$data %>% 
     distinct(site_id) %>% 
     nrow(),
+  N_predict_sites = bound %>% 
+    distinct(site_id) %>% 
+    nrow(),
+  N_predictions = bound %>% 
+    distinct(site_id, year) %>% 
+    nrow(),
+  N_obs = obs_model$data %>% 
+    distinct(observer_id) %>% 
+    nrow(),
   richness_summary = obs_model$data %>% 
     distinct(site_id, year, richness) %>% 
     summarize(mean = round(mean(richness)),
@@ -340,7 +349,13 @@ ms_numbers = list(
     range() %>% 
     format(digits = 2) %>% 
     paste(collapse = "-"),
-  variance_percent = as.list(round(variance_frac * 100))
+  variance_percent = as.list(round(variance_frac * 100)),
+  pct_is_average = forecast_results %>% 
+    group_by(use_obs_model) %>% 
+    filter(model == "auto.arima") %>% 
+    summarize(is_avg = mean(100 * map_lgl(coef_names, ~all(.x == "intercept")))) %>% 
+    pull(is_avg) %>% 
+    round()
 )  
 cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
 
