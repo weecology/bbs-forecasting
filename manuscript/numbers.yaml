@@ -1,0 +1,17 @@
+N_species: 385
+N_runs: 34494
+N_sites: 1279
+richness_summary:
+  mean: 51.0
+  min: 8.0
+  max: 91.0
+n_gbm:
+- 6700.0
+- 7800.0
+rf_coverage_pct: 72.0
+all_R2s: 0.53-0.87
+env_R2s: 0.53-0.78
+variance_percent:
+  site: 70.0
+  observer: 21.0
+  residual: 9.0
