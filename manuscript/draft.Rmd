@@ -22,7 +22,27 @@ output:
 
 ## Abstract
 
-
+Developing forecasts for biodiversity is important for conservation, management,
+and evaluating how well current models characterize natural systems. While there
+are an increasing number of studies forecasting biodiversity, there is little
+information available on how well these forecasts work because these studies
+fail to follow good practice for making and evaluating forecasts. Most diversity
+forecasts do not conduct meaningful evaluations of the forecasts, fail to
+account for uncertainty, and do not use time-series data that captures the
+actual dynamics being studied. Using hindcasting we made and evaluated XXXX
+[number of years * number of models * number of sites] forecasts for breeding
+bird species richness at XXX sites throughout North America following best
+practices for forecasting. Forecasts were made for up to a decade into the
+future. Our results show that while all of the models we evaluated produce
+reasonable forecasts, none of them outperforms the simple baseline of long-term
+average richness. This means that at present our best forecast for future
+richness is simply to assume that it is unchanging. This calls into question the
+efficacy of current modeling approaches. Most of the best practices implemented
+in this study directly influence the outcome of the forecasts and result in
+different conclusions from those made in previous studies. This emphasizes the
+importance of following good practice in making ecological forecasts and of
+starting to actively make more forecasts in such a way that they can be quickly
+evaluated and improved on.
 
 ## Introduction
 
