@@ -293,53 +293,56 @@ ggsave("figures/observer_violins.png", width = 4, height = 5)
 
 
 # Numerical odds and ends for manuscript ----------------------------------
-
-N_runs = obs_model$data %>% 
-  distinct(site_id, year) %>% 
-  nrow()
-N_sites = obs_model$data %>% 
-  distinct(site_id) %>% 
-  nrow()
-richness_summary = obs_model$data %>% 
-  distinct(site_id, year, richness) %>% 
-  summarize(mean = round(mean(richness)),
-            min = min(richness),
-            max = max(richness))
-
-
-n_gbm = gbm_results %>% 
-  filter(site_id == 2001, year == 2004) %>% 
-  group_by(use_obs_model) %>% 
-  summarize(means = mean(n.trees)) %>% 
-  pull(means) %>% 
-  signif(2)
-
-rf_coverage_pct = bound %>% 
-  filter(model == "rf_sdm", use_obs_model) %>% 
-  summarize(round(100 * mean(p > .025 & p < .975))) %>% 
-  pull()
-
-all_R2s = R2s %>% 
-  pull(R2) %>% 
-  range() %>% 
-  format(digits = 2) %>% 
-  paste(collapse = "-")
-
-env_R2s = R2s %>% 
-  filter(model %in% env_models) %>% 
-  pull(R2) %>% 
-  range() %>% 
-  format(digits = 2) %>% 
-  paste(collapse = "-")
-
+bbs_data = get_pop_ts_env_data(
+  start_yr = settings$start_yr, 
+  end_yr = settings$timeframes[[timeframe]]$end_yr, 
+  last_train_year = settings$timeframes[[timeframe]]$last_train_year, 
+  min_year_percentage = settings$min_year_percentage)
 
 variance_components = data_frame(site = obs_model$site_sigma^2, 
                                  observer = obs_model$observer_sigma^2,
                                  residual = obs_model$sigma^2)
 variance_frac = colMeans(variance_components / rowSums(variance_components))
 
-variance_percent = as.list(round(variance_frac * 100))
-
+ms_numbers = list(
+  N_species =  bbs_data %>% 
+    distinct(species_id) %>% 
+    nrow(),
+  N_runs = obs_model$data %>% 
+    distinct(site_id, year) %>% 
+    nrow(),
+  N_sites = obs_model$data %>% 
+    distinct(site_id) %>% 
+    nrow(),
+  richness_summary = obs_model$data %>% 
+    distinct(site_id, year, richness) %>% 
+    summarize(mean = round(mean(richness)),
+              min = min(richness),
+              max = max(richness)),
+  n_gbm = gbm_results %>% 
+    filter(site_id == 2001, year == 2004) %>% 
+    group_by(use_obs_model) %>% 
+    summarize(means = mean(n.trees)) %>% 
+    pull(means) %>% 
+    signif(2),
+  rf_coverage_pct = bound %>% 
+    filter(model == "rf_sdm", use_obs_model) %>% 
+    summarize(round(100 * mean(p > .025 & p < .975))) %>% 
+    pull(),
+  all_R2s = R2s %>% 
+    pull(R2) %>% 
+    range() %>% 
+    format(digits = 2) %>% 
+    paste(collapse = "-"),
+  env_R2s = R2s %>% 
+    filter(model %in% env_models) %>% 
+    pull(R2) %>% 
+    range() %>% 
+    format(digits = 2) %>% 
+    paste(collapse = "-"),
+  variance_percent = as.list(round(variance_frac * 100))
+)  
+cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
 
 fitted = obs_model$data %>% 
   filter(in_train) %>% 
