@@ -62,17 +62,17 @@ in response to anthropogenic influences [@diaz2015; @dornelas2014].
 
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models.
-In general, these models describe individual species' occurrence patterns across
-sites as functions of the site's environment [@thomas2004; @urban2015]. By
-plugging forecasts of future environmental conditions into these functions,
-ecologists can make predictions about where each species will occur in the
-future. These species-level predictions can then be added up ("stacked") to
-generate predicted richness values [e.g. @calabrese2014]. Alternatively, models
-that directly relate spatial patterns of species richness to the environment
-have been developed and generally perform equivalently to species distribution
-modeling based methods [@algar2009; @distler2015]. This approach is sometimes
-referred to as "macroecological" modeling, because it models the larger-scale
-pattern (richness) more directly [@distler2015].
+In general, these models describe individual species' occurrence patterns as
+functions of the environment [@thomas2004; @urban2015]. By plugging forecasts of
+future environmental conditions into these functions, ecologists can make
+predictions about where each species will occur in the future. These
+species-level predictions can then be added up ("stacked") to generate predicted
+richness values [e.g. @calabrese2014]. Alternatively, models that directly
+relate spatial patterns of species richness to the environment have been
+developed and generally perform equivalently to species distribution modeling
+based methods [@algar2009; @distler2015]. This approach is sometimes referred to
+as "macroecological" modeling, because it models the larger-scale pattern
+(richness) more directly [@distler2015].
 
 Despite the emerging interest in forecasting species richness and other aspects
 of biodiversity, little is known about how effectively we can anticipate their
