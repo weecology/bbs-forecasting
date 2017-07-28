@@ -4,9 +4,12 @@ source("mistnet.R")
 args <- commandArgs(TRUE)
 start = args[[1]]
 end = args[[2]]
+timeframe = args[[3]]
 
 # Find the cross-validation iteration with the lowest error
-row = dir("mistnet_output/", pattern = "CV", full.names = TRUE) %>% 
+row = dir(paste0("results/", timeframe, "/mistnet_output/"), 
+          pattern = "CV", 
+          full.names = TRUE) %>% 
   map(readRDS) %>% 
   bind_rows() %>% 
   group_by(iteration) %>% 

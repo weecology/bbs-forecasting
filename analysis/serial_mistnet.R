@@ -1,4 +1,5 @@
 CV = FALSE
+timeframe = "train_22"
 
 if (CV) {
   N_files = 250
@@ -57,7 +58,9 @@ for (i in 1:N_jobs) {
   jobname = paste0("job_", i, ".job")
   # send the script to SLURM with the specified filename, starts & ends as 
   # arguments, plus N_files (used for reproducibility in the CV script)
-  cat(script, filename, starts[[i]], ends[[i]], N = N_files, "\n", file = jobname)
+  cat(script, filename, starts[[i]], ends[[i]], timeframe = timeframe, 
+      N = N_files, "\n", 
+      file = jobname)
   system(paste("sbatch", jobname), wait = TRUE)
   file.remove(jobname)
   Sys.sleep(0.25)

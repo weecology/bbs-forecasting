@@ -183,6 +183,8 @@ downstream models with each of the Monte Carlo samples.
 
 ### Site-level models
 
+![](../figures/model_predictions.png)
+
 We fit three sets of models that were fit to each site independently, with no
 environmental information. These models were fit to each BBS route both on the
 raw richness values and on the residuals from our observer model. When
@@ -329,6 +331,8 @@ sites resulting in a notable clustering of predicted values near ~60 species and
 the poorest performance ($R^2$ `r numbers$env_R2s`, versus XX-XX for the
 within-site methods).
 
+![](../figures/scatter.png)
+
 While the models generally did well in absolute terms (Figure 2), none tended to
 outperform the "average" baseline from the generalized linear mixed model
 (Figure 3A). [[Stats go here]].  The auto-ARIMA was generally the
@@ -336,6 +340,10 @@ best-performing non-baseline model, but in many cases (67% of the time), the
 best-fitting ARIMA model chosen by the model selection procedure had no
 autoregressive, drift, or moving average terms, making it similar to the
 "Average" model.
+
+![](../figures/model_violins.png)
+
+![](../figures/performance_time.png)
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 3B). The random forest-based SDM stack was the
@@ -371,6 +379,8 @@ larger decline in performance -- especially in terms of coverage. The mistnet
 JSDM was notable here because the coverage of its prediction intervals retained
 very good coverage in the presence of this observer-based noise, which we
 attribute to its ability to model this variation with its latent variables.
+
+![](../figures/observers.png)
 
 ## Discussion
 
