@@ -84,8 +84,8 @@ occurrence and richness from the past and evaluated on their ability to predict
 contemporary patterns [e.g., @algar2009; @distler2015]. These studies are a
 valuable first step, but lack several components that are important for
 developing good forecasting models and understanding how accurately these models
-can predict the future. These components of good forecasting and evaluation (Box
-1) broadly involve: 1) expanding the use of data to include biological and
+can predict the future. These components of good forecasting and evaluation
+(Box 1) broadly involve: 1) expanding the use of data to include biological and
 environmental time-series [@tredennick2016]; 2) accounting for uncertainty in
 observations, processes, model choice, and forecast evaluation [@clark2001,
 @dietze2017]; and 3) conducting meaningful evaluations of the forecasts by
