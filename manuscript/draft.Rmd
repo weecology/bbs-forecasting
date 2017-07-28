@@ -405,7 +405,7 @@ general, SDM-based forecasts are rarely evaluated, particularly in terms of
 repeated observations at the same site. Since site-level richness is relatively
 stable, model evaluations that show high accuracy in predicting differences
 among sites may not indicate much about a model's ability to predict changes
-over time. This issue has also recently been recently highlighted as an issue
+over time. This issue has also recently been highlighted as an issue
 for using SDMs to predict the future locations of individual species
 [@rapacciuolo2012]. This result is particularly sobering because this approach
 forms the main foundation for estimates of the predicted loss of biodiversity to
