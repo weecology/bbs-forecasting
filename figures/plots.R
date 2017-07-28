@@ -187,64 +187,86 @@ ggsave("figures/observer_uncertainty.png", width = 3.75, height = 4.5)
 
 # Time series -------------------------------------------------------------
 
-#sample_site_id = sample(unique(bound$site_id), 1)
-#sample_site_id = 82006
-#sample_site_id = 88005
-#sample_site_id = 2022
-#sample_site_id = 91012
-#sample_site_id = 2024
-sample_site_id = 82003
 
-grid = crossing(model = c(ts_models, env_models),
-                use_obs_model = c(TRUE, FALSE),
-                year = unique(obs_model$data$year))
+# sample_site_id = 88005
+# sample_site_id = 91012
+# sample_site_id = 2024
+# sample_site_id = 91062
+sample_site_id = 38032
+sample_site_id = 72035
 
-time_series_data = obs_model$data %>% 
-  filter(site_id == sample_site_id, iteration == 1) %>% 
-  select(site_id, year, richness, observer_id, richness) %>% 
-  left_join(grid, by = "year") %>% 
-  left_join(select(bound, -richness), by = c("year", "model", "use_obs_model",
-                                             "site_id")) %>% 
-  mutate(model = forcats::fct_relevel(model, unique(models)),
-         observer_id = ifelse(use_obs_model, observer_id, 0)) %>% 
-  select(site_id, year, model, use_obs_model, mean, sd, richness, observer_id)
-
-
-observer_colors = RColorBrewer::brewer.pal(4, "PuOr")
-
-# The warning about missing values is just saying that there are no predictions
-# before 2004.
-make_ts_plots = function(models){
+make_ts_plots = function(models, ylim, use_obs_model, sample_site_id, 
+                         main = ""){
+  grid = crossing(model = c(ts_models, env_models),
+                  use_obs_model = unique(c(use_obs_model, FALSE)),
+                  year = unique(obs_model$data$year))
+  
+  time_series_data = obs_model$data %>% 
+    filter(site_id == sample_site_id, iteration == 1) %>% 
+    select(site_id, year, richness, observer_id, richness) %>% 
+    left_join(grid, by = "year") %>% 
+    left_join(select(bound, -richness), by = c("year", "model", "use_obs_model",
+                                               "site_id")) %>% 
+    mutate(model = forcats::fct_relevel(model, unique(models)),
+           observer_id = ifelse(use_obs_model, observer_id, 0)) %>% 
+    select(site_id, year, model, use_obs_model, mean, sd, richness, observer_id,
+           deviance)
+  
+  faceting = if (use_obs_model) {
+    facet_grid(model ~ use_obs_model)
+  } else {
+    (facet_grid(~ model))
+  }
+  
+  title = if (main != "") {
+    ggtitle(main)
+  } else {
+    NULL
+  }
+  
   ggplot(filter(time_series_data, model %in% models), aes(x = year)) +
     geom_ribbon(aes(ymin = mean - 1.96 * sd, ymax = mean + 1.96 * sd),
                 fill = "gray80") +
     geom_ribbon(aes(ymin = mean - 1 * sd, ymax = mean + 1 * sd),
                 fill = "gray60") +
-    geom_line(aes(y = mean), size = 1.5, color = "gray30") +
-    facet_grid(use_obs_model ~ model) +
+    geom_line(aes(y = mean), color = "gray30") +
+    faceting +
     geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
     geom_point(aes(y = richness, fill = factor(observer_id)),
-               size = 2, shape = 21) +
+               size = .8, shape = 21, stroke = .5) +
     scale_alpha(range = c(0, 1), guide = FALSE) + 
-    coord_cartesian(ylim = c(33, 70), expand = TRUE) +
+    coord_cartesian(ylim = ylim, expand = TRUE) +
     ylab("Richness") +
-    scale_fill_manual(values = c("black", observer_colors), guide = FALSE) +
-    theme_light(base_size = 14) + 
-    theme(plot.margin = unit(c(12, 7, 0, 7), units = "pt"))
+    viridis::scale_fill_viridis(discrete = TRUE, option = "A", guide = FALSE) + 
+    theme_light(base_size = 11) + 
+    theme(plot.margin = unit(c(10, 7, 1, 7), units = "pt"),
+          strip.background = element_rect(fill="white"), 
+          strip.text = element_text(color = "black")) +
+    title +
+    xlab("Year")
 }
 
-ts_plots = plot_grid(
-  make_ts_plots(ts_models),
-  make_ts_plots(env_models),
-  nrow = 2,
-  align = "h",
-  labels = c("A. Time-series models", "B. Environmental models"),
-  hjust = 0,
-  vjust = 0,
-  scale = .95
-)
-ts_plots
-ggsave(filename = "figures/model_predictons.png", plot = ts_plots, width = 7.5, height = 9)
+# The warning about missing values is just saying that there are no predictions
+# before 2004.
+list(ts_models, env_models) %>% 
+  map(~make_ts_plots(.x, 
+                     ylim = c(42, 73), 
+                     use_obs_model = FALSE, 
+                     sample_site_id = 91034,
+                     main = ifelse(
+                       all(.x %in% ts_models),
+                       "A. Time series models", 
+                       "B. Environmental models"))
+  ) %>% 
+  plot_grid(plotlist = ., nrow = 2)
+  
+ggsave(filename = "figures/model_predictions.png", width = 7.5, height = 4)
+
+
+make_ts_plots(c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
+              use_obs_model = TRUE, sample_site_id = 72035,
+              main = "Controlling for observer differences")
+ggsave(filename = "figures/observer_predictions.png", width = 4, height = 4.5)
 
 # Numbers for the manuscript ----------------------------------------------
 
