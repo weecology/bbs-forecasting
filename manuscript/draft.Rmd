@@ -667,8 +667,13 @@ influencing the observation of the data. [[citation?]]
 
 ### 8. Validate using hindcasting
 
-To evaluate the expected accuracy and uncertainty of forecasts assess the
-performance of these forecasts within existing time-series data. [[citaton?]]
+Evalutating a models predictive performance across time is critical. Hindcasting
+uses a temporal out of sample validation to mimic how well a model would have
+performed had it been run in the past. For example using occurance data from the
+early 20th century to model distributions which are validated with late
+20th century occurances. Dense timeseries, such as yearly observations, are
+desirable to also evalulate the forecast horizon (see #6), but this is not
+a strict requirement.
 
 ### 9. Publicly archive forecasts
 
