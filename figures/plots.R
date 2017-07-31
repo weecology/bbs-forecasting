@@ -233,7 +233,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     faceting +
     geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
     geom_point(aes(y = richness, fill = factor(observer_id)),
-               size = .8, shape = 21, stroke = .5) +
+               size = 1, shape = 21, stroke = .5) +
     scale_alpha(range = c(0, 1), guide = FALSE) + 
     coord_cartesian(ylim = ylim, expand = TRUE) +
     ylab("Richness") +
@@ -261,6 +261,12 @@ list(ts_models, env_models) %>%
   plot_grid(plotlist = ., nrow = 2)
   
 ggsave(filename = "figures/model_predictions.png", width = 7.5, height = 4)
+
+
+make_ts_plots(c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
+              use_obs_model = TRUE, sample_site_id = 72035,
+              main = "Controlling for observer differences")
+ggsave(filename = "figures/observer_predictions.png", width = 4, height = 4)
 
 # Numbers for the manuscript ----------------------------------------------
 
@@ -290,25 +296,21 @@ observer_error_data = bound %>%
   spread(key = use_obs_model, value = diff) %>% 
   mutate(y = abs(no) - abs(yes))
 
+
 plot_grid(
-  make_ts_plots(c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
-                use_obs_model = TRUE, sample_site_id = 72035,
-                main = "Controlling for observer differences"),
-  plot_grid(
-    make_violins(observer_error_data, 
-                 main = "Absolute error reduction from observer model",
-                 ylab = "Reduction in absolute\nrichness error (species)",
-                 ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
-                 yintercept = 0,
-                 adjust = 2),
-    make_violins(observer_deviance_data, 
-                 main = "Posterior weight of model including observer effect",
-                 ylab = "Posterior weight of\nobserver model",
-                 ylim = c(0, 1), 
-                 yintercept = 0.5, 
-                 adjust = 5),
-    nrow = 2
-  )
+  make_violins(observer_error_data, 
+               main = "Absolute error reduction from observer model",
+               ylab = "Reduction in absolute\nrichness error (species)",
+               ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
+               yintercept = 0,
+               adjust = 2),
+  make_violins(observer_deviance_data, 
+               main = "Posterior weight of model including observer effect",
+               ylab = "Posterior weight of\nobserver model",
+               ylim = c(0, 1), 
+               yintercept = 0.5, 
+               adjust = 5),
+  nrow = 2
 )
 ggsave("figures/observers.png", width = 8, height = 5)
 
