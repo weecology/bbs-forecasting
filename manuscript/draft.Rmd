@@ -405,7 +405,7 @@ general, SDM-based forecasts are rarely evaluated, particularly in terms of
 repeated observations at the same site. Since site-level richness is relatively
 stable, model evaluations that show high accuracy in predicting differences
 among sites may not indicate much about a model's ability to predict changes
-over time. This issue has also recently been recently highlighted as an issue
+over time. This issue has also recently been highlighted as an issue
 for using SDMs to predict the future locations of individual species
 [@rapacciuolo2012]. This result is particularly sobering because this approach
 forms the main foundation for estimates of the predicted loss of biodiversity to
@@ -451,24 +451,26 @@ predicted (Box 1). The value of this approach, and associated forecast horizons,
 has been raised for knowing how far into the future a model can be effectively
 used for forecasting [@petchey2015], but our results suggest a broader value to
 this approach for considering the potential importance of different models and
-processes for making forecasts at different scales. [[Should make sure Petchey et
-al. don't make this point]] Our results show that for forecasts 1-3 years in the
-future, baselines and time-series based approaches outperform all other methods
-using integrative metrics. At these time scales, environmental changes are
-relatively small and changes in the biota may lag behind changes in the
-environment. However, as the timescale of the forecast increases to a decade the
-JSDMs and environmental richness models get closer to the accuracy of the
-time-series methods and even surpass some of those methods. As the forecast
-distance increases the amount of environmental change is expected to increase
-and the system will have more time to respond, potentially leading to shifts
-towards improved relative performance of the models incorporating environmental
-and ecological information. If this shift with forecast distance in the relative
-importance of different processes and models continues, this could lead to JSDMs
-and environmental richness models outperforming time-series based approaches at
-sufficiently long time scales. These results suggest that assessment of how
-forecast performance changes with time lag is not only important for determining
-how far in the future to forecast, but also for determining models and processes
-are most relevant for making forecasts at different time scales.
+processes for making forecasts at different scales. Our results show that for
+forecasts 1-3 years in the future, baselines and time-series based approaches
+outperform all other methods using integrative metrics. At these time scales,
+environmental changes are relatively small and changes in the biota may lag
+behind changes in the environment. However, as the timescale of the forecast
+increases to a decade the JSDMs and environmental richness models get closer
+to the accuracy of the time-series methods and even surpass some of those
+methods. As the forecast distance increases the amount of environmental change
+is expected to increase and the system will have more time to respond,
+potentially leading to shifts towards improved relative performance of the
+models incorporating environmental and ecological information. If this shift
+with forecast distance in the relative importance of different processes and
+models continues, this could lead to JSDMs and environmental richness models
+outperforming time-series based approaches at sufficiently long time scales.
+These results suggest that assessment of how forecast performance changes with
+time lag is not only important for determining how far in the future to
+forecast, but also for determining which models and processes are most relevant
+for making forecasts at different time scales. For example ensemble forecasts
+could be created which incorporate these time lags into the weights for
+individual models.
 
 It is also possible that models that include species' relationships to their
 environments or direct environmental constraints on richness may continue to
@@ -665,8 +667,13 @@ influencing the observation of the data. [[citation?]]
 
 ### 8. Validate using hindcasting
 
-To evaluate the expected accuracy and uncertainty of forecasts assess the
-performance of these forecasts within existing time-series data. [[citaton?]]
+Evalutating a models predictive performance across time is critical. Hindcasting
+uses a temporal out of sample validation to mimic how well a model would have
+performed had it been run in the past. For example using occurance data from the
+early 20th century to model distributions which are validated with late
+20th century occurances. Dense timeseries, such as yearly observations, are
+desirable to also evalulate the forecast horizon (see #6), but this is not
+a strict requirement.
 
 ### 9. Publicly archive forecasts
 
