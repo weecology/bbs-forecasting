@@ -12,7 +12,7 @@ n_gbm:
 - 6700.0
 - 7800.0
 rf_coverage_pct: 72.0
-all_R2s: 0.53-0.87
+ts_R2s: 0.67-0.87
 env_R2s: 0.53-0.78
 variance_percent:
   site: 70.0
@@ -21,3 +21,4 @@ variance_percent:
 pct_is_average:
 - 42.0
 - 67.0
+resid_sd: 3.6

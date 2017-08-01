@@ -123,16 +123,17 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
 # of a small number of extreme outliers
 model_violins = plot_grid(
   for_violins %>% 
-    mutate(model = model.other, y = -abs_diff) %>% 
+    mutate(model = model.other, y = abs_diff) %>% 
     make_violins(yintercept = 0, adjust = 5,
                  ylim = quantile(for_violins$abs_diff, c(.0005, .9995)),
-                 main = "A. Model improvement over\n\"Average\" baseline",
-                 ylab = "Absolute error reduction"),
+                 main = "A. Absolute error increase versus \"Average\" baseline",
+                 ylab = "Absolute error increase (species)"),
   for_violins %>% 
-    mutate(model = model.other, y = plogis(-dev_diff / 2)) %>%
-    make_violins(yintercept = 0.5, adjust = 1, ylim = c(0, 1), 
-                 main = "B. Model posterior weight versus\n\"Average\" baseline",
-                 ylab = "Posterior weight"),
+    mutate(model = model.other, y = dev_diff) %>%
+    make_violins(yintercept = 0, adjust = 1, 
+                 ylim = quantile(for_violins$abs_diff, c(.0005, .9995)), 
+                 main = "B. Deviance increase versus \"Average\" baseline",
+                 ylab = "Deviance increase"),
   nrow = 2
 )
 my_ggsave(file = "figures/model_violins.png", 
@@ -326,7 +327,7 @@ observer_deviance_data = bound %>%
                                              yes = "TRUE")) %>% 
   select(site_id, year, model, use_obs_model, deviance) %>% 
   spread(key = use_obs_model, value = deviance) %>% 
-  mutate(y = plogis(0.5 * (no - yes)))
+  mutate(y = no - yes)
 
 observer_error_data = bound %>% 
   mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
@@ -345,10 +346,10 @@ obs_violins = plot_grid(
                yintercept = 0,
                adjust = 2),
   make_violins(observer_deviance_data, 
-               main = "Posterior weight of model including observer effect",
+               main = "Deviance reduction from observer model",
                ylab = "Posterior weight of\nobserver model",
-               ylim = c(0, 1), 
-               yintercept = 0.5, 
+               ylim = quantile(observer_deviance_data$y, c(.005, .995)), 
+               yintercept = 0, 
                adjust = 5),
   nrow = 2
 )
@@ -401,7 +402,8 @@ ms_numbers = list(
     filter(model == "rf_sdm", use_obs_model) %>% 
     summarize(round(100 * mean(p > .025 & p < .975))) %>% 
     pull(),
-  all_R2s = R2s %>% 
+  ts_R2s = R2s %>% 
+    filter(model %in% ts_models) %>% 
     pull(R2) %>% 
     range() %>% 
     format(digits = 2) %>% 
@@ -418,7 +420,8 @@ ms_numbers = list(
     filter(model == "auto.arima") %>% 
     summarize(is_avg = mean(100 * map_lgl(coef_names, ~all(.x == "intercept")))) %>% 
     pull(is_avg) %>% 
-    round()
+    round(),
+  resid_sd = round(sqrt(mean(obs_model$sigma^2)), 1)
 )  
 cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
 

@@ -32,19 +32,19 @@ information available on how well these forecasts work. Most diversity forecasts
 do not conduct meaningful evaluations of the forecasts, fail to account for
 uncertainty, and do not use time-series data that captures the actual dynamics
 being studied. Using hindcasting we made and evaluated `r numbers$n_forecasts`
-forecasts for breeding bird species richness at `r numbers$N_predict_sites`
-sites throughout the continental United States, following ten suggested best
-practices for forecasting. Forecasts were made for up to a decade after the
-final training observations. While all of the models we evaluated produce
-reasonable forecasts, none of them consistently outperforms the simple baseline
-of constant long-term average richness. At present, our best forecast for future
-richness is thus to assume that it is unchanging, and current modeling
-approaches do not reliably improve on this simple baseline. Most of the best
-practices implemented in this study directly influence the outcome of the
-forecasts and result in different conclusions from those made in previous
-studies. This emphasizes the importance of following good practice in making
-ecological forecasts and of starting to actively make more forecasts in such a
-way that they can be quickly evaluated and improved on.
+forecasts for breeding bird species richness from each of 6 modeling approaches
+at `r numbers$N_predict_sites` sites throughout the continental United States,
+following ten suggested best practices for forecasting. Forecasts were made for
+up to a decade after the final training observations. While all of the models we
+evaluated produce reasonable forecasts, none of them consistently outperforms
+the simple baseline of constant long-term average richness. At present, our best
+forecast for future richness is thus to assume that it is unchanging, and
+current modeling approaches do not reliably improve on this simple baseline.
+Most of the best practices implemented in this study directly influence the
+outcome of the forecasts and result in different conclusions from those made in
+previous studies. This emphasizes the importance of following good practice in
+making ecological forecasts and of starting to actively make more forecasts in
+such a way that they can be quickly evaluated and improved on.
 
 ## Introduction
 
@@ -83,8 +83,8 @@ occurrence and richness from the past and evaluated on their ability to predict
 contemporary patterns [e.g., @algar2009; @distler2015]. These studies are a
 valuable first step, but lack several components that are important for
 developing good forecasting models and understanding how accurately these models
-can predict the future. These components of good forecasting and evaluation
-(Box 1) broadly involve: 1) expanding the use of data to include biological and
+can predict the future. These components of good forecasting and evaluation (Box
+1) broadly involve: 1) expanding the use of data to include biological and
 environmental time-series [@tredennick2016]; 2) accounting for uncertainty in
 observations, processes, model choice, and forecast evaluation [@clark2001,
 @dietze2017]; and 3) conducting meaningful evaluations of the forecasts by
@@ -215,7 +215,7 @@ observations either as uncorrelated noise around a site-level constant (the
 "average" model) or as an autoregressive model with a single year of history
 (the "naive" model) [@hyndman2014]. Predictions from the "average" model are
 centered on the average richness observed during training, and the confidence
-intervals are narrow and constant-width. The "naive" model, in contrast,
+intervals are narrow and constant-width. The "naive" model, in contrast, 
 predicts that future observations will be similar to the final observed value
 (e.g. the value observed in `r timeframe$last_train_year`), and the confidence
 intervals expand rapidly as the predictions extend farther into the future.
@@ -235,16 +235,16 @@ used the default settings for this function.
 
 ### Continental-scale models
 
-In contrast to the time-series models, most attempts to predict species richness
-focus on using correlative models to predict richness changes over time from
-environmental data. We tested three common variants of this approach - direct
-modeling of species richness, stacking individual species distribution models,
-and joint species distribution models (JSDMs). Following the standard approach,
-site-level random effects were not included in these models as predictors,
-meaning that this approach implicitly assumes that two sites with identical
-Bioclim, elevation, and NDVI values should have identical richness
-distributions. As above, we included observer effects & the associated
-uncertainty by running these models 500 times (once per MCMC sample).
+In contrast to the site-level time-series models, most attempts to predict
+species richness focus on using correlative models based on environmental
+variables. We tested three common variants of this approach: direct modeling of
+species richness; stacking individual species distribution models; and joint
+species distribution models (JSDMs). Following the standard approach, site-level
+random effects were not included in these models as predictors, meaning that
+this approach implicitly assumes that two sites with identical Bioclim,
+elevation, and NDVI values should have identical richness distributions. As
+above, we included observer effects & the associated uncertainty by running
+these models 500 times (once per MCMC sample).
 
 **"Macroecological" model.** We used a boosted regression tree model using the
 `gbm` package [@ridgeway2017] to directly model species richness as a function
@@ -255,8 +255,8 @@ They are flexible models that are considered well suited for prediction
 [@elith2008]. This model was optimized using a Gaussian likelihood, with a
 maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000 trees. The
 number of trees used for prediction was selected using the "out of bag"
-estimator; this number averaged [[N]] for the non-observer data and [[N]] for
-the observer-corrected data.
+estimator; this number averaged `r numbers$n_gbm[1]` for the non-observer data
+and `r numbers$n_gbm[2]` for the observer-corrected data.
 
 **Species Distribution Model.** Species distribution models (SDMs) predict
 individual species' occurrence probabilities using environmental variables.
@@ -283,7 +283,7 @@ are a new approach that makes predictions about the full composition of a
 community instead of modeling each species independently as above. JSDMs remove
 the assumed independence among species and explicitly account for the
 possibility that a site will be much more (or less) suitable for birds in
-general, or particular groups of birds, than one would expect based on the
+general (or particular groups of birds) than one would expect based on the
 available environmental measurements alone. As a result, JSDMs do a better job
 of representing our uncertainty about richness, while stacked SDMs underestimate
 it [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
@@ -296,24 +296,24 @@ associations with nonlinear functions.
 Variance in species richness within sites was lower than predicted by several
 common count models, such as the Poisson or binomial (i.e. richness was
 underdispersed for individual sites), so these count models would have had
-difficulty fitting the data. Since richness had a relatively large mean ([[N]])
-and all models already produce continuous richness estimates (due to summing
-probabilities in the (J)SDM case), we defined model performance for all models
-in terms of continuous Gaussian errors instead of using discrete count
-distributions. When a model was run multiple times for the purpose of correcting
-for observer effects, we used the mean of those runs' point estimates as our
-final point estimate and we calculated the uncertainty using the law of total
-variance (i.e.  the average of the model runs' variance, plus the variance in
-the point estimates).
+difficulty fitting the data. Since richness had a relatively large mean 
+(`r numbers$richness_summary$mean`) and all models already produce continuous
+richness estimates (due to summing probabilities in the (J)SDM case), we defined
+model performance for all models in terms of continuous Gaussian errors instead
+of using discrete count distributions. When a model was run multiple times for
+the purpose of correcting for observer effects, we used the mean of those runs'
+point estimates as our final point estimate and we calculated the uncertainty
+using the law of total variance (i.e.  the average of the model runs' variance,
+plus the variance in the point estimates).
 
-We evaluated the performance of each model for forecasting using the data for
-each year between `r timeframe$last_train_year` and `r timeframe$end_yr`. We used
-three metrics for evaluating performance: 1) root-mean-square error (RMSE) to
-determine how far, on average, the models' predictions were from the observed
-value; 2) the 95% prediction interval coverage to determine how well the models
-predicted the range of possible outcomes; and 3) deviance (i.e. negative 2 times
-the Gaussian log-likelihood) as an integrative measure of fit incorporating good
-point estimates, precision, and coverage.  In addition to looking at forecast
+We evaluated each model's for forecasts using the data for each year between `r
+timeframe$last_train_year` and `r timeframe$end_yr`. We used three metrics for
+evaluating performance: 1) root-mean-square error (RMSE) to determine how far,
+on average, the models' predictions were from the observed value; 2) the 95%
+prediction interval coverage to determine how well the models predicted the
+range of possible outcomes; and 3) deviance (i.e. negative 2 times the Gaussian
+log-likelihood) as an integrative measure of fit incorporating good point
+estimates, precision, and coverage.  In addition to looking at forecast
 performance in general we evaluated how performance changed as the time horizon
 of forecasting increased by plotting performance metrics against the forecast
 horizon.
@@ -335,8 +335,8 @@ training set could be explained by differences among sites, and 21% could be
 explained by differences among observers. The remaining 9% represents residual
 variation, where a given observer might report a different number of species in
 different years. In the training set, the residuals had a standard deviation of
-about [[+/- 5]] species. After correcting for observer differences, there was
-little temporal autocorrelation in these residuals ([[about 0.04, +/-
+about `r numbers$resid_sd` species. After correcting for observer differences,
+there was little temporal autocorrelation in these residuals ([[about 0.04, +/-
 something]]), suggesting that richness is approximately stationary on these time
 scales.
 
@@ -344,8 +344,8 @@ When comparing forecasts for richness across sites all methods performed well
 (Figure 4; all $R^2 > 0.5$). However SDMs (both stacked and joint) and the
 macroecological model all failed to successfully forecast the highest-richness
 sites resulting in a notable clustering of predicted values near ~60 species and
-the poorest performance ($R^2$ `r numbers$env_R2s`, versus XX-XX for the
-within-site methods).
+the poorest performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r numbers$ts_R2s` 
+for the within-site methods).
 
 ![Performance of the six models we evaluated when predicting one year into the
 future (2004) or ten years into the future (2013).  In general, the time series
@@ -353,15 +353,18 @@ models (**A.**) outperformed the environmental models (**B.**), and the accuracy
 of the predictions declined as the forecast horizon was
 extended.](../figures/scatter.png)
 
-While the models generally did well in absolute terms (Figure 4), none tended to
-outperform the "average" baseline from the generalized linear mixed model
-(Figure 4A). [[Stats go here]].  The auto-ARIMA was generally the
+While the models generally did well in absolute terms (Figure 4), none
+consistently outperformed the "average" baseline from the generalized linear
+mixed model (Figure 4A). [[Stats go here]].  The auto-ARIMA was generally the
 best-performing non-baseline model, but in many cases (67% of the time), the
-best-fitting ARIMA model chosen by the model selection procedure had no
-autoregressive, drift, or moving average terms, making it similar to the
-"Average" model.
+auto.arima procedure automatically selected a model with no autoregressive,
+drift, or moving average terms, making it similar to the "Average" model.
 
-![](../figures/model_violins.png)
+![None of the models provided a consistent improvement over the "average"
+baseline, indicated by a horizontal line. **A.** Models' absolute error was
+generally similar or larger than "average" model, with large outliers in both
+directions. **B.** The other models' deviance was also generally higher than
+the "average" baseline.](../figures/model_violins.png)
 
 ![Performance of all six models over time, according to three metrics. **A.**
 Root mean square error (rmse) describes the distance between each model's point
@@ -388,12 +391,12 @@ predictive distribution also caused it to have notably higher deviance (Figure
 unusually bad in terms of RMSE (3A). As discussed elsewhere [@harris2015], this
 overconfidence is a product of the assumption in stacked SDMs that errors in the
 species-level predictions are independent. Because they avoided this assumption,
-the GBM-based "macroecological" model and especially the mistnet JSDM had
-reasonably well-calibrated uncertainty estimates (Figure 4B); as a result, their
-relative performance was higher in terms of deviance than in terms of RMSE. The
-"naive" model was the only model whose confidence intervals were too wide
-(Figure 4B), which can be attributed to the rapid rate at which these intervals
-expand as the time lag increases (Figure 1).
+the GBM-based "macroecological" model and the mistnet JSDM had reasonably
+well-calibrated uncertainty estimates (Figure 4B); as a result, their relative
+performance was higher in terms of deviance than in terms of RMSE. The "naive"
+model was the only model whose confidence intervals were too wide (Figure 4B),
+which can be attributed to the rapid rate at which these intervals expand
+(Figure 1).
 
 In general, each model's error increased more-or-less linearly with time,
 although the slopes and initial error rates varied across models (Figure 5). The
@@ -416,12 +419,12 @@ attribute to its ability to model this variation with its latent variables.
 
 ![Accounting for differences between observers typically has a small impact on
 accuracy (especially for the "naive" model), but occasonally changes the
-predicted richness values by 10+ species. These changes usually improve the
-model's predictions, but not always.](../figures/observers.png)
+predicted richness values by more than 10 species. These changes usually improve
+the model's predictions, but not always.](../figures/observers.png)
 
 ## Discussion
 
-Forecasting is an emerging imperative in ecology and as such the field needs to
+Forecasting is an emerging imperative in ecology; as such, the field needs to
 develop and follow best practices for conducting and evaluating ecological
 forecasts. We have laid out ideas for a number of these practices (Box 1) and
 attempted to implement them in a single study that builds and evaluates
@@ -430,54 +433,53 @@ effort are both promising and humbling. On an absolute basis, when comparing
 forecasts across sites, many different approaches to forecasting produce
 reasonable forecasts. If a site is predicted to have a high number of species in
 the future, relative to other sites, it generally does. However, the forecasts
-perform relatively poorly at predicting variation in richness over time at a
-location. If a site is predicted to have a higher richness next year than it did
-last year there is little confidence that this will be the case. As a result,
-the baseline models, like the long-term average, along with site-level
-time-series models, provided some of the best forecasts for future biodiversity.
+perform relatively poorly at predicting variation in richness over time. If a
+site is predicted to have a higher richness next year than it did last year,
+there is little confidence that this will be the case. As a result, baseline
+models, like the long-term average, along with the other site-level time-series
+models, consistently provided the best forecasts for future biodiversity.
 
-The most commonly used method to forecast future biodiversity, stacked SDMS
+The most commonly used method to forecast future biodiversity, stacked SDMs
 [@urban2015], provided the worst overall forecasts of all methods evaluated. In
 general, SDM-based forecasts are rarely evaluated, particularly in terms of
 repeated observations at the same site. Since site-level richness is relatively
-stable, model evaluations that show high accuracy in predicting differences
-among sites may not indicate much about a model's ability to predict changes
-over time. This issue has also recently been highlighted as an issue
-for using SDMs to predict the future locations of individual species
-[@rapacciuolo2012]. This result is particularly sobering because this approach
-forms the main foundation for estimates of the predicted loss of biodiversity to
-climate change [@thomas2004; @urban2015]. The poor performance of SDM-based
-forecasts highlights the crucial importance of comparing multiple modeling
-approaches when conducting ecological forecasts, and in particular the value of
-comparing results to simple baselines to avoid over-interpreting the information
-present in these forecasts (Box 1).  Disciplines that have more mature forecasting
-cultures often do this by reporting "forecast skill", which is the improvement
-in the forecast relative to a simple baseline [@jolliffe2003]. We recommend
-following Ye et al. [@ye2015] and adopting this approach in future ecological
-forecasting research. It also highlights the need for using hindcasting and
-time-series data for assessing the effectiveness of forecasting methods, since
-this allows comparisons to baselines and assessment of predicted dynamics within
-sites or regions.
+stable, model evaluations that show high accuracy across spatial gradients may
+not indicate much about a model's ability to predict changes over time. This
+issue has also recently been highlighted as an issue for using SDMs to predict
+the future locations of individual species [@rapacciuolo2012]. This result is
+particularly sobering because this approach forms the main foundation for
+estimates of the predicted loss of biodiversity to climate change [@thomas2004;
+@urban2015]. The poor performance of SDM-based forecasts highlights the crucial
+importance of comparing multiple modeling approaches when conducting ecological
+forecasts, and in particular the value of comparing results to simple baselines
+to avoid over-interpreting the information present in these forecasts (Box 1).
+Disciplines that have more mature forecasting cultures often do this by
+reporting "forecast skill", i.e., the improvement in the forecast relative to a
+simple baseline [@jolliffe2003]. We recommend following Ye et al. [@ye2015] and
+adopting this approach in future ecological forecasting research. It also
+highlights the need for using hindcasting and time-series data for assessing the
+effectiveness of forecasting methods, since this allows comparisons to baselines
+and assessment of predicted dynamics within sites or regions.
 
-One of the main alternatives to summed SDMs is modeling richness directly using
+One of the main alternatives to stacked SDMs is modeling richness directly using
 environmental variables and using the resulting models to make forecasts
 [@algar2009; @distler2015]. Two comparisons of the the SDM and direct richness
 modeling approaches reported that the methods yielded equivalent results for
 forecasting diversity. While our results generally support rough equivalence
 between stacked SDMs and direct richness modeling for point estimates, they also
-show that modeling richness directly results in much better estimation of the
-uncertainty of the forecast and therefore is a better overall approach to
+show that stacked SDMs dramatically understimate the uncertainty. For this
+reason, direct modeling of richness therefore is a better overall approach to
 forecasting richness. A similar result is seen when comparing joint species
 distribution models (JSDMs) to stacked single species distribution models. For
 point estimates the joint distribution models are roughly equivalent to stacked
 SDMs, but the JSDMs provide much better estimates of uncertainty [@harris2015;
-others?]. In fact, JSDMs and modeling richness directly provide some of the best
+others?]. In fact, JSDMs and direct richness modeling provide some of the best
 estimates of uncertainty across all modeling approaches. This highlights the
 importance of evaluating models based on their uncertainty as well as their mean
-estimates (Box 1). Not doing so is particularly problematic in this case because the
-summed species distribution models are overly confident meaning that using them
-would lead to believing that richness would be restricted to a much narrower
-range than would actually occur.
+estimates (Box 1). Not doing so is particularly problematic in this case because
+the summed species distribution models are overly confident meaning that using
+them would lead to believing that richness would be restricted to a much
+narrower range than would actually occur.
 
 For the error metric that evaluates both models' point estimates and their
 uncertainty simultaneously, the JSDM and the nonlinear richness model converge
@@ -511,28 +513,29 @@ individual models.
 
 It is also possible that models that include species' relationships to their
 environments or direct environmental constraints on richness may continue to
-produce forecasts that are worse than simply assuming the systems are
-static. This would be expected to occur if richness in these systems is not
-changing over the relevant time scales and therefore simple models of no
-directional change are most appropriate. Recent suggestions that local scale
-richness in some systems is not changing directionally at multi-decadal scales
-supports this possibility [@brown2001; @ernest2001; @dornelas2014;
-@vellend2013]. This lack of change may be expected even in the presence of
-substantial changes in environmental conditions and species composition at a
-site due to the replacement of species from the regional pool [@brown2001;
-@ernest2001]. On average the Breeding Bird Survey sites used in this study show
-little change in richness ([[Add summary stat here]]) [see also
-@lasorte2005]. This absence of rapid change is beneficial for the absolute
-accuracy of forecasts across sites, because if a past year's richness is known
-it is easy to estimate a future richness, and explains why stacked SDMs perform
-relatively well at this task despite failing to capture meaningful
-dynamics. However it makes it difficult to improve forecasts relative to simple
-baselines, since those baselines are close to representing what is actually
-occurring in the system. This suggests that simple time-series models and
-baselines should be actively considered for forecasts of richness and other
-stable aspects of biodiversity and also suggests that future efforts to
-understand and forecast biodiversity should also focus on composition since it
-is expected to be more dynamic [@ernest2001; @dornelas2014].
+produce forecasts that are worse than simply assuming the systems are static.
+This would be expected to occur if richness in these systems is not changing
+over the relevant time scales and therefore simple models of no directional
+change are most appropriate. Recent suggestions that local scale richness in
+some systems is not changing directionally at multi-decadal scales supports this
+possibility [@brown2001; @ernest2001; @dornelas2014; @vellend2013]. This lack of
+change may be expected even in the presence of substantial changes in
+environmental conditions and species composition at a site due to the
+replacement of species from the regional pool [@brown2001; @ernest2001]. On
+average the Breeding Bird Survey sites used in this study show little change in
+richness (site-level SD of `r numbers$resid_sd` species, after controlling for
+differences among observers) [see also @lasorte2005]. This absence of rapid
+change is beneficial for the absolute accuracy of forecasts across sites,
+because if a past year's richness is known it is easy to estimate a future
+richness, and explains why stacked SDMs perform relatively well at this task
+despite failing to capture meaningful dynamics. However it makes it difficult to
+improve forecasts relative to simple baselines, since those baselines are close
+to representing what is actually occurring in the system. This suggests that
+simple time-series models and baselines should be actively considered for
+forecasts of richness and other stable aspects of biodiversity and also suggests
+that future efforts to understand and forecast biodiversity should also focus on
+composition since it is expected to be more dynamic [@ernest2001;
+@dornelas2014].
 
 In addition to consideration of the different process models used for
 forecasting it is important to consider the observation models. When working
