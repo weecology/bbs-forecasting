@@ -9,6 +9,17 @@ prepend_timeframe = function(x) {
   paste0("results", "/", timeframe, "/", x)
 }
 
+base_size = 12 # 12-point font for figures
+
+# peerj PDFs are 14.59 cm wide
+my_ggsave = function(filename, plot, height, width = 14.59, units = "cm", ...){
+  ggsave(filename = filename, 
+         plot = plot, 
+         height = height, 
+         width = width, 
+         units = units, 
+         ...)
+}
 
 forecast_results = readRDS(prepend_timeframe("forecast.rds")) %>% 
   filter(!is.na(richness))
@@ -49,13 +60,13 @@ env_models = c("richness_gbm", "rf_sdm", "mistnet")
 models = c(ts_models, env_models)
 
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
-  mutate(x = min(mean), y = max(richness)) %>% 
+  mutate(x = min(mean - 4), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   mutate(R2 = 1 - var(mean - richness) / var(richness)) %>% 
   mutate(R2_formatted = paste("R^2: ", 
                               format(R2,digits = 2, nsmall = 2)))
 
-make_scatterplots = function(models){
+make_scatterplots = function(models, main){
   x_range = range(bound$mean)
   ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2013),
                        model %in% models), 
@@ -69,19 +80,18 @@ make_scatterplots = function(models){
     geom_text(inherit.aes = FALSE,
               data = filter(R2s, model %in% models),
               aes(x = x, y = y, label = R2_formatted),
-              hjust = 0, vjust = 1,
-              size = 3) +
-    theme_light(base_size = 14) +
-    xlim(x_range)
+              hjust = 0, vjust = 1, size = 3) +
+    theme_light(base_size = base_size) +
+    xlim(x_range) + 
+    ggtitle(main)
 }
 
-plot_grid(
-  make_scatterplots(ts_models),
-  make_scatterplots(env_models),
+scatters = plot_grid(
+  make_scatterplots(ts_models, main = "A. Time-series models"),
+  make_scatterplots(env_models, main = "B. Environmental models"),
   align = "h",
-  nrow = 2,
-  labels = c("A. Time-series models", "B. Environmental models"))
-ggsave(filename = "figures/scatter.png", width = 7.5, height = 10)
+  nrow = 2)
+my_ggsave(filename = "figures/scatter.png", plot = scatters, height = 15)
 
 # Violins -----------------------------------------------------------------
 
@@ -103,7 +113,7 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
     stat_summary(fun.data = "mean_cl_boot", colour = "darkblue", geom = "point",
                  size = 1) + 
     coord_cartesian(expand = FALSE, ylim = ylim) +
-    theme_cowplot(9) +
+    theme_cowplot(base_size) +
     ylab(ylab) +
     xlab("Model type") +
     ggtitle(main)
@@ -111,7 +121,7 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
 
 # Note that the y axis doesn't extend all the way on this plot because
 # of a small number of extreme outliers
-plot_grid(
+model_violins = plot_grid(
   for_violins %>% 
     mutate(model = model.other, y = -abs_diff) %>% 
     make_violins(yintercept = 0, adjust = 5,
@@ -125,7 +135,10 @@ plot_grid(
                  ylab = "Posterior weight"),
   nrow = 2
 )
-ggsave(file = "figures/model_violins.png", width = 4, height = 5)
+my_ggsave(file = "figures/model_violins.png", 
+          plot = model_violins,
+          height = 12.5
+)
 
 
 # Metrics over time -------------------------------------------------------
@@ -143,19 +156,40 @@ d = bound %>%
 # Possibly-useful alternative 6-color colorblind palette
 colors = c("#000000", dichromat::colorschemes$Categorical.12[c(4, 6, 10, 11, 12)])
 
-ggplot() +
-  geom_line(data = data_frame(x = c(min(d$year), max(d$year)), 
-                              y = c(.95, .95),
-                              variable = factor("coverage", 
-                                                levels = levels(d$variable))),
-            aes(x = x, y = y), inherit.aes = FALSE) +
-  geom_line(data = d, aes(x = year, y = value, color = model), size = 1) + 
-  scale_color_brewer(palette = "Set1") +
-  ylab("") +
-  facet_grid(variable~., scales = "free_y", switch = "y") +
-  scale_x_continuous(expand = c(0, 0)) +
-  theme_light(base_size = 10)
-ggsave(file = "figures/performance_time.png", width = 3.75, height = 6)  
+make_time_error = function(var_name, title){
+  ggplot(filter(d, variable == var_name), 
+         aes(x = year, y = value, color = model)) +
+    geom_line() +
+    scale_x_continuous(expand = c(0, 0)) +
+    theme_light(base_size = base_size) +
+    scale_color_brewer(palette = "Set1") +
+    ylab(var_name) + 
+    ggtitle(paste0(title, ". ", var_name))
+}
+
+plotlist = pmap(
+  list(
+    levels(d$variable), 
+    LETTERS[1:3]
+  ), 
+  make_time_error
+)
+
+# Pull out the legend from one of the plots as its own object, then remove 
+# from individual panels
+time_error_legend = get_legend(plotlist[[1]])
+plotlist = map(plotlist, ~.x + theme(legend.position = "none"))
+
+plotlist[[3]] = plotlist[[3]] + 
+  geom_hline(yintercept = 0.95) +
+  scale_y_continuous(limits = c(.65, 1.0025), expand = c(0, 0))
+
+time_error = plot_grid(
+  plot_grid(plotlist = plotlist, nrow = 3, align = "v"),
+  time_error_legend,
+  rel_widths = c(4, 1)
+)
+my_ggsave(file = "figures/performance_time.png", plot = time_error, height = 15)
 
 
 # digging into observer error ---------------------------------------------
@@ -171,18 +205,18 @@ observer_uncertainties = obs_model$data %>%
   left_join(filter(bound, model == "average", use_obs_model), 
             by = c("year", "site_id"))
 
-observer_uncertainties %>% 
+obs_joy = observer_uncertainties %>% 
   ggplot(aes(x = observer_sd^2, y = factor(year), 
              fill = year)) + 
   viridis::scale_fill_viridis(option = "B", guide = FALSE,
                               direction = 1) + 
   geom_joy(scale = 5, bandwidth = .75, color = "gray40") + 
-  theme_joy(font_size = 11) +
+  theme_joy(font_size = base_size) +
   ylab(expression("Year" %->% "")) + 
   xlab("Observer-level uncertainty (squared error)") + 
   theme(axis.title.x = element_text(hjust = .5),
         axis.title.y = element_text(hjust = .5))
-ggsave("figures/observer_uncertainty.png", width = 3.75, height = 4.5)
+my_ggsave("figures/observer_uncertainty.png", obs_joy, height = 11)
 
 
 # Time series -------------------------------------------------------------
@@ -233,12 +267,12 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     faceting +
     geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
     geom_point(aes(y = richness, fill = factor(observer_id)),
-               size = 1, shape = 21, stroke = .5) +
+               size = 1.25, shape = 21, stroke = .5) +
     scale_alpha(range = c(0, 1), guide = FALSE) + 
     coord_cartesian(ylim = ylim, expand = TRUE) +
     ylab("Richness") +
     viridis::scale_fill_viridis(discrete = TRUE, option = "A", guide = FALSE) + 
-    theme_light(base_size = 11) + 
+    theme_light(base_size = base_size) + 
     theme(plot.margin = unit(c(10, 7, 1, 7), units = "pt"),
           strip.background = element_rect(fill="white"), 
           strip.text = element_text(color = "black")) +
@@ -248,7 +282,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
 
 # The warning about missing values is just saying that there are no predictions
 # before 2004.
-list(ts_models, env_models) %>% 
+model_predictions = list(ts_models, env_models) %>% 
   map(~make_ts_plots(.x, 
                      ylim = c(42, 73), 
                      use_obs_model = FALSE, 
@@ -260,13 +294,19 @@ list(ts_models, env_models) %>%
   ) %>% 
   plot_grid(plotlist = ., nrow = 2)
   
-ggsave(filename = "figures/model_predictions.png", width = 7.5, height = 4)
+my_ggsave(filename = "figures/model_predictions.png", 
+       plot = model_predictions, 
+       height = 10)
 
 
-make_ts_plots(c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
-              use_obs_model = TRUE, sample_site_id = 72035,
-              main = "Controlling for observer differences")
-ggsave(filename = "figures/observer_predictions.png", width = 4, height = 4)
+obs_predictions = make_ts_plots(
+  c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
+  use_obs_model = TRUE, sample_site_id = 72035,
+  main = ""
+)
+my_ggsave("figures/observer_predictions.png", 
+          obs_predictions, 
+          height = 10)
 
 # Numbers for the manuscript ----------------------------------------------
 
@@ -297,7 +337,7 @@ observer_error_data = bound %>%
   mutate(y = abs(no) - abs(yes))
 
 
-plot_grid(
+obs_violins = plot_grid(
   make_violins(observer_error_data, 
                main = "Absolute error reduction from observer model",
                ylab = "Reduction in absolute\nrichness error (species)",
@@ -312,7 +352,7 @@ plot_grid(
                adjust = 5),
   nrow = 2
 )
-ggsave("figures/observers.png", width = 8, height = 5)
+my_ggsave("figures/observers.png", obs_violins, height = 10)
 
 
 # Numerical odds and ends for manuscript ----------------------------------
