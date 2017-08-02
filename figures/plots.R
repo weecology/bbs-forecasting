@@ -300,7 +300,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
 # before 2004.
 model_predictions = list(ts_models, env_models) %>% 
   map(~make_ts_plots(.x, 
-                     ylim = c(42, 73), 
+                     ylim = c(42, 85), 
                      use_obs_model = FALSE, 
                      sample_site_id = 91034,
                      main = ifelse(
