@@ -22,3 +22,4 @@ pct_is_average:
 - 42.0
 - 67.0
 resid_sd: 3.6
+residual_autocor: 0.1160954

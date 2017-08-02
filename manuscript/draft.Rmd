@@ -330,15 +330,16 @@ archived on Zenodo ().
 
 ## Results
 
-The site-observer model found that 70% of the variance in richness in the
+The site-observer mixed model found that 70% of the variance in richness in the
 training set could be explained by differences among sites, and 21% could be
 explained by differences among observers. The remaining 9% represents residual
 variation, where a given observer might report a different number of species in
 different years. In the training set, the residuals had a standard deviation of
 about `r numbers$resid_sd` species. After correcting for observer differences,
-there was little temporal autocorrelation in these residuals ([[about 0.04, +/-
-something]]), suggesting that richness is approximately stationary on these time
-scales.
+there was little temporal autocorrelation in these residuals (i.e. the residuals
+in one year explain `r round(100 *numbers$residual_autocor^2, 1)`% of the
+variance in the residuals of the following year), suggesting that richness was
+approximately stationary between 1982 and 2003.
 
 When comparing forecasts for richness across sites all methods performed well
 (Figure 4; all $R^2 > 0.5$). However SDMs (both stacked and joint) and the

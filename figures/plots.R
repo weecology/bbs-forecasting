@@ -2,6 +2,8 @@ devtools::load_all()
 library(tidyverse)
 library(cowplot)
 library(ggjoy)
+library(mvtnorm)
+
 settings = yaml::yaml.load_file("settings.yaml")
 
 timeframe = "train_22"
@@ -51,6 +53,19 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
          p = pnorm(richness, mean, sd),
          deviance = -2 * dnorm(richness, mean, sd, log = TRUE)) %>% 
   ungroup()
+
+# Divide squared error by predictive variance to get the optimal sd factor
+# for the RF model
+rf2 = bound %>% 
+  filter(use_obs_model, model == "rf_sdm")
+rf_sd_factor = rf2 %>% 
+  summarize(sqrt(mean(diff^2 / sd^2))) %>% 
+  pull()
+rf2$sd = rf2$sd * rf_sd_factor
+
+rf2 = rf2 %>% 
+  mutate(p = pnorm(richness, mean, sd),
+         deviance = -2 * dnorm(richness, mean, sd, log = TRUE))
 
 
 # scatterplot -------------------------------------------------------------
@@ -105,7 +120,7 @@ for_violins = bound %>%
          squared_diff = diff.other^2 - diff.avg^2,
          abs_diff = abs(diff.other) - abs(diff.avg))
 
-make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
+make_violins = function(data, ylab = "", ylim, yintercept, adjust = 2, main){
   data %>% 
     ggplot(aes(x = model, y = y)) + 
     geom_hline(yintercept = yintercept, color = alpha(1, .25), size = 1/2) +
@@ -124,13 +139,13 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
 model_violins = plot_grid(
   for_violins %>% 
     mutate(model = model.other, y = abs_diff) %>% 
-    make_violins(yintercept = 0, adjust = 5,
+    make_violins(yintercept = 0, 
                  ylim = quantile(for_violins$abs_diff, c(.0005, .9995)),
                  main = "A. Absolute error increase versus \"Average\" baseline",
                  ylab = "Absolute error increase (species)"),
   for_violins %>% 
     mutate(model = model.other, y = dev_diff) %>%
-    make_violins(yintercept = 0, adjust = 1, 
+    make_violins(yintercept = 0, 
                  ylim = quantile(for_violins$abs_diff, c(.0005, .9995)), 
                  main = "B. Deviance increase versus \"Average\" baseline",
                  ylab = "Deviance increase"),
@@ -309,6 +324,58 @@ my_ggsave("figures/observer_predictions.png",
           obs_predictions, 
           height = 10)
 
+
+# correlations in the residuals -------------------------------------------
+
+residuals = obs_model$data %>% 
+  filter(in_train) %>% 
+  mutate(predicted = site_effect + observer_effect + c(obs_model$intercept)) %>% 
+  left_join(distinct(bound, site_id, year, richness),
+            c("site_id", "year", "richness")) %>% 
+  group_by(site_id, year) %>% 
+  summarize(diff = mean(richness - predicted)) %>% 
+  ungroup() %>% 
+  spread(key = site_id, value = diff) %>% 
+  select(-year) %>% 
+  as.matrix()
+
+# Ornstein-Uhlenbeck negative log-likelihood
+ou_nll = function(x) {
+  l = x["l"]         # Lengthscale
+  sigma = x["sigma"] # standard deviation
+  
+  # Build the covariance matrix based on l & sigma
+  covariance = matrix(NA, nrow = nrow(residuals), ncol = nrow(residuals))
+  for (i in 1:nrow(residuals)) {
+    for (j in 1:nrow(residuals)) {
+      # OU process covariance, pp. 85-86 of Gaussian Processes 
+      # for Machine Learning
+      covariance[i, j] = sigma^2 * exp(-l * abs(i - j))
+    }
+  }
+  
+  # Negative log-likelihood objective
+  - sum(
+    sapply(
+      1:ncol(residuals),
+      function(i){
+        # Multivariate Gaussian log-likelihood based on each column of y.
+        # Only use the non-NA entries in y and in the covariance
+        non_na = !is.na(residuals[,i])
+        dmvnorm(residuals[non_na,i], 
+                sigma = covariance[non_na, non_na], 
+                log = TRUE)
+      }
+    )
+  )
+}
+o = optim(c(l = exp(-2), sigma = sd(residuals, na.rm = TRUE)), 
+          ou_nll, 
+          control = list(trace = 1))
+
+residual_autocor = exp(-o$par["l"])
+
+
 # Numbers for the manuscript ----------------------------------------------
 
 
@@ -343,18 +410,30 @@ obs_violins = plot_grid(
                main = "Absolute error reduction from observer model",
                ylab = "Reduction in absolute\nrichness error (species)",
                ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
-               yintercept = 0,
-               adjust = 2),
+               yintercept = 0),
   make_violins(observer_deviance_data, 
                main = "Deviance reduction from observer model",
                ylab = "Posterior weight of\nobserver model",
                ylim = quantile(observer_deviance_data$y, c(.005, .995)), 
-               yintercept = 0, 
-               adjust = 5),
+               yintercept = 0),
   nrow = 2
 )
 my_ggsave("figures/observers.png", obs_violins, height = 10)
 
+
+# RF versus RF2 -----------------------------------------------------------
+
+rf2_diff = bound$deviance[bound$use_obs_model & bound$model == "rf_sdm"] - rf2$deviance
+rf2_plot = ggplot(NULL, aes(x = rf2_diff)) + 
+  geom_density(n = 1000, adjust = 1, trim = FALSE, fill = "cornflowerblue",
+               color = 0) + 
+  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = mean(rf2_diff), color = "red") + 
+  theme_light(base_size = base_size) +
+  scale_y_continuous(expand = c(FALSE, FALSE)) +
+  xlab("Deviance improvement from scaling the SDM uncertainty")
+
+my_ggsave("figures/rf2.png", rf2_plot, height = 10)
 
 # Numerical odds and ends for manuscript ----------------------------------
 bbs_data = get_pop_ts_env_data(
@@ -421,55 +500,10 @@ ms_numbers = list(
     summarize(is_avg = mean(100 * map_lgl(coef_names, ~all(.x == "intercept")))) %>% 
     pull(is_avg) %>% 
     round(),
-  resid_sd = round(sqrt(mean(obs_model$sigma^2)), 1)
+  resid_sd = round(sqrt(mean(obs_model$sigma^2)), 1),
+  residual_autocor = residual_autocor
 )  
 cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
 
-fitted = obs_model$data %>% 
-  filter(in_train) %>% 
-  group_by(site_id, year) %>% 
-  summarize(diff = mean(richness) - 
-              (mean(site_effect + observer_effect) + mean(obs_model$intercept))) %>% 
-  ungroup()
-
-ars = fitted %>% 
-  complete(site_id, year) %>% 
-  group_by(site_id) %>% 
-  arrange(year) %>% 
-  summarize(model = list(try(arima(diff, c(1, 0, 0),
-                                   include.mean = FALSE))))
-mean(ars$model %>% map_dbl(coef))
 
 
-
-y = fitted %>% 
-  complete(site_id, year) %>% 
-  group_by(site_id) %>% 
-  arrange(year) %>% spread(key = site_id, value = diff) %>% 
-  dplyr::select(-year) %>% 
-  as.matrix()
-
-library(mvtnorm)
-
-f = function(x) {
-  b = x["b"]
-  sigma = x["sigma"]
-  covariance = matrix(NA, nrow = nrow(y), ncol = nrow(y))
-  for (i in 1:nrow(y)) {
-    for (j in 1:nrow(y)) {
-      covariance[i, j] = sigma^2 * exp(-b * abs(i - j))
-    }
-  }
-  - sum(
-    sapply(
-      1:ncol(y),
-      function(i){
-        non_na = !is.na(y[,i])
-        dmvnorm(y[non_na,i], sigma = covariance[non_na, non_na], log = TRUE)
-      }
-    )
-  )
-}
-o = optim(c(b = exp(-2), sigma = sd(y, na.rm = TRUE)), f, control = list(trace = 1))
-
-exp(-o$par["b"])
