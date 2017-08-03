@@ -3,7 +3,8 @@ source("mistnet.R")
 args <- commandArgs(TRUE)
 start = args[[1]]
 end = args[[2]]
-N = args[[3]]
+timeframe = args[[3]]
+N = args[[4]]
 
 discrete_log_runif = function(N, a, b){
   # Sample from a discrete log-uniform distribution between a and b
