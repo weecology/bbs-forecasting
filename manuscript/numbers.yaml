@@ -23,3 +23,5 @@ pct_is_average:
 - 67.0
 resid_sd: 3.6
 residual_autocor: 0.1160954
+mistnet_rmse: 7.4517629
+mistnet_rmse_singles: 8.3558468

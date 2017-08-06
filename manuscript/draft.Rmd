@@ -207,7 +207,8 @@ raw richness values and on the residuals from our observer model. When
 correcting for observer effects, we averaged across 500 models that were fit
 separately to the 500 Monte Carlo estimates of the observer effects, to account
 for our uncertainty in the true values of those effects. All of these models use
-a Gaussian error distribution.
+a Gaussian error distribution (rather than a count distribution) for the reasons
+discussed below .
 
 **Baseline models.** We used two simple models as baselines for comparison to
 the fits of more complex models. These baselines treated site-level richness
@@ -316,7 +317,12 @@ log-likelihood) as an integrative measure of fit incorporating good point
 estimates, precision, and coverage.  In addition to looking at forecast
 performance in general we evaluated how performance changed as the time horizon
 of forecasting increased by plotting performance metrics against the forecast
-horizon.
+horizon. Finally, we decomposed each model's squared error into two components:
+one described the squared error associated with site-level means, while the
+other described the squared error associated with annual fluctuations in
+richness within a site. This decomposition tells us the extent to which each
+model's error depends on consistent differences among sites versus changes in
+site-level richness from year to year.
 
 All analyses were conducted using R [@R]. Primary R packages used in the
 analysis included dplyr [@dplyr], tidyr [@tidyr], gimms [@gimms], sp [@sp1;
@@ -402,15 +408,23 @@ model was the only model whose confidence intervals were too wide (Figure 5C),
 which can be attributed to the rapid rate at which these intervals expand
 (Figure 1).
 
-In general, each model's error increased more-or-less linearly with time,
-although the slopes and initial error rates varied across models (Figure 5). The
-mistnet JSDM and GBM-based macroecological model's deviance tended to rise less
-rapidly over time than the baseline models' deviance did; for the ten-year
-forecasts, these environment-based models outperformed the Naive model and
-nearly matched the performance of the Average model.
+Figure 6 shows each model's squared error, divided into consistent site-level
+biases, versus errors that fluctuated year-to-year. Across all models, most of
+the error came from errors in the site-level mean. The "average" model, which
+was based on the site-level mean, had the lowest error in this regard. In
+contrast, the three environmental models showed the largest biases at the site
+level; this makes sense, given that they could not explicitly distinguish among
+sites with similar climate, NDVI, and elevation. 
+
+![Each model's squared error can be divided into two parts. If a model
+consistently over-estimates or under-estimates the richness at a given site,
+this contributes to its error in predicting the site-level mean. The second
+component is based on errors in predicting fluctuations in a site's richness
+over time. Both components of the mean squared error were lower for the time
+series models than for the environmental models.](../figures/barcharts.png)
 
 When the differences among observers were not explicitly accounted for, nearly
-all metrics of fit worsened (Figure 6). The increased error resulted from a
+all metrics of fit worsened (Figure 7). The increased error resulted from a
 small number of forecasts where observer turnover caused a large shift in the
 reported richness values. The Naive model was less sensitive to these shifts,
 because it largely ignored the richness values reported by observers that had
@@ -422,9 +436,9 @@ very good coverage in the presence of this observer-based noise, which we
 attribute to its ability to model this variation with its latent variables.
 
 ![Accounting for differences between observers typically has a small impact on
-accuracy (especially for the "naive" model), but occasonally changes the
-predicted richness values by more than 10 species. These changes usually improve
-the model's predictions, but not always.](../figures/observers.png)
+accuracy (especially for the "naive" model), but occasonally changes a
+prediction's accuracy by more than 10 species. These changes are beneficial, on
+average.](../figures/observers.png)
 
 ## Discussion
 
@@ -443,7 +457,7 @@ there is little confidence that this will be the case. As a result, baseline
 models, like the long-term average, along with the other site-level time-series
 models, consistently provided the best forecasts for future biodiversity.
 
-The most commonly used method to forecast future biodiversity, stacked SDMs
+The most commonly used method to forecast future biodiversity, SDMs
 [@urban2015], provided the worst overall forecasts of all methods evaluated. In
 general, SDM-based forecasts are rarely evaluated, particularly in terms of
 repeated observations at the same site. Since site-level richness is relatively
@@ -484,36 +498,6 @@ estimates (Box 1). Not doing so is particularly problematic in this case because
 the summed species distribution models are overly confident meaning that using
 them would lead to believing that richness would be restricted to a much
 narrower range than would actually occur.
-
-For the error metric that evaluates both models' point estimates and their
-uncertainty simultaneously, the JSDM and the nonlinear richness model converge
-towards the time-series baselines at the longest time-scales assessed. This
-convergence at longer time scales highlights the importance of considering how
-forecasting method performance changes with the distance into the future being
-predicted (Box 1). The value of this approach, and associated forecast horizons,
-has been raised for knowing how far into the future a model can be effectively
-used for forecasting [@petchey2015], but our results suggest a broader value to
-this approach for considering the potential importance of different models and
-processes for making forecasts at different scales. Our results show that for
-forecasts 1-3 years in the future, baselines and time-series based approaches
-outperform all other methods using integrative metrics. At these time scales,
-environmental changes are relatively small and changes in the biota may lag
-behind changes in the environment. However, as the timescale of the forecast
-increases to a decade the JSDMs and environmental richness models get closer
-to the accuracy of the time-series methods and even surpass some of those
-methods. As the forecast distance increases the amount of environmental change
-is expected to increase and the system will have more time to respond,
-potentially leading to shifts towards improved relative performance of the
-models incorporating environmental and ecological information. If this shift
-with forecast distance in the relative importance of different processes and
-models continues, this could lead to JSDMs and environmental richness models
-outperforming time-series based approaches at sufficiently long time scales.
-These results suggest that assessment of how forecast performance changes with
-time lag is not only important for determining how far in the future to
-forecast, but also for determining which models and processes are most relevant
-for making forecasts at different time scales. For example ensemble forecasts
-could be created which incorporate these time lags into the weights for
-individual models.
 
 It is also possible that models that include species' relationships to their
 environments or direct environmental constraints on richness may continue to

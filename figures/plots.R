@@ -52,7 +52,18 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
   mutate(diff = richness - mean, z = diff / sd,
          p = pnorm(richness, mean, sd),
          deviance = -2 * dnorm(richness, mean, sd, log = TRUE)) %>% 
-  ungroup()
+  ungroup() %>% 
+  mutate(
+    model_name = forcats::fct_recode(
+      factor(model), 
+      Average = "average", 
+      Naive = "naive",
+      Auto.arima = "auto.arima", 
+      `Stacked random forest SDMs` = "rf_sdm",
+      `Mistnet JSDM` = "mistnet",
+      `GBM richness regression` = "richness_gbm"
+    )
+  )
 
 # Divide squared error by predictive variance to get the optimal sd factor
 # for the RF model
@@ -73,6 +84,7 @@ rf2 = rf2 %>%
 ts_models = c("average", "naive", "auto.arima")
 env_models = c("richness_gbm", "rf_sdm", "mistnet")
 models = c(ts_models, env_models)
+model_names = unique(bound$model_name)
 
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
   mutate(x = min(mean - 4), y = max(richness)) %>% 
@@ -208,6 +220,65 @@ time_error = plot_grid(
 my_ggsave(file = "figures/performance_time.png", plot = time_error, height = 15)
 
 
+
+# Decomposed squared error ------------------------------------------------
+
+barchart_data = bound %>% 
+  rename(y = richness, x = mean) %>% 
+  filter(use_obs_model) %>% 
+  group_by(site_id, model) %>% 
+  mutate(
+    x_bar = mean(x),
+    y_bar = mean(y),
+    delta_x = x - x_bar, 
+    delta_y = y - y_bar
+  ) %>% 
+  group_by(model) %>% 
+  summarize(`Site-level mean` = var(y_bar - x_bar), 
+            `Annual fluctuations` = var(delta_y - delta_x)) %>% 
+  gather(key = `Error component`, value = value, -1) %>% 
+  mutate(
+    env = model %in% env_models,
+    model = factor(model, levels = !!models),
+    `Error component` = factor(`Error component`, 
+                               levels = rev(sort(unique(`Error component`))))
+  )
+
+
+make_error_barchart = function(use_env){
+  filter(barchart_data, env == use_env) %>% 
+    ggplot(aes(x = model, y = value, fill = `Error component`)) +
+    geom_col(position = "dodge") +
+    scale_y_continuous(limits = c(0, max(barchart_data$value) + 1), 
+                       expand = c(FALSE, FALSE)) +
+    theme_cowplot(base_size - 1) + 
+    ggtitle(ifelse(use_env, "Environment", "Time series")) + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+          plot.margin = margin(1, 1, 1, 1)) +
+    scale_fill_brewer(palette = "Paired") + 
+    xlab("")
+}
+
+barchart_list = map(c(FALSE, TRUE), make_error_barchart)
+barchart_legend = get_legend(barchart_list[[1]])
+
+barcharts = plot_grid(
+  plot_grid(
+    barchart_list[[1]] + 
+      theme(legend.position = "none") + 
+      ylab("Mean squared error"),
+    barchart_list[[2]] + 
+      theme(legend.position = "none") +
+      ylab(""),
+    align = "h"
+  ),
+  barchart_legend,
+  rel_widths = c(3, 1)
+)
+my_ggsave("figures/barcharts.png", barcharts, height = 10)
+
+
+
 # digging into observer error ---------------------------------------------
 
 obs_model = readRDS(prepend_timeframe("observer_model.rds"))
@@ -327,6 +398,7 @@ my_ggsave("figures/observer_predictions.png",
 
 # correlations in the residuals -------------------------------------------
 
+# Need to bring in obs_model$data because we're looking at training residuals
 residuals = obs_model$data %>% 
   filter(in_train) %>% 
   mutate(predicted = site_effect + observer_effect + c(obs_model$intercept)) %>% 
@@ -338,6 +410,8 @@ residuals = obs_model$data %>%
   spread(key = site_id, value = diff) %>% 
   select(-year) %>% 
   as.matrix()
+
+
 
 # Ornstein-Uhlenbeck negative log-likelihood
 ou_nll = function(x) {
@@ -501,9 +575,14 @@ ms_numbers = list(
     pull(is_avg) %>% 
     round(),
   resid_sd = round(sqrt(mean(obs_model$sigma^2)), 1),
-  residual_autocor = residual_autocor
+  residual_autocor = residual_autocor,
+  mistnet_rmse = bound %>% 
+    filter(use_obs_model, model == "mistnet") %>% 
+    summarize(sqrt(mean(diff^2))) %>% 
+    pull(),
+  mistnet_rmse_singles = mistnet_results %>% 
+    filter(use_obs_model) %>% 
+    summarize(sqrt(mean((mean - richness)^2))) %>% 
+    pull()
 )  
 cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
-
-
-
