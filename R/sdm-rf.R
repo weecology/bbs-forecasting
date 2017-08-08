@@ -1,3 +1,12 @@
+# Print any diagnostic information from failed mclapply evaluations, then
+# return the original input
+diagnose_mclapply = function(x){
+  x %>% 
+    purrr::keep(~class(.x) == "try-error") %>% 
+    print()
+  return(x)
+}
+
 #' @importFrom randomForest randomForest
 one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
                        last_train_year, future, observer_sigmas,
@@ -64,6 +73,7 @@ rf_predict_richness = function(bbs, x_richness, settings, use_obs_model,
     mc.cores = 8,
     mc.preschedule = FALSE
   ) %>% 
+    diagnose_mclapply() %>% 
     purrr::map(combine_sdm_iterations) %>% 
     bind_rows() %>% 
     group_by(site_id, year, richness, use_obs_model) %>% 
