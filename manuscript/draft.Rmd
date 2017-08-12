@@ -19,6 +19,12 @@ output:
   html_document: default
 ---
 
+```{r, echo=FALSE, message=FALSE}
+library(tidyverse, quietly = TRUE)
+library(kableExtra, quietly = TRUE)
+```
+
+
 `r settings = yaml::yaml.load_file("../settings.yaml")`
 `r timeframe = settings$timeframes$train_22`
 `r numbers = yaml::yaml.load_file("numbers.yaml")`
@@ -92,6 +98,38 @@ hindcasting, archiving short-term forecasts, and comparing forecasts to
 baselines to determine whether the forecasts are more accurate than simply
 assuming the system is basically static [@perretti2013].
 
+\begin{singlespace}
+
+```{r table, echo=FALSE} 
+
+table_caption = "A summary of the six models evaluated here. The time series
+models were trained site-by-site, without access to any environmental
+information. The environmental models were trained at a continental scale,
+without information regarding which transects occurred at which site or during
+which year. Most of the models were trained to predict richness directly.
+However, the random forest SDMs were each trained to predict the occurrence of
+individual species at each site, and these species-level predictions were added
+up to produce richness estimates. The mistnet JSDM was trained to predict the
+full species composition at each site, and the number of species in its
+predictions was used as an estimate of richness."
+
+table_data = read_csv("../figures/table.csv",col_types = "ccccc") 
+
+table_data %>% 
+  knitr::kable(
+    format = "latex", 
+    escape = FALSE, 
+    booktabs = TRUE,
+    caption = table_caption
+  ) %>% 
+  add_header_above(c(" " = 2, "Predictors" = 3)) %>% 
+  group_rows("Time series models", 1, 3) %>% 
+  group_rows("Environmental models", 4, 6) %>% 
+  kable_styling(position = "center")
+```
+
+\end{singlespace}
+
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,000 of locations throughout North America while following the best
 practices in Box 1 for ecological forecasting. To do this, we combine 30 years
@@ -102,7 +140,7 @@ forecasting and allows us to model and assess changes a decade or more into the
 future in the presence of shifts in environmental conditions on par with
 predicted climate change. We compare traditional distribution modeling based
 approaches to spatial models of species richness, time-series methods, and
-simple baselines (Figure 1). All forecasts model uncertainty and observation
+simple baselines (Table 1). All forecasts model uncertainty and observation
 error, are evaluated across different time lags using hindcasting, and are
 publicly archived to allow future assessment. We discuss the implications of
 these practices for our understanding of, and confidence in, the resulting
@@ -447,37 +485,38 @@ develop and follow best practices for conducting and evaluating ecological
 forecasts. We have laid out ideas for a number of these practices (Box 1) and
 attempted to implement them in a single study that builds and evaluates
 forecasts of biodiversity in the form of species richness. The results of this
-effort are both promising and humbling. On an absolute basis, when comparing
-forecasts across sites, many different approaches to forecasting produce
-reasonable forecasts. If a site is predicted to have a high number of species in
-the future, relative to other sites, it generally does. However, the forecasts
-perform relatively poorly at predicting variation in richness over time. If a
-site is predicted to have a higher richness next year than it did last year,
-there is little confidence that this will be the case. As a result, baseline
-models, like the long-term average, along with the other site-level time-series
-models, consistently provided the best forecasts for future biodiversity.
+effort are both promising and humbling. When comparing forecasts across sites,
+many different approaches to forecasting produce reasonable forecasts. If a site
+is predicted to have a high number of species in the future, relative to other
+sites, it generally does. However (after controlling for observer differences),
+none of the methods we evaluated could reliably tell us whether site-level
+richness would increase or decrease over time (Figure 6), which is generally the
+stated purpose of these forecasts. As a result, our baseline models, which did
+not attempt to anticipate changes in richness over time, generally provided
+the best forecasts for future biodiversity.
 
-The most commonly used method to forecast future biodiversity, SDMs
-[@urban2015], provided the worst overall forecasts of all methods evaluated. In
-general, SDM-based forecasts are rarely evaluated, particularly in terms of
-repeated observations at the same site. Since site-level richness is relatively
-stable, model evaluations that show high accuracy across spatial gradients may
-not indicate much about a model's ability to predict changes over time. This
-issue has also recently been highlighted as an issue for using SDMs to predict
-the future locations of individual species [@rapacciuolo2012]. This result is
-particularly sobering because this approach forms the main foundation for
-estimates of the predicted loss of biodiversity to climate change [@thomas2004;
-@urban2015]. The poor performance of SDM-based forecasts highlights the crucial
-importance of comparing multiple modeling approaches when conducting ecological
-forecasts, and in particular the value of comparing results to simple baselines
-to avoid over-interpreting the information present in these forecasts (Box 1).
-Disciplines that have more mature forecasting cultures often do this by
-reporting "forecast skill", i.e., the improvement in the forecast relative to a
-simple baseline [@jolliffe2003]. We recommend following Ye et al. [@ye2015] and
-adopting this approach in future ecological forecasting research. It also
-highlights the need for using hindcasting and time-series data for assessing the
-effectiveness of forecasting methods, since this allows comparisons to baselines
-and assessment of predicted dynamics within sites or regions.
+These results raise a number of important issues. First, we should be skeptical
+of predictions about future biodiversity from models that have not been
+validated in terms of repeated observations at the same site. Since site-level
+richness is relatively stable, model evaluations that show high accuracy across
+spatial gradients may not indicate much about a model's ability to predict
+changes over time. This issue has also recently been highlighted as an issue for
+using SDMs to predict the future locations of individual species
+[@rapacciuolo2012; @oedekoven2017]. This result is particularly sobering because
+SDMs form the main foundation for estimates of the predicted loss of
+biodiversity to climate change [@thomas2004; @urban2015].
+
+Second, our results highlight the importance of comparing multiple modeling
+approaches when conducting ecological forecasts, and in particular, the value of
+comparing results to simple baselines to avoid over-interpreting the information
+present in these forecasts (Box 1). Disciplines that have more mature
+forecasting cultures often do this by reporting "forecast skill", i.e., the
+improvement in the forecast relative to a simple baseline [@jolliffe2003]. We
+recommend following Ye et al. [@ye2015] and adopting this approach in future
+ecological forecasting research. It also highlights the need for using
+hindcasting and time-series data for assessing the effectiveness of forecasting
+methods, since this allows comparisons to baselines and assessment of predicted
+dynamics within sites or regions.
 
 One of the main alternatives to stacked SDMs is modeling richness directly using
 environmental variables and using the resulting models to make forecasts
