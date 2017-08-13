@@ -1,5 +1,5 @@
 ---
-title: Best practices for forecasting changes in biodiversity: an example using breeding birds
+title: "Best practices for forecasting changes in biodiversity: an example using breeding birds"
 author:
 - David J. Harris
 - Shawn D. Taylor
