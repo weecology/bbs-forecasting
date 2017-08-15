@@ -528,12 +528,12 @@ the best forecasts for future biodiversity.
 These results raise a number of important issues. First, we should be skeptical
 of predictions about future biodiversity from models that have not been
 validated in terms of repeated observations at the same site. Since site-level
-richness is relatively stable, model evaluations that show high accuracy across
-spatial gradients may not indicate much about a model's ability to predict
-changes over time. This issue has also recently been highlighted as an issue for
-using SDMs to predict the future locations of individual species
-[@rapacciuolo2012; @oedekoven2017]. This result is particularly sobering because
-SDMs form the main foundation for estimates of the predicted loss of
+richness is relatively stable [[refs]], model evaluations that show high
+accuracy across spatial gradients may not indicate much about a model's ability
+to predict changes over time. This issue has also recently been highlighted as a
+potential downside of using SDMs to predict the future locations of individual
+species [@rapacciuolo2012; @oedekoven2017]. This result is particularly sobering
+because SDMs form the main foundation for estimates of the predicted loss of
 biodiversity to climate change [@thomas2004; @urban2015].
 
 Second, our results highlight the importance of comparing multiple modeling
@@ -542,131 +542,139 @@ comparing results to simple baselines to avoid over-interpreting the information
 present in these forecasts (Box 1). Disciplines that have more mature
 forecasting cultures often do this by reporting "forecast skill", i.e., the
 improvement in the forecast relative to a simple baseline [@jolliffe2003]. We
-recommend following Ye et al. [@ye2015] and adopting this approach in future
-ecological forecasting research. It also highlights the need for using
+recommend following the advice of @ye2015 and adopting this approach in future
+ecological forecasting research. Our results also highlight the need for using
 hindcasting and time-series data for assessing the effectiveness of forecasting
-methods, since this allows comparisons to baselines and assessment of predicted
-dynamics within sites or regions.
+methods. This practice allows comparisons to baseline models and also
+facilitates the assessment of predicted dynamics within sites or regions.
 
 One of the main alternatives to stacked SDMs is modeling richness directly using
-environmental variables and using the resulting models to make forecasts
-[@algar2009; @distler2015]. Two comparisons of the the SDM and direct richness
-modeling approaches reported that the methods yielded equivalent results for
-forecasting diversity. While our results generally support rough equivalence
-between stacked SDMs and direct richness modeling for point estimates, they also
-show that stacked SDMs dramatically understimate the uncertainty. For this
-reason, direct modeling of richness therefore is a better overall approach to
-forecasting richness. A similar result is seen when comparing joint species
-distribution models (JSDMs) to stacked single species distribution models. For
-point estimates the joint distribution models are roughly equivalent to stacked
-SDMs, but the JSDMs provide much better estimates of uncertainty [@harris2015;
-others?]. In fact, JSDMs and direct richness modeling provide some of the best
-estimates of uncertainty across all modeling approaches. This highlights the
-importance of evaluating models based on their uncertainty as well as their mean
-estimates (Box 1). Not doing so is particularly problematic in this case because
-the summed species distribution models are overly confident meaning that using
-them would lead to believing that richness would be restricted to a much
-narrower range than would actually occur.
+environmental variables and using the resulting models to make forecasts. Two
+studied compared the SDM and direct richness modeling approaches, and reported
+that the methods yielded equivalent results for forecasting diversity
+[@algar2009; @distler2015]. While our results generally support the idea of
+rough equivalence between stacked SDMs and direct richness modeling for point
+estimates, they also show that stacked SDMs dramatically understimate the
+uncertainty. For this reason, direct modeling of richness is a better overall
+approach to forecasting richness. A similar result is seen when comparing joint
+species distribution models (JSDMs) to stacked single species distribution
+models. For point estimates, the joint distribution models are roughly
+equivalent to stacked SDMs, but the JSDMs provide much better estimates of
+uncertainty [@harris2015; others?]. In fact, JSDMs and direct richness modeling
+provide some of the best estimates of uncertainty across all modeling
+approaches. This highlights the importance of evaluating models based on their
+uncertainty as well as their mean estimates (Box 1). Not doing so is
+particularly problematic in this case, because the summed species distribution
+models are overly confident, which means that these models could mislead
+ecologists into believing that richness would be restricted to a much narrower
+range than would actually occur.
 
 It is also possible that models that include species' relationships to their
-environments or direct environmental constraints on richness may continue to
+environments or direct environmental constraints on richness will continue to
 produce forecasts that are worse than simply assuming the systems are static.
 This would be expected to occur if richness in these systems is not changing
-over the relevant time scales and therefore simple models of no directional
-change are most appropriate. Recent suggestions that local scale richness in
-some systems is not changing directionally at multi-decadal scales supports this
-possibility [@brown2001; @ernest2001; @dornelas2014; @vellend2013]. This lack of
-change may be expected even in the presence of substantial changes in
-environmental conditions and species composition at a site due to the
-replacement of species from the regional pool [@brown2001; @ernest2001]. On
-average the Breeding Bird Survey sites used in this study show little change in
-richness (site-level SD of `r numbers$resid_sd` species, after controlling for
-differences among observers) [see also @lasorte2005]. This absence of rapid
-change is beneficial for the absolute accuracy of forecasts across sites,
-because if a past year's richness is known it is easy to estimate a future
-richness, and explains why stacked SDMs perform relatively well at this task
-despite failing to capture meaningful dynamics. However it makes it difficult to
-improve forecasts relative to simple baselines, since those baselines are close
-to representing what is actually occurring in the system. This suggests that
-simple time-series models and baselines should be actively considered for
-forecasts of richness and other stable aspects of biodiversity and also suggests
-that future efforts to understand and forecast biodiversity should also focus on
-composition since it is expected to be more dynamic [@ernest2001;
-@dornelas2014].
+over the relevant time scales (e.g. 10-30 years in this study), which would make
+simpler models with no directional change more appropriate. Recent suggestions
+that local scale richness in some systems is not changing directionally at
+multi-decadal scales supports this possibility [@brown2001; @ernest2001;
+@dornelas2014; @vellend2013]. This lack of change in richness may be expected
+even in the presence of substantial changes in environmental conditions and
+species composition at a site due to the replacement of species from the
+regional pool [@brown2001; @ernest2001]. On average, the Breeding Bird Survey
+sites used in this study show little change in richness [site-level SD of `r
+numbers$resid_sd` species, after controlling for differences among observers;
+see also @lasorte2005]. The absence of rapid change in this dataset is
+beneficial for the absolute accuracy of forecasts across different sites: when a
+past year's richness is already known, it is easy to estimate a future richness.
+The site-level stability of the BBS data also explains why stacked SDMs perform
+relatively well at predicting future richness, despite failing to capture
+changes in richness over time. However, this stability also makes it difficult
+to improve forecasts relative to simple baselines, since those baselines are
+already close to representing what is actually occurring in the system. These
+results suggest that simple time-series models and baselines should be actively
+considered for forecasts of richness and other stable aspects of biodiversity.
+Our results also suggest that future efforts to understand and forecast
+biodiversity should also focus on species composition, since lower-level
+processes are expected to be more dynamic [@ernest2001; @dornelas2014] and
+contain more useful information [@harris2015].
 
-In addition to consideration of the different process models used for
-forecasting it is important to consider the observation models. When working
-with any ecological dataset there are imperfections in sampling that have the
-potential to influence results. With large scale survey and citizen science
-datasets like the Breeding Bird Survey these issues are potentially magnified by
-the large number of different observers and major differences in habitat and
-species [@sauer1994]. We included an observation model for one of the two major
-observation issues known for the Breeding Bird Survey, differences among
-observers. Accounting for differences in observers reduced the average error in
-point estimates and also improved the coverage of the confidence intervals. In
-addition, it resulted in changes in which models performed best, most notably
-reducing the relative performance of the naive model for point estimates. This
-suggests that the naive model performed well in part because it was capable of
-accommodating rapid shifts in estimated richness introduced by changes in the
-observer. These kinds of rapid changes were difficult for the other time-series
-models to accommodate and so the average performance of the ARIMA and average
-models improved once this source of observation error was addressed. This
-demonstrates that properly modeling observation error can be important for
-properly estimating and reducing uncertainty in forecasts and can also lead to
-changes in the best methods for forecasting. We did not address differences in
-detection probability across species and sites [@boulinier1998] since there is
-no clear way to address this issue without making strong assumptions about the
-data (i.e., assuming there is no biological variation in stops along a route),
-but this would be a valuable addition to future forecasting models.
+**Observer effects.** In addition to consideration of the different process
+models used for forecasting it is important to consider the observation models.
+When working with any ecological dataset, there are imperfections in the
+sampling process that have the potential to influence results. With large scale
+surveys and citizen science datasets, such as the Breeding Bird Survey, these
+issues are potentially magnified by the large number of different observers and
+by major differences in the habitats and species being surveyed [@sauer1994].
+Accounting for differences in observers reduced the average error in our point
+estimates and also improved the coverage of the confidence intervals. In
+addition, controlling for observer effects resulted in changes in which models
+performed best, most notably reducing the relative performance of the naive
+model's point estimates. This suggests that, prior to accounting for observer
+effects, the naive model performed well because it was capable of accommodating
+rapid shifts in estimated richness introduced by changes in the observer. These
+kinds of rapid changes were difficult for the other time-series models to
+accommodate, and so the average performance of the ARIMA and average models
+improved once this source of observation error was addressed. This demonstrates
+that modeling observation error can be important for properly estimating and
+reducing uncertainty in forecasts and can also lead to changes in the best
+methods for forecasting. We did not address differences in detection probability
+across species and sites [@boulinier1998] since there is no clear way to address
+this issue without making strong assumptions about the data (i.e., assuming
+there is no biological variation in stops along a route), but this would be a
+valuable addition to future forecasting models.
 
-Future efforts will also need to begin to address the additional uncertainty
-that comes from error in forecasting the environmental conditions themselves. In
-this and other hindcasting studies the environmental conditions for the "future"
-are known because the data has already been observed. In real forecasts the
-environmental conditions themselves have to be forecast and those forecasts have
-uncertainty and bias. This will cause ecological forecasts that use
-environmental data to be more uncertain than observed in current hindcasting
-efforts. It is important to correctly incorporate this uncertainty in the
-predictor variables into forecasting models [@clark2001; @dietze2017]. Difficulty
-in forecasting future environmental conditions at small scales will present
-continued challenges for models incorporating these conditions and this may
-result in a continued advantage to simple time-series based approaches.
+**Environmental uncertainty.** Future biodiversity forecasting efforts will also
+need to begin to address the additional uncertainty introduced by the error
+inherent in the process of forecasting the environmental conditions that
+ecologists use as predictor variables. In this, and other hindcasting studies,
+the environmental conditions for the "future" are known because the data has
+already been observed. However, in real forecasts the environmental conditions
+themselves have to be predicted, and environmental forecasts will also have
+uncertainty and bias. Ultimately, ecological forecasts that use environmental
+data will therefore be more uncertain than our current hindcasting efforts.
+Thus, it is important to correctly incorporate this uncertainty in the predictor
+variables into forecasting models [@clark2001; @dietze2017], as we did with the
+uncertainty in observer-level effects. Difficulty in forecasting future
+environmental conditions at small scales will present continued challenges for
+models incorporating environmental variables, and this may result in a continued
+advantage for simple time-series based approaches.
 
-Another challenge for ecological forecasting is the timescales of typical
-forecasts. We evaluated forecasts using yearly timesteps up to a decade into the
-future. In contrast, many ecological forecasts are temporally aggregated to 5-30
-year timesteps and projected up to a century into the future. These are commonly
-beyond the career or even lifespan of the researchers, making reasonable model
-assessment impossible. Currently assessments at these long time-scales can
-only be made with a small number of opportune datasets. For examples hindcasts
-have been used to assess models of species richness [@algar2009, @distler2015]
-and distribution [@rapacciuolo2012, @moran-ordonez2017, @araujo2005,
-@eskildsen2013] using data aggregated across similar time scales. More
-evaluation studies like these are needed but there is a paucity of adequate long
-term data available. Short term forecasts will allow for relatively rapid
-validation of models by researchers without needing to wait for enough data to
-accumulate [@tredennick2016; @dietze2016]. This does not mean that they should
-replace large scale long-term forecasts. As discussed above, drivers of species
-richness are likely to differ at different temporal scales [@rosenzweig1995,
-@white2004, @white2007]. Thus short-term forecasts should be expected to add
-value to end users and inform, not replace, long-term forecasts. Hopefully by
-evaluating trends in the shorter term forecasts as done here it will be
-possible to also use the information from short-term forecasting to improve
-longer-term estimates.
+**Multi-timescale forecasts.** Another challenge for ecological forecasting is
+the timescales of typical forecasts. We evaluated forecasts using yearly
+timesteps up to a decade into the future. In contrast, many ecological forecasts
+are temporally aggregated to 5-30 year timesteps and projected up to a century
+into the future. These are commonly beyond the career or even lifespan of the
+researchers, which makes it impossible to directly validate the models'
+predictions. Currently, assessments at these long time-scales can only be made
+with a small number of opportune datasets. For example, hindcasts have been used
+to assess models of species richness [@algar2009; @distler2015] and distribution
+[@rapacciuolo2012; @moran-ordonez2017; @araujo2005; @eskildsen2013] using data
+aggregated across similar time scales to those studied here. More evaluation
+studies like these are needed but there is a paucity of adequate long term data
+available. Short term forecasts will allow for relatively rapid validation of
+models by researchers without needing to wait for enough data to accumulate
+[@tredennick2016; @dietze2016]. This does not mean that they should replace
+large scale long-term forecasts. As discussed above, drivers of species richness
+are likely to differ at different temporal scales [@rosenzweig1995; @white2004;
+@white2007]. Thus, short-term forecasts should be expected to add value to
+scientists and policymakers, and inform (not replace) long-term forecasts.
+Hopefully, by evaluating trends in the shorter term forecasts as done here it
+will be possible to also use the information from short-term forecasting to
+improve longer-term estimates.
 
-The science of forecasting biodiversity, and ecology more broadly, remains in
-its infancy and it is important to consider the general inability of
-forecasting methods to improve on simple baselines in that context. When weather
-forecasting first started the forecasts were likewise worse than simple
-baselines [@mcgill2012]. One of the things that helped weather forecasts improve
-was large numbers of forecasts were made in public, which allowed different
-approaches to forecasting to be regularly assessed and improved [@mcgill2012;
-@silver2012]. This suggests that it is important for ecologists to start
-regularly making and evaluating true ecological forecasts, even if they perform
-poorly, and to make these forecasts publicly available for assessment. These
-forecasts should include both short-term predictions, which can be assessed
-quickly, and mid to long-term forecasts to help assess long time-scale processes
-and determine how far into the future we can successfully forecast
+**Conclusions.** The science of forecasting biodiversity, and ecology more
+broadly, remains in its infancy and it is important to consider the general
+inability of forecasting methods to improve on simple baselines in that context.
+When weather forecasting first started the forecasts were likewise worse than
+simple baselines [@mcgill2012]. One of the things that helped weather forecasts
+improve was large numbers of forecasts were made in public, which allowed
+different approaches to forecasting to be regularly assessed and improved
+[@mcgill2012; @silver2012]. This suggests that it is important for ecologists to
+start regularly making and evaluating true ecological forecasts, even if they
+perform poorly, and to make these forecasts publicly available for assessment.
+These forecasts should include both short-term predictions, which can be
+assessed quickly, and mid to long-term forecasts to help assess long time-scale
+processes and determine how far into the future we can successfully forecast
 [@tredennick2016; @dietze2017]. Forecasts based on the models in this paper from
 now until 2050 are openly archived on Dryad so that we and others can assess how
 well they perform and we plan to evaluate these forecasts and report the results
