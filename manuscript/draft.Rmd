@@ -40,8 +40,7 @@ terms of their ability to predict future diversity, fail to account for
 uncertainty, and do not use time-series data that captures the actual dynamics
 being studied. We compiled a list of ten best practices for forecasting
 biodiversity, and used hindcasting to evaluate six different modeling approaches
-for predicting breeding bird species richness. Each method was evaluated at `r
-numbers$N_predict_sites` sites distributed throughout the continental United
+for predicting breeding bird species richness. Each method was evaluated at `r numbers$N_predict_sites` sites distributed throughout the continental United
 States. Forecasts were evaluated for up to a decade after the final training
 observations. While each model could explain most of the variance in richness,
 none of them consistently outperformed a baseline model that simply predicted
@@ -108,7 +107,7 @@ static [@perretti2013].
 
 ```{r table, echo=FALSE} 
 
-table_caption = "A summary of the six models evaluated here. The time series
+table_caption = "A summary of the six models evaluated here. The single-site
 models were trained site-by-site, without access to any environmental
 information. The environmental models were trained at a continental scale,
 without information regarding which transects occurred at which site or during
@@ -129,7 +128,7 @@ table_data %>%
     caption = table_caption
   ) %>% 
   add_header_above(c(" " = 2, "Predictors" = 3)) %>% 
-  group_rows("Time series models", 1, 3) %>% 
+  group_rows("Single-site models", 1, 3) %>% 
   group_rows("Environmental models", 4, 6) %>% 
   kable_styling(position = "center")
 ```
@@ -159,11 +158,11 @@ from 1982 through 2003, connected by solid lines, were used for training all six
 models; the remaining points were used for evaluating the models' forecasts. In
 each panel, point estimates for each year are shown with lines; the darker
 ribbon indicates 1 standard deviation of uncertainty, and the lighter ribbon
-indicates 95% confidence intervals. **A.** The time series models models were
+indicates 95% confidence intervals. **A.** The single-site models models were
 trained using one site at a time, based solely on observed richness values
 shown. The first two models ("average" and "naive") served as our simple
 forecasting baselines. **B.** The environmental models were trained to predict
-richness based on elevation, climate, and NDVI; unlike the time series models,
+richness based on elevation, climate, and NDVI; unlike the single-site models,
 the environmental models' predictions change from year to year as environmental
 conditions change.](../figures/model_predictions.png)
 
@@ -185,6 +184,18 @@ filtered to exclude all nocturnal, cepuscular, and aquatic species [since these
 species are not well sampled by BBS methods; @hurlbert2005], as well as
 unidentified species, and hybrids. All data from routes that did not meet BBS
 acceptable criteria were also excluded.
+
+We used observed richness values from 1982 (the first year of complete
+environmental data) to 2003 for training the models, and data from 2004 to 2013
+was used for testing their performance. We only used BBS routes from the
+continental United States (i.e. routes where climate data was available @prism),
+and we restricted the analysis to routes that were sampled during 70% of the
+years in the training period (i.e., routes with at least 16 annual
+observations). The resulting dataset included `r numbers$N_runs` transect runs
+of `r numbers$N_sites` unique sites, and included `r numbers$N_species` species.
+Site-level richness varied from `r numbers$richness_summary$min` to `r
+numbers$richness_summary$max` with an average richness of `r
+numbers$richness_summary$mean` species.
 
 **Past environmental data.** Environmental data included a combination of
 elevation, bioclimatic variables and a remotely sensed vegetation index (the
@@ -213,17 +224,6 @@ together to create a single ensemble used to calculate the bioclimatic variables
 for North America. For NDVI we used the per-site average values from 2000-2013
 as a simple forecast. For observer effects (see below) each site was set to have
 zero observer bias.
-
-**[[xxx]].** We used observed richness values from 1982 (the first complete year
-of NDVI data) to 2003 for training the models, and data from 2004 to 2013 was
-used for testing their performance. We only used BBS routes from the continental
-United States (i.e. routes where PRISM data was available), and restricted the
-analysis to routes that were sampled during 70% of the years in the training
-period (i.e., routes with at least 16 annual observations). The resulting
-dataset included `r numbers$N_runs` transect runs of `r numbers$N_sites` unique
-sites, and included `r numbers$N_species` species. Site-level richness varied
-from `r numbers$richness_summary$min` to `r numbers$richness_summary$max` with
-an average richness of `r numbers$richness_summary$mean` species.
 
 ### Accounting for observer effects
 
@@ -295,14 +295,9 @@ using AICc [@forecast1]. Since there is no seasonal component to the BBS
 time-series, we did not include a season component in these models. Otherwise we
 used the default settings for this function [@forecast1]. 
 
-[[Note: we sometimes refer to the baselines as "time series models", but (1)
-we're also using that name for just auto.arima and (2) the "average" model
-doesn't use any time series.  Other possible names: site-level models (as
-above); richness-only models; environment-free models...]]
-
 ### Models: environmental models
 
-In contrast to the site-level time-series models, most attempts to predict
+In contrast to the single-site models, most attempts to predict
 species richness focus on using correlative models based on environmental
 variables. We tested three common variants of this approach: direct modeling of
 species richness; stacking individual species distribution models; and joint
@@ -375,8 +370,7 @@ as our final point estimate and we calculated the uncertainty using the law of
 total variance (i.e. the average of the model runs' variance, plus the variance
 in the point estimates).
 
-We evaluated each model's forecasts using the data for each year between `r
-timeframe$last_train_year` and `r timeframe$end_yr`. We used three metrics for
+We evaluated each model's forecasts using the data for each year between `r timeframe$last_train_year` and `r timeframe$end_yr`. We used three metrics for
 evaluating performance: 1) root-mean-square error (RMSE) to determine how far,
 on average, the models' predictions were from the observed value; 2) the 95%
 prediction interval coverage to determine how well the models predicted the
@@ -419,11 +413,10 @@ When comparing forecasts for richness across sites all methods performed well
 (Figure 3; all $R^2 > 0.5$). However SDMs (both stacked and joint) and the
 macroecological model all failed to successfully forecast the highest-richness
 sites, resulting in a notable clustering of predicted values near ~60 species
-and the poorest model performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r
-numbers$ts_R2s` for the within-site methods).
+and the poorest model performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r numbers$ts_R2s` for the within-site methods).
 
 ![Performance of the six models we evaluated when predicting one year into the
-future (2004) or ten years into the future (2013).  In general, the time series
+future (2004) or ten years into the future (2013).  In general, the single-site
 models (**A.**) outperformed the environmental models. (**B.**) The accuracy of
 the predictions generally declined as the forecast horizon was
 extended.](../figures/scatter.png)
@@ -487,8 +480,8 @@ sites with similar climate, NDVI, and elevation.
 consistently over-estimates or under-estimates the richness at a given site,
 this contributes to its error in predicting the site-level mean. The second
 component is based on errors in predicting fluctuations in a site's richness
-over time. Both components of the mean squared error were lower for the time
-series models than for the environmental models.](../figures/barcharts.png)
+over time. Both components of the mean squared error were lower for the
+single-site models than for the environmental models.](../figures/barcharts.png)
 
 When the differences among observers were not explicitly accounted for, nearly
 all metrics of fit worsened (Figure 7). The increased error resulted from a
@@ -581,8 +574,7 @@ multi-decadal scales supports this possibility [@brown2001; @ernest2001;
 even in the presence of substantial changes in environmental conditions and
 species composition at a site due to the replacement of species from the
 regional pool [@brown2001; @ernest2001]. On average, the Breeding Bird Survey
-sites used in this study show little change in richness [site-level SD of `r
-numbers$resid_sd` species, after controlling for differences among observers;
+sites used in this study show little change in richness [site-level SD of `r numbers$resid_sd` species, after controlling for differences among observers;
 see also @lasorte2005]. The absence of rapid change in this dataset is
 beneficial for the absolute accuracy of forecasts across different sites: when a
 past year's richness is already known, it is easy to estimate a future richness.
@@ -591,12 +583,12 @@ relatively well at predicting future richness, despite failing to capture
 changes in richness over time. However, this stability also makes it difficult
 to improve forecasts relative to simple baselines, since those baselines are
 already close to representing what is actually occurring in the system. These
-results suggest that simple time-series models and baselines should be actively
-considered for forecasts of richness and other stable aspects of biodiversity.
-Our results also suggest that future efforts to understand and forecast
-biodiversity should also focus on species composition, since lower-level
-processes are expected to be more dynamic [@ernest2001; @dornelas2014] and
-contain more useful information [@harris2015].
+results suggest that single-site models should be actively considered for
+forecasts of richness and other stable aspects of biodiversity. Our results also
+suggest that future efforts to understand and forecast biodiversity should also
+focus on species composition, since lower-level processes are expected to be
+more dynamic [@ernest2001; @dornelas2014] and contain more useful information
+[@harris2015].
 
 **Observer effects.** In addition to consideration of the different process
 models used for forecasting it is important to consider the observation models.
@@ -612,7 +604,7 @@ performed best, most notably reducing the relative performance of the naive
 model's point estimates. This suggests that, prior to accounting for observer
 effects, the naive model performed well because it was capable of accommodating
 rapid shifts in estimated richness introduced by changes in the observer. These
-kinds of rapid changes were difficult for the other time-series models to
+kinds of rapid changes were difficult for the other single-site models to
 accommodate, and so the average performance of the ARIMA and average models
 improved once this source of observation error was addressed. This demonstrates
 that modeling observation error can be important for properly estimating and
@@ -637,7 +629,7 @@ variables into forecasting models [@clark2001; @dietze2017], as we did with the
 uncertainty in observer-level effects. Difficulty in forecasting future
 environmental conditions at small scales will present continued challenges for
 models incorporating environmental variables, and this may result in a continued
-advantage for simple time-series based approaches.
+advantage for simple single-site approaches.
 
 **Multi-timescale forecasts.** Another challenge for ecological forecasting is
 the timescales of typical forecasts. We evaluated forecasts using yearly
@@ -777,7 +769,7 @@ Evalutating a models predictive performance across time is critical. Hindcasting
 uses a temporal out of sample validation to mimic how well a model would have
 performed had it been run in the past. For example using occurance data from the
 early 20th century to model distributions which are validated with late
-20th century occurances. Dense timeseries, such as yearly observations, are
+20th century occurances. Dense time series, such as yearly observations, are
 desirable to also evalulate the forecast horizon (see #6), but this is not
 a strict requirement.
 
