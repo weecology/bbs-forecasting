@@ -565,6 +565,36 @@ models are overly confident, which means that these models could mislead
 ecologists into believing that richness would be restricted to a much narrower
 range than would actually occur.
 
+[[Note: this paragraph may no longer be accurate!]] For the error metric that
+evaluates both models' point estimates and their uncertainty simultaneously, the
+JSDM and the nonlinear richness model converge towards the time-series baselines
+at the longest time-scales assessed. This convergence at longer time scales
+highlights the importance of considering how forecasting method performance
+changes with the distance into the future being predicted (Box 1). The value of
+this approach, and associated forecast horizons, has been raised for knowing how
+far into the future a model can be effectively used for forecasting
+[@petchey2015], but our results suggest a broader value to this approach for
+considering the potential importance of different models and processes for
+making forecasts at different scales. Our results show that for forecasts 1-3
+years in the future, baselines and time-series based approaches outperform all
+other methods using integrative metrics. At these time scales, environmental
+changes are relatively small and changes in the biota may lag behind changes in
+the environment. However, as the timescale of the forecast increases to a decade
+the JSDMs and environmental richness models get closer to the accuracy of the
+time-series methods and even surpass some of those methods. As the forecast
+distance increases the amount of environmental change is expected to increase
+and the system will have more time to respond, potentially leading to shifts
+towards improved relative performance of the models incorporating environmental
+and ecological information. If this shift with forecast distance in the relative
+importance of different processes and models continues, this could lead to JSDMs
+and environmental richness models outperforming time-series based approaches at
+sufficiently long time scales. These results suggest that assessment of how
+forecast performance changes with time lag is not only important for determining
+how far in the future to forecast, but also for determining which models and
+processes are most relevant for making forecasts at different time scales. For
+example ensemble forecasts could be created which incorporate these time lags
+into the weights for individual models.
+
 It is also possible that models that include species' relationships to their
 environments or direct environmental constraints on richness will continue to
 produce forecasts that are worse than simply assuming the systems are static.
