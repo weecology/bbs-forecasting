@@ -308,18 +308,10 @@ my_ggsave("figures/observer_uncertainty.png", obs_joy, height = 11)
 
 # Time series -------------------------------------------------------------
 
-
-# sample_site_id = 88005
-# sample_site_id = 91012
-# sample_site_id = 2024
-# sample_site_id = 91062
-sample_site_id = 38032
-sample_site_id = 72035
-
 make_ts_plots = function(models, ylim, use_obs_model, sample_site_id, 
                          main = ""){
   grid = crossing(model = c(ts_models, env_models),
-                  use_obs_model = unique(c(use_obs_model, FALSE)),
+                  use_obs_model = use_obs_model,
                   year = unique(obs_model$data$year))
   
   time_series_data = obs_model$data %>% 
@@ -333,7 +325,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     select(site_id, year, model, use_obs_model, mean, sd, richness, observer_id,
            deviance)
   
-  faceting = if (use_obs_model) {
+  faceting = if (length(use_obs_model) == 2) {
     facet_grid(model ~ use_obs_model)
   } else {
     (facet_grid(~ model))
@@ -353,12 +345,14 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     geom_line(aes(y = mean), color = "gray30") +
     faceting +
     geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
-    geom_point(aes(y = richness, fill = factor(observer_id)),
-               size = 1.25, shape = 21, stroke = .5) +
+    geom_point(aes(y = richness, fill = factor(observer_id),
+                   shape = factor(observer_id)),
+               size = 1.25, stroke = .5) +
     scale_alpha(range = c(0, 1), guide = FALSE) + 
     coord_cartesian(ylim = ylim, expand = TRUE) +
+    scale_shape_manual(values = c(16, 22, 23), guide = FALSE) + 
     ylab("Richness") +
-    viridis::scale_fill_viridis(discrete = TRUE, option = "A", guide = FALSE) + 
+    scale_fill_manual(values = c("white", "#fdcc8a", "#d7301f"), guide = FALSE) + 
     theme_light(base_size = base_size) + 
     theme(plot.margin = unit(c(10, 7, 1, 7), units = "pt"),
           strip.background = element_rect(fill="white"), 
@@ -371,9 +365,9 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
 # before 2004.
 model_predictions = list(ts_models, env_models) %>% 
   map(~make_ts_plots(.x, 
-                     ylim = c(42, 85), 
-                     use_obs_model = FALSE, 
-                     sample_site_id = 91034,
+                     ylim = c(33, 68), 
+                     use_obs_model = TRUE, 
+                     sample_site_id = 72084,
                      main = ifelse(
                        all(.x %in% ts_models),
                        "A. Time series models", 
@@ -388,7 +382,7 @@ my_ggsave(filename = "figures/model_predictions.png",
 
 obs_predictions = make_ts_plots(
   c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
-  use_obs_model = TRUE, sample_site_id = 72035,
+  use_obs_model = c(TRUE, FALSE), sample_site_id = 72035,
   main = ""
 )
 my_ggsave("figures/observer_predictions.png", 
