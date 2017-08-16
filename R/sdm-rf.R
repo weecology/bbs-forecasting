@@ -20,7 +20,7 @@ one_rf_tree = function(bbs, vars, sp_id, iter, use_obs_model, x_richness,
   )  
   
   test = make_test_set(d, future, observer_sigmas, settings) %>% 
-    mutate(species_id = sp_id)
+    mutate(species_id = sp_id, iteration = iter)
   test$mean = predict(rf, test, type = "prob")[,2]
   test$use_obs_model = use_obs_model
   

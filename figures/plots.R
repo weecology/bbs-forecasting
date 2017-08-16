@@ -2,6 +2,8 @@ devtools::load_all()
 library(tidyverse)
 library(cowplot)
 library(ggjoy)
+library(mvtnorm)
+
 settings = yaml::yaml.load_file("settings.yaml")
 
 timeframe = "train_22"
@@ -9,6 +11,17 @@ prepend_timeframe = function(x) {
   paste0("results", "/", timeframe, "/", x)
 }
 
+base_size = 12 # 12-point font for figures
+
+# peerj PDFs are 14.59 cm wide
+my_ggsave = function(filename, plot, height, width = 14.59, units = "cm", ...){
+  ggsave(filename = filename, 
+         plot = plot, 
+         height = height, 
+         width = width, 
+         units = units, 
+         ...)
+}
 
 forecast_results = readRDS(prepend_timeframe("forecast.rds")) %>% 
   filter(!is.na(richness))
@@ -39,7 +52,31 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
   mutate(diff = richness - mean, z = diff / sd,
          p = pnorm(richness, mean, sd),
          deviance = -2 * dnorm(richness, mean, sd, log = TRUE)) %>% 
-  ungroup()
+  ungroup() %>% 
+  mutate(
+    model_name = forcats::fct_recode(
+      factor(model), 
+      Average = "average", 
+      Naive = "naive",
+      Auto.arima = "auto.arima", 
+      `Stacked random forest SDMs` = "rf_sdm",
+      `Mistnet JSDM` = "mistnet",
+      `GBM richness regression` = "richness_gbm"
+    )
+  )
+
+# Divide squared error by predictive variance to get the optimal sd factor
+# for the RF model
+rf2 = bound %>% 
+  filter(use_obs_model, model == "rf_sdm")
+rf_sd_factor = rf2 %>% 
+  summarize(sqrt(mean(diff^2 / sd^2))) %>% 
+  pull()
+rf2$sd = rf2$sd * rf_sd_factor
+
+rf2 = rf2 %>% 
+  mutate(p = pnorm(richness, mean, sd),
+         deviance = -2 * dnorm(richness, mean, sd, log = TRUE))
 
 
 # scatterplot -------------------------------------------------------------
@@ -47,15 +84,16 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
 ts_models = c("average", "naive", "auto.arima")
 env_models = c("richness_gbm", "rf_sdm", "mistnet")
 models = c(ts_models, env_models)
+model_names = unique(bound$model_name)
 
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
-  mutate(x = min(mean), y = max(richness)) %>% 
+  mutate(x = min(mean - 4), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   mutate(R2 = 1 - var(mean - richness) / var(richness)) %>% 
   mutate(R2_formatted = paste("R^2: ", 
                               format(R2,digits = 2, nsmall = 2)))
 
-make_scatterplots = function(models){
+make_scatterplots = function(models, main){
   x_range = range(bound$mean)
   ggplot(data = filter(bound, use_obs_model, year %in% c(2004, 2013),
                        model %in% models), 
@@ -69,19 +107,18 @@ make_scatterplots = function(models){
     geom_text(inherit.aes = FALSE,
               data = filter(R2s, model %in% models),
               aes(x = x, y = y, label = R2_formatted),
-              hjust = 0, vjust = 1,
-              size = 3) +
-    theme_light(base_size = 14) +
-    xlim(x_range)
+              hjust = 0, vjust = 1, size = 3) +
+    theme_light(base_size = base_size) +
+    xlim(x_range) + 
+    ggtitle(main)
 }
 
-plot_grid(
-  make_scatterplots(ts_models),
-  make_scatterplots(env_models),
+scatters = plot_grid(
+  make_scatterplots(ts_models, main = "A. Time-series models"),
+  make_scatterplots(env_models, main = "B. Environmental models"),
   align = "h",
-  nrow = 2,
-  labels = c("A. Time-series models", "B. Environmental models"))
-ggsave(filename = "figures/scatter.png", width = 7.5, height = 10)
+  nrow = 2)
+my_ggsave(filename = "figures/scatter.png", plot = scatters, height = 15)
 
 # Violins -----------------------------------------------------------------
 
@@ -95,7 +132,7 @@ for_violins = bound %>%
          squared_diff = diff.other^2 - diff.avg^2,
          abs_diff = abs(diff.other) - abs(diff.avg))
 
-make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
+make_violins = function(data, ylab = "", ylim, yintercept, adjust = 2, main){
   data %>% 
     ggplot(aes(x = model, y = y)) + 
     geom_hline(yintercept = yintercept, color = alpha(1, .25), size = 1/2) +
@@ -103,7 +140,7 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
     stat_summary(fun.data = "mean_cl_boot", colour = "darkblue", geom = "point",
                  size = 1) + 
     coord_cartesian(expand = FALSE, ylim = ylim) +
-    theme_cowplot(9) +
+    theme_cowplot(base_size) +
     ylab(ylab) +
     xlab("Model type") +
     ggtitle(main)
@@ -111,21 +148,25 @@ make_violins = function(data, ylab = "", ylim, yintercept, adjust = 1, main){
 
 # Note that the y axis doesn't extend all the way on this plot because
 # of a small number of extreme outliers
-plot_grid(
+model_violins = plot_grid(
   for_violins %>% 
-    mutate(model = model.other, y = -abs_diff) %>% 
-    make_violins(yintercept = 0, adjust = 5,
+    mutate(model = model.other, y = abs_diff) %>% 
+    make_violins(yintercept = 0, 
                  ylim = quantile(for_violins$abs_diff, c(.0005, .9995)),
-                 main = "A. Model improvement over\n\"Average\" baseline",
-                 ylab = "Absolute error reduction"),
+                 main = "A. Absolute error increase versus \"Average\" baseline",
+                 ylab = "Absolute error increase (species)"),
   for_violins %>% 
-    mutate(model = model.other, y = plogis(-dev_diff / 2)) %>%
-    make_violins(yintercept = 0.5, adjust = 1, ylim = c(0, 1), 
-                 main = "B. Model posterior weight versus\n\"Average\" baseline",
-                 ylab = "Posterior weight"),
+    mutate(model = model.other, y = dev_diff) %>%
+    make_violins(yintercept = 0, 
+                 ylim = quantile(for_violins$abs_diff, c(.0005, .9995)), 
+                 main = "B. Deviance increase versus \"Average\" baseline",
+                 ylab = "Deviance increase"),
   nrow = 2
 )
-ggsave(file = "figures/model_violins.png", width = 4, height = 5)
+my_ggsave(file = "figures/model_violins.png", 
+          plot = model_violins,
+          height = 12.5
+)
 
 
 # Metrics over time -------------------------------------------------------
@@ -143,19 +184,99 @@ d = bound %>%
 # Possibly-useful alternative 6-color colorblind palette
 colors = c("#000000", dichromat::colorschemes$Categorical.12[c(4, 6, 10, 11, 12)])
 
-ggplot() +
-  geom_line(data = data_frame(x = c(min(d$year), max(d$year)), 
-                              y = c(.95, .95),
-                              variable = factor("coverage", 
-                                                levels = levels(d$variable))),
-            aes(x = x, y = y), inherit.aes = FALSE) +
-  geom_line(data = d, aes(x = year, y = value, color = model), size = 1) + 
-  scale_color_brewer(palette = "Set1") +
-  ylab("") +
-  facet_grid(variable~., scales = "free_y", switch = "y") +
-  scale_x_continuous(expand = c(0, 0)) +
-  theme_light(base_size = 10)
-ggsave(file = "figures/performance_time.png", width = 3.75, height = 6)  
+make_time_error = function(var_name, title){
+  ggplot(filter(d, variable == var_name), 
+         aes(x = year, y = value, color = model)) +
+    geom_line() +
+    scale_x_continuous(expand = c(0, 0)) +
+    theme_light(base_size = base_size) +
+    scale_color_brewer(palette = "Set1") +
+    ylab(var_name) + 
+    ggtitle(paste0(title, ". ", var_name))
+}
+
+plotlist = pmap(
+  list(
+    levels(d$variable), 
+    LETTERS[1:3]
+  ), 
+  make_time_error
+)
+
+# Pull out the legend from one of the plots as its own object, then remove 
+# from individual panels
+time_error_legend = get_legend(plotlist[[1]])
+plotlist = map(plotlist, ~.x + theme(legend.position = "none"))
+
+plotlist[[3]] = plotlist[[3]] + 
+  geom_hline(yintercept = 0.95) +
+  scale_y_continuous(limits = c(.65, 1.0025), expand = c(0, 0))
+
+time_error = plot_grid(
+  plot_grid(plotlist = plotlist, nrow = 3, align = "v"),
+  time_error_legend,
+  rel_widths = c(4, 1)
+)
+my_ggsave(file = "figures/performance_time.png", plot = time_error, height = 15)
+
+
+
+# Decomposed squared error ------------------------------------------------
+
+barchart_data = bound %>% 
+  rename(y = richness, x = mean) %>% 
+  filter(use_obs_model) %>% 
+  group_by(site_id, model) %>% 
+  mutate(
+    x_bar = mean(x),
+    y_bar = mean(y),
+    delta_x = x - x_bar, 
+    delta_y = y - y_bar
+  ) %>% 
+  group_by(model) %>% 
+  summarize(`Site-level mean` = var(y_bar - x_bar), 
+            `Annual fluctuations` = var(delta_y - delta_x)) %>% 
+  gather(key = `Error component`, value = value, -1) %>% 
+  mutate(
+    env = model %in% env_models,
+    model = factor(model, levels = !!models),
+    `Error component` = factor(`Error component`, 
+                               levels = rev(sort(unique(`Error component`))))
+  )
+
+
+make_error_barchart = function(use_env){
+  filter(barchart_data, env == use_env) %>% 
+    ggplot(aes(x = model, y = value, fill = `Error component`)) +
+    geom_col(position = "dodge") +
+    scale_y_continuous(limits = c(0, max(barchart_data$value) + 1), 
+                       expand = c(FALSE, FALSE)) +
+    theme_cowplot(base_size - 1) + 
+    ggtitle(ifelse(use_env, "Environment", "Time series")) + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+          plot.margin = margin(1, 1, 1, 1)) +
+    scale_fill_brewer(palette = "Paired") + 
+    xlab("")
+}
+
+barchart_list = map(c(FALSE, TRUE), make_error_barchart)
+barchart_legend = get_legend(barchart_list[[1]])
+
+barcharts = plot_grid(
+  plot_grid(
+    barchart_list[[1]] + 
+      theme(legend.position = "none") + 
+      ylab("Mean squared error"),
+    barchart_list[[2]] + 
+      theme(legend.position = "none") +
+      ylab(""),
+    align = "h"
+  ),
+  barchart_legend,
+  rel_widths = c(3, 1)
+)
+my_ggsave("figures/barcharts.png", barcharts, height = 10)
+
 
 
 # digging into observer error ---------------------------------------------
@@ -171,18 +292,18 @@ observer_uncertainties = obs_model$data %>%
   left_join(filter(bound, model == "average", use_obs_model), 
             by = c("year", "site_id"))
 
-observer_uncertainties %>% 
+obs_joy = observer_uncertainties %>% 
   ggplot(aes(x = observer_sd^2, y = factor(year), 
              fill = year)) + 
   viridis::scale_fill_viridis(option = "B", guide = FALSE,
                               direction = 1) + 
   geom_joy(scale = 5, bandwidth = .75, color = "gray40") + 
-  theme_joy(font_size = 11) +
+  theme_joy(font_size = base_size) +
   ylab(expression("Year" %->% "")) + 
   xlab("Observer-level uncertainty (squared error)") + 
   theme(axis.title.x = element_text(hjust = .5),
         axis.title.y = element_text(hjust = .5))
-ggsave("figures/observer_uncertainty.png", width = 3.75, height = 4.5)
+my_ggsave("figures/observer_uncertainty.png", obs_joy, height = 11)
 
 
 # Time series -------------------------------------------------------------
@@ -233,12 +354,12 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     faceting +
     geom_line(aes(y = richness, alpha = .5 * (year < min(bound$year - 1)))) + 
     geom_point(aes(y = richness, fill = factor(observer_id)),
-               size = .8, shape = 21, stroke = .5) +
+               size = 1.25, shape = 21, stroke = .5) +
     scale_alpha(range = c(0, 1), guide = FALSE) + 
     coord_cartesian(ylim = ylim, expand = TRUE) +
     ylab("Richness") +
     viridis::scale_fill_viridis(discrete = TRUE, option = "A", guide = FALSE) + 
-    theme_light(base_size = 11) + 
+    theme_light(base_size = base_size) + 
     theme(plot.margin = unit(c(10, 7, 1, 7), units = "pt"),
           strip.background = element_rect(fill="white"), 
           strip.text = element_text(color = "black")) +
@@ -248,9 +369,9 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
 
 # The warning about missing values is just saying that there are no predictions
 # before 2004.
-list(ts_models, env_models) %>% 
+model_predictions = list(ts_models, env_models) %>% 
   map(~make_ts_plots(.x, 
-                     ylim = c(42, 73), 
+                     ylim = c(42, 85), 
                      use_obs_model = FALSE, 
                      sample_site_id = 91034,
                      main = ifelse(
@@ -260,7 +381,74 @@ list(ts_models, env_models) %>%
   ) %>% 
   plot_grid(plotlist = ., nrow = 2)
   
-ggsave(filename = "figures/model_predictions.png", width = 7.5, height = 4)
+my_ggsave(filename = "figures/model_predictions.png", 
+       plot = model_predictions, 
+       height = 10)
+
+
+obs_predictions = make_ts_plots(
+  c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
+  use_obs_model = TRUE, sample_site_id = 72035,
+  main = ""
+)
+my_ggsave("figures/observer_predictions.png", 
+          obs_predictions, 
+          height = 10)
+
+
+# correlations in the residuals -------------------------------------------
+
+# Need to bring in obs_model$data because we're looking at training residuals
+residuals = obs_model$data %>% 
+  filter(in_train) %>% 
+  mutate(predicted = site_effect + observer_effect + c(obs_model$intercept)) %>% 
+  left_join(distinct(bound, site_id, year, richness),
+            c("site_id", "year", "richness")) %>% 
+  group_by(site_id, year) %>% 
+  summarize(diff = mean(richness - predicted)) %>% 
+  ungroup() %>% 
+  spread(key = site_id, value = diff) %>% 
+  select(-year) %>% 
+  as.matrix()
+
+
+
+# Ornstein-Uhlenbeck negative log-likelihood
+ou_nll = function(x) {
+  l = x["l"]         # Lengthscale
+  sigma = x["sigma"] # standard deviation
+  
+  # Build the covariance matrix based on l & sigma
+  covariance = matrix(NA, nrow = nrow(residuals), ncol = nrow(residuals))
+  for (i in 1:nrow(residuals)) {
+    for (j in 1:nrow(residuals)) {
+      # OU process covariance, pp. 85-86 of Gaussian Processes 
+      # for Machine Learning
+      covariance[i, j] = sigma^2 * exp(-l * abs(i - j))
+    }
+  }
+  
+  # Negative log-likelihood objective
+  - sum(
+    sapply(
+      1:ncol(residuals),
+      function(i){
+        # Multivariate Gaussian log-likelihood based on each column of y.
+        # Only use the non-NA entries in y and in the covariance
+        non_na = !is.na(residuals[,i])
+        dmvnorm(residuals[non_na,i], 
+                sigma = covariance[non_na, non_na], 
+                log = TRUE)
+      }
+    )
+  )
+}
+o = optim(c(l = exp(-2), sigma = sd(residuals, na.rm = TRUE)), 
+          ou_nll, 
+          control = list(trace = 1))
+
+residual_autocor = exp(-o$par["l"])
+
 
 # Numbers for the manuscript ----------------------------------------------
 
@@ -280,7 +468,7 @@ observer_deviance_data = bound %>%
                                              yes = "TRUE")) %>% 
   select(site_id, year, model, use_obs_model, deviance) %>% 
   spread(key = use_obs_model, value = deviance) %>% 
-  mutate(y = plogis(0.5 * (no - yes)))
+  mutate(y = no - yes)
 
 observer_error_data = bound %>% 
   mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
@@ -290,28 +478,36 @@ observer_error_data = bound %>%
   spread(key = use_obs_model, value = diff) %>% 
   mutate(y = abs(no) - abs(yes))
 
-plot_grid(
-  make_ts_plots(c("average", "naive", "rf_sdm"), ylim = c(41, 91), 
-                use_obs_model = TRUE, sample_site_id = 72035,
-                main = "Controlling for observer differences"),
-  plot_grid(
-    make_violins(observer_error_data, 
-                 main = "Absolute error reduction from observer model",
-                 ylab = "Reduction in absolute\nrichness error (species)",
-                 ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
-                 yintercept = 0,
-                 adjust = 2),
-    make_violins(observer_deviance_data, 
-                 main = "Posterior weight of model including observer effect",
-                 ylab = "Posterior weight of\nobserver model",
-                 ylim = c(0, 1), 
-                 yintercept = 0.5, 
-                 adjust = 5),
-    nrow = 2
-  )
-)
-ggsave("figures/observers.png", width = 8, height = 5)
 
+obs_violins = plot_grid(
+  make_violins(observer_error_data, 
+               main = "Absolute error reduction from observer model",
+               ylab = "Reduction in absolute\nrichness error (species)",
+               ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
+               yintercept = 0),
+  make_violins(observer_deviance_data, 
+               main = "Deviance reduction from observer model",
+               ylab = "Posterior weight of\nobserver model",
+               ylim = quantile(observer_deviance_data$y, c(.005, .995)), 
+               yintercept = 0),
+  nrow = 2
+)
+my_ggsave("figures/observers.png", obs_violins, height = 10)
+
+
+# RF versus RF2 -----------------------------------------------------------
+
+rf2_diff = bound$deviance[bound$use_obs_model & bound$model == "rf_sdm"] - rf2$deviance
+rf2_plot = ggplot(NULL, aes(x = rf2_diff)) + 
+  geom_density(n = 1000, adjust = 1, trim = FALSE, fill = "cornflowerblue",
+               color = 0) + 
+  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = mean(rf2_diff), color = "red") + 
+  theme_light(base_size = base_size) +
+  scale_y_continuous(expand = c(FALSE, FALSE)) +
+  xlab("Deviance improvement from scaling the SDM uncertainty")
+
+my_ggsave("figures/rf2.png", rf2_plot, height = 10)
 
 # Numerical odds and ends for manuscript ----------------------------------
 bbs_data = get_pop_ts_env_data(
@@ -359,7 +555,8 @@ ms_numbers = list(
     filter(model == "rf_sdm", use_obs_model) %>% 
     summarize(round(100 * mean(p > .025 & p < .975))) %>% 
     pull(),
-  all_R2s = R2s %>% 
+  ts_R2s = R2s %>% 
+    filter(model %in% ts_models) %>% 
     pull(R2) %>% 
     range() %>% 
     format(digits = 2) %>% 
@@ -376,55 +573,16 @@ ms_numbers = list(
     filter(model == "auto.arima") %>% 
     summarize(is_avg = mean(100 * map_lgl(coef_names, ~all(.x == "intercept")))) %>% 
     pull(is_avg) %>% 
-    round()
+    round(),
+  resid_sd = round(sqrt(mean(obs_model$sigma^2)), 1),
+  residual_autocor = residual_autocor,
+  mistnet_rmse = bound %>% 
+    filter(use_obs_model, model == "mistnet") %>% 
+    summarize(sqrt(mean(diff^2))) %>% 
+    pull(),
+  mistnet_rmse_singles = mistnet_results %>% 
+    filter(use_obs_model) %>% 
+    summarize(sqrt(mean((mean - richness)^2))) %>% 
+    pull()
 )  
 cat(yaml::as.yaml(ms_numbers), file = "manuscript/numbers.yaml")
-
-fitted = obs_model$data %>% 
-  filter(in_train) %>% 
-  group_by(site_id, year) %>% 
-  summarize(diff = mean(richness) - 
-              (mean(site_effect + observer_effect) + mean(obs_model$intercept))) %>% 
-  ungroup()
-
-ars = fitted %>% 
-  complete(site_id, year) %>% 
-  group_by(site_id) %>% 
-  arrange(year) %>% 
-  summarize(model = list(try(arima(diff, c(1, 0, 0),
-                                   include.mean = FALSE))))
-mean(ars$model %>% map_dbl(coef))
-
-
-
-y = fitted %>% 
-  complete(site_id, year) %>% 
-  group_by(site_id) %>% 
-  arrange(year) %>% spread(key = site_id, value = diff) %>% 
-  dplyr::select(-year) %>% 
-  as.matrix()
-
-library(mvtnorm)
-
-f = function(x) {
-  b = x["b"]
-  sigma = x["sigma"]
-  covariance = matrix(NA, nrow = nrow(y), ncol = nrow(y))
-  for (i in 1:nrow(y)) {
-    for (j in 1:nrow(y)) {
-      covariance[i, j] = sigma^2 * exp(-b * abs(i - j))
-    }
-  }
-  - sum(
-    sapply(
-      1:ncol(y),
-      function(i){
-        non_na = !is.na(y[,i])
-        dmvnorm(y[non_na,i], sigma = covariance[non_na, non_na], log = TRUE)
-      }
-    )
-  )
-}
-o = optim(c(b = exp(-2), sigma = sd(y, na.rm = TRUE)), f, control = list(trace = 1))
-
-exp(-o$par["b"])
