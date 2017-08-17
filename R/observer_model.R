@@ -73,7 +73,6 @@ fit_observer_model = function(settings, output_dir,
   message("R-hat values should be close to 1; values larger than about 1.05\nindicate convergence problems")
   
   saveRDS(obs_model, file = output_file)
-  saveRDS(samples, file = paste0("rstan_", output_file))
   
   NULL
 }
