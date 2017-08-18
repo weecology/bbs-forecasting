@@ -668,7 +668,7 @@ advantage for simple single-site approaches.
 **Multi-timescale forecasts.** Another challenge for ecological forecasting is
 the timescales of typical forecasts. We evaluated forecasts using yearly
 timesteps up to a decade into the future. In contrast, many ecological forecasts
-are temporally aggregated to 5-32 year timesteps and projected up to a century
+are temporally aggregated to 5-30 year timesteps and projected up to a century
 into the future. These are commonly beyond the career or even lifespan of the
 researchers, which makes it impossible to directly validate the models'
 predictions. Currently, assessments at these long time-scales can only be made
