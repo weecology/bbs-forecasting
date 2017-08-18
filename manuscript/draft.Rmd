@@ -137,34 +137,33 @@ conditions change.](../figures/model_predictions.png)
 
 ## Methods
 
-We evaluated 6 types of forecasting models (Table 1) at two time-scales. In the
-first one, we divided our [30] years of data into [22] years of training data
-and retained [9] years of data for evaluation via hindcasting. Second, we used
-the full data set for training and made predictions through the year 2050. For
-both time scales, we evaluated versions of each model with and without
-correcting for observer effects, as described below. 
+We evaluated 6 types of forecasting models (Table 1) using hindcasting by
+dividing the [30] years of data into [22] years of training data and [9] years
+of data for evaluation. We also used the full data set to train all 6 models and
+made annual forecasts through the year 2050. For both time scales, we made
+forecasts using versions of each model with and without correcting for observer
+effects, as described below.
 
 ### Data
 
 **Richness data.** Bird species richness was obtained from the North American
-Breeding Bird Survey (BBS) [@pardieck2017] using the Data Retriever software
-[@morris2013] and rdataretriever R package [@mcglinn2017]. The BBS data was
-filtered to exclude all nocturnal, cepuscular, and aquatic species [since these
-species are not well sampled by BBS methods; @hurlbert2005], as well as
-unidentified species, and hybrids. All data from routes that did not meet BBS
-acceptable criteria were also excluded.
+Breeding Bird Survey (BBS) [@pardieck2017] using the Data Retriever Python
+package [@morris2013] and rdataretriever R package [@mcglinn2017]. The BBS data
+was filtered to exclude all nocturnal, cepuscular, and aquatic species [since
+these species are not well sampled by BBS methods; @hurlbert2005], as well as
+unidentified species, and hybrids. All data from surveys that did not meet BBS
+quality criteria were also excluded.
 
 We used observed richness values from 1982 (the first year of complete
-environmental data) to 2003 for training the models, and data from 2004 to 2013
-was used for testing their performance. We only used BBS routes from the
-continental United States (i.e. routes where climate data was available @prism),
-and we restricted the analysis to routes that were sampled during 70% of the
-years in the training period (i.e., routes with at least 16 annual
-observations). The resulting dataset included `r numbers$N_runs` transect runs
-of `r numbers$N_sites` unique sites, and included `r numbers$N_species` species.
-Site-level richness varied from `r numbers$richness_summary$min` to `r
-numbers$richness_summary$max` with an average richness of `r
-numbers$richness_summary$mean` species.
+environmental data) to 2003 to train the models, and from 2004 to 2013 to test
+their performance. We only used BBS routes from the continental United States
+(i.e. routes where climate data was available @prism), and we restricted the
+analysis to routes that were sampled during 70% of the years in the training
+period (i.e., routes with at least 16 annual observations). The resulting
+dataset included `r numbers$N_runs` annual surveys of `r numbers$N_sites` unique
+sites, and included `r numbers$N_species` species.  Site-level richness varied
+from `r numbers$richness_summary$min` to `r numbers$richness_summary$max` with
+an average richness of `r numbers$richness_summary$mean` species.
 
 **Past environmental data.** Environmental data included a combination of
 elevation, bioclimatic variables and a remotely sensed vegetation index (the
@@ -177,16 +176,16 @@ month, mean temperature of the wettest quarter, mean temperature of the driest
 quarter, precipitation seasonality, precipitation of the wettest quarter, and
 precipitation of the warmest quarter. Satellite-derived NDVI, a primary
 correlate of richness in BBS data [@hurlbert2002], was obtained from the NDIV3g
-dataset with an 8 km resolution [@pinzon2014] and was available from the time
-period 1981-2013. Average summer (May, June, July) and winter (December,
-January, Feburary) NDVI values were used as predictors. Elevation was from the
-SRTM 90m elevation dataset [@jarvis2008] obtained using the R package raster
+dataset with an 8 km resolution [@pinzon2014] and was available from 1981-2013.
+Average summer (May, June, July) and winter (December, January, Feburary) NDVI
+values were used as predictors. Elevation was from the SRTM 90m elevation
+dataset [@jarvis2008] obtained using the R package raster
 [@hijmans2016]. Because BBS routes are 40-km transects rather than point counts,
 we used the average value of each environmental variable within a 40 km radius
 of each BBS route's starting point.
 
 **Future environmental projections.** We made long term forecasts from 2014-2050
-using the CMIP5 multi-model ensemble dataset as the source for climatic
+using the CMIP5 multi-model ensemble dataset as the source for climate
 variables [@brekke2013]. Precipitation and temperature from 37 downscaled model
 runs [@brekke2013, see Table S1] using the RCP6.0 scenario were averaged
 together to create a single ensemble used to calculate the bioclimatic variables
@@ -196,61 +195,63 @@ zero observer bias.
 
 ### Accounting for observer effects
 
-For each forecasting approach, we trained two versions of the corresponding
-model: one with corrections for differences among observers, and one without.
 Observer effects are inherent in large data sets collected by different
-observers, and are known to occur in BBS [@sauer1994]. We estimated the observer
-effects (and associated uncertainty about those effects) with a linear mixed
-model with observer as a random effect built in the Stan probabilistic
-programming language [@stan]. Because observer and site are strongly related
-(observers tend to repeatedly sample the same site), site was also included as a
-random effect to ensure that inferred deviations were actually observer-related
-(as opposed to being related to the sites that a given observer happened to
-see). The resulting model partitions the variance in observed richness values
-into site-level variance, observer-level variance, and residual variance (e.g.
-variation within a site from year to year; Figure 3). The site-level estimates
-can also be used directly as the "average" baseline model (see below). The
-estimated observer effects can be subtracted from the richness values for a
-particular observer to provide an estimate of how many species would have been
-found by a "typical" observer. To incorporate uncertainty in these "corrected"
-richness values into the forecasting models we collected 500 Monte Carlo samples
-from the model's posterior distribution, and fit each of the downstream models
-with each of the Monte Carlo samples. Each Monte Carlo sample represented a
-different possible set of observer-level and site-level random effect values
-across the full 30-year dataset.
+observers, and are known to occur in BBS [@sauer1994]. For each forecasting
+approach, we trained two versions of the corresponding model: one with
+corrections for differences among observers, and one without (Figure 2). We
+estimated the observer effects (and associated uncertainty about those effects)
+with a linear mixed model, with observer as a random effect, built in the Stan
+probabilistic programming language [@stan]. Because observer and site are
+strongly related (observers tend to repeatedly sample the same site), site was
+also included as a random effect to ensure that inferred deviations were
+actually observer-related (as opposed to being related to the sites that a given
+observer happened to see). The resulting model partitions the variance in
+observed richness values into site-level variance, observer-level variance, and
+residual variance (e.g.  variation within a site from year to year). The
+site-level estimates can also be used directly as the "average" baseline model
+(see below). The estimated observer effects can be subtracted from the richness
+values for a particular observer to provide an estimate of how many species
+would have been found by a "typical" observer. To incorporate uncertainty in
+these "corrected" richness values into the forecasting models we collected 500
+Monte Carlo samples from the model's posterior distribution, and fit each of the
+downstream models with each of the Monte Carlo samples. Each Monte Carlo sample
+represented a different possible set of observer-level and site-level random
+effect values across the full 30-year dataset.
 
-![**A.** When all observers are treated the same (black points), predictions can
-be poor. **B.** By accounting for systematic differences between observers
-(represented by the points' colors), most models can be made more robust to
-observer turnover. Note that the "naive" model is already less sensitive to
+![**A.** Model predictions for [[STATE]] route [[ROUTE NUMBER]] when all
+observers are treated the same (black points). **B.** Model predictions for the
+same route when accounting for systematic differences between observers
+(represented by the points' colors). In this example most models are made more
+robust to observer turnover. Note that the "naive" model is less sensitive to
 observer turnover, and does not benefit as much from modeling
 it.](../figures/observer_predictions.png)
 
 ### Models: site-level models
 
-We fit three sets of models that were fit to each site separately, with no
+Three of models used in this study were fit to each site separately, with no
 environmental information (Table 1). These models were fit to each BBS route
 twice: once using the residuals from the observer model, and once using the raw
 richness values. When correcting for observer effects, we averaged across 500
 models that were fit separately to the 500 Monte Carlo estimates of the observer
 effects, to account for our uncertainty in the true values of those effects. All
 of these models use a Gaussian error distribution (rather than a count
-distribution) for the reasons discussed below (see "Model evaluation").
+distribution) for reasons discussed below (see "Model evaluation").
 
 \begin{singlespace}
 
 ```{r table, echo=FALSE}
 
-table_caption = "A summary of the six models evaluated here. The single-site
-models were trained site-by-site, without access to any environmental
-information. The environmental models were trained at a continental scale,
-without information regarding which transects occurred at which site or during
-which year. Most of the models were trained to predict richness directly.
-However, the random forest SDMs were each trained to predict the occurrence of
-individual species at each site, and these species-level predictions were added
-up to produce richness estimates. The mistnet JSDM was trained to predict the
-full species composition at each site, and the number of species in its
-predictions was used as an estimate of richness."
+table_caption = "Six forecasting models. Single-site models were trained
+site-by-site, without environmental data. Environmental models were trained
+using all sites together, without information regarding which transects occurred
+at which site or during which year. Most of the models were trained to predict
+richness directly. This mirrors the standard application of these
+techniques. Separate random forest SDMs were fit for each species and used to
+predict the probability of that species occurring at each site. The
+species-level probabilities at a site were summed to predict richness. The
+mistnet JSDM was trained to predict the full species composition at each site,
+and the number of species in its predictions was used as an estimate of
+richness."
 
 table_data = read_csv("../figures/table.csv",col_types = "ccccc")
 
@@ -272,18 +273,18 @@ table_data %>%
 comparison with the more complex models (Figure 2A). These baselines treated
 site-level richness observations either as uncorrelated noise around a
 site-level constant (the "average" model) or as an autoregressive model with a
-single year of history (the "naive" model) [@hyndman2014]. Predictions from the
+single year of history [the "naive" model, @hyndman2014]. Predictions from the
 "average" model are centered on the average richness observed during training,
 and the confidence intervals are narrow and constant-width. The "naive" model,
 in contrast, predicts that future observations will be similar to the final
-observed value (e.g. the value observed in `r timeframe$last_train_year`), and
-the confidence intervals expand rapidly as the predictions extend farther into
-the future. Both models' richness predictions are centered on a constant value,
-so neither model can anticipate any trends in richness or any responses to
-future environmental changes.
+observed value (e.g., in our hindcasts the value observed in `r
+timeframe$last_train_year`), and the confidence intervals expand rapidly as the
+predictions extend farther into the future. Both models' richness predictions
+are centered on a constant value, so neither model can anticipate any trends in
+richness or any responses to future environmental changes.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
-function in @forecast1] to represent a array of different time-series modeling
+function in @forecast1] to represent an array of different time-series modeling
 approaches. These models can include an autoregressive component (as in the
 "naive" model, but with the possibility of longer-term dependencies in the
 underlying process), a moving average component (where the noise can have serial
@@ -318,8 +319,7 @@ prediction [@elith2008]. This model was optimized using a Gaussian likelihood,
 with a maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000
 trees. The number of trees used for prediction was selected using the "out of
 bag" estimator; this number averaged `r numbers$n_gbm[1]` for the non-observer
-data and `r numbers$n_gbm[2]` for the observer-corrected data. [[add comma
-separators for thousands place]]
+data and `r numbers$n_gbm[2]` for the observer-corrected data.
 
 **Species Distribution Model: stacked random forests.** Species distribution
 models (SDMs) predict individual species' occurrence probabilities using
@@ -344,13 +344,13 @@ a predictor variable.
 
 **Joint Species Distribution Model: mistnet.** Joint species distribution models
 (JSDMs) are a new approach that makes predictions about the full composition of
-a community instead of modeling each species independently as above. JSDMs
-remove the assumed independence among species and explicitly account for the
-possibility that a site will be much more (or less) suitable for birds in
-general (or particular groups of birds) than one would expect based on the
-available environmental measurements alone. As a result, JSDMs do a better job
-of representing our uncertainty about richness, while stacked SDMs underestimate
-it [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
+a community instead of modeling each species independently as above
+[@warton2015]. JSDMs remove the assumed independence among species and
+explicitly account for the possibility that a site will be much more (or less)
+suitable for birds in general (or particular groups of birds) than one would
+expect based on the available environmental measurements alone. As a result,
+JSDMs do a better job of representing uncertainty about richness than stacked
+SDMs [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
 [@harris2015] because it is the only JSDM that describes species' environmental
 associations with nonlinear functions.
 
@@ -364,29 +364,27 @@ such as the Poisson or binomial (i.e. richness was underdispersed for individual
 sites), so these count models would have had difficulty fitting the data [cf.
 @calabrese2014]. The use of a continuous distribution is adequate here, since
 richness had a relatively large mean (`r numbers$richness_summary$mean`) and all
-models already produce continuous richness estimates (due to summing SDM or JSDM
-probabilities). When a model was run multiple times for the purpose of
-correcting for observer effects, we used the mean of those runs' point estimates
-as our final point estimate and we calculated the uncertainty using the law of
-total variance (i.e. the average of the model runs' variance, plus the variance
-in the point estimates).
+models produce continuous richness estimates. When a model was run multiple
+times for the purpose of correcting for observer effects, we used the mean of
+those runs' point estimates as our final point estimate and we calculated the
+uncertainty using the law of total variance (i.e. the average of the model runs'
+variance, plus the variance in the point estimates).
 
 We evaluated each model's forecasts using the data for each year between `r
-timeframe$last_train_year` and `r timeframe$end_yr`. We used three metrics for
-evaluating performance: 1) root-mean-square error (RMSE) to determine how far,
-on average, the models' predictions were from the observed value; 2) the 95%
-prediction interval coverage to determine how well the models predicted the
+timeframe$last_train_year + 1` and `r timeframe$end_yr`. We used three metrics
+for evaluating performance: 1) root-mean-square error (RMSE) to determine how
+far, on average, the models' predictions were from the observed value; 2) the
+95% prediction interval coverage to determine how well the models predicted the
 range of possible outcomes; and 3) deviance (i.e. negative 2 times the Gaussian
 log-likelihood) as an integrative measure of fit incorporating good point
-estimates, precision, and coverage.  In addition to evaluating forecast
+estimates, precision, and coverage. In addition to evaluating forecast
 performance in general, we evaluated how performance changed as the time horizon
 of forecasting increased by plotting performance metrics against year. Finally,
-we decomposed each model's squared error into two components: one described the
-squared error associated with site-level means, while the other described the
-squared error associated with annual fluctuations in richness within a site.
-This decomposition tells us the extent to which each model's error depends on
-consistent differences among sites versus changes in site-level richness from
-year to year.
+we decomposed each model's squared error into two components: the squared error
+associated with site-level means and the squared error associated with annual
+fluctuations in richness within a site. This decomposition describes the extent
+to which each model's error depends on consistent differences among sites versus
+changes in site-level richness from year to year.
 
 All analyses were conducted using R [@R]. Primary R packages used in the
 analysis included dplyr [@dplyr], tidyr [@tidyr], gimms [@gimms], sp [@sp1;
