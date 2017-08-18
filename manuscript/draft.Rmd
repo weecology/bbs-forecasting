@@ -33,28 +33,26 @@ library(kableExtra, quietly = TRUE)
 ## Abstract
 
 Biodiversity forecasts are important for conservation, management, and
-evaluating how well current models characterize natural systems. While
-biodiversity forecasts are common, there is little information available on how
-well these forecasts work. Most biodiversity forecasts are not evaluated in
-terms of their ability to predict future diversity, fail to account for
-uncertainty, and do not use time-series data that captures the actual dynamics
-being studied. We compiled a list of ten best practices for forecasting
-biodiversity, and used hindcasting to evaluate six different modeling approaches
-for predicting breeding bird species richness. Each method was evaluated at `r
-numbers$N_predict_sites` sites distributed throughout the continental United
-States. Forecasts were evaluated for up to a decade after the final training
-observations. While each model could explain most of the variance in richness,
-none of them consistently outperformed a baseline model that simply predicted
-constant richness at each site. In particular, we found no evidence that current
-methods (such as species distribution models) can successfully turn spatial data
-into useful temporal predictions about biodiversity. This result may call into
-question the validity of many high-profile forecasts from the last 15 years.
-Most of the best practices implemented in this study (e.g., evaluating
-confidence intervals as well as point estimates) directly influence the outcome
-of the forecasts; some even led to large changes in the relative performance of
-different modeling approaches. To facilitate the rapid improvement of
-biodiversity forecasts, we emphasize the value of specific best practices in
-making and evaluating different forecasting methods.
+evaluating how well current models characterize natural systems. While the
+number of forecasts for biodiversity are increasing, there is little information
+available on how well these forecasts work. Most biodiversity forecasts are not
+evaluated to determine how well they predict future diversity, fail to account
+for uncertainty, and do not use time-series data that captures the actual
+dynamics being studied. We addressed these limitations by using best practices
+to explore our ability to forecast the species richness of breeding birds in
+North America. We used hindcasting to evaluate six different modeling approaches
+for predicting richness. Hindcasts for each method were evaluated annually for a
+decade at `r numbers$N_predict_sites` sites distributed throughout the
+continental United States. While each model could explain most of the variance
+in richness, none of them consistently outperformed a baseline model that
+predicted constant richness at each site. In particular, we found no evidence
+that current methods (such as species distribution models) can successfully turn
+spatial data into useful temporal predictions about biodiversity at decadale
+time-scales. The best practices implemented in this study directly influence the
+forecasts, the relative performance of different modeling approaches, and the
+conclusions about the current state of biodiversity forecasting . To facilitate
+the rapid improvement of biodiversity forecasts, we emphasize the value of
+specific best practices in making forecasts and evaluating forecasting methods.
 
 ## Introduction
 
