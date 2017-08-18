@@ -137,7 +137,7 @@ table_data %>%
 
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,000 of sites located throughout North America, while following the best
-practices in Box 1 for ecological forecasting. To do this, we combine 30 years
+practices in Box 1 for ecological forecasting. To do this, we combine 32 years
 of time-series data on bird distributions from annual surveys with monthly
 time-series of climate data and satellite-based remote-sensing. Datasets that
 span a time scale of 30 years or more have only recently become available for
@@ -169,8 +169,8 @@ conditions change.](../figures/model_predictions.png)
 ## Methods
 
 We evaluated 6 types of forecasting models (Table 1) at two time-scales. In the
-first one, we divided our [30] years of data into [22] years of training data
-and retained [9] years of data for evaluation via hindcasting. Second, we used
+first one, we divided our 32 years of data into 22 years of training data
+and retained 10 years of data for evaluation via hindcasting. Second, we used
 the full data set for training and made predictions through the year 2050. For
 both time scales, we evaluated versions of each model with and without
 correcting for observer effects, as described below. 
@@ -248,7 +248,7 @@ richness values into the forecasting models we collected 500 Monte Carlo samples
 from the model's posterior distribution, and fit each of the downstream models
 with each of the Monte Carlo samples. Each Monte Carlo sample represented a
 different possible set of observer-level and site-level random effect values
-across the full 30-year dataset.
+across the full 32-year dataset.
 
 ![**A.** When all observers are treated the same (black points), predictions can
 be poor. **B.** By accounting for systematic differences between observers
@@ -668,7 +668,7 @@ advantage for simple single-site approaches.
 **Multi-timescale forecasts.** Another challenge for ecological forecasting is
 the timescales of typical forecasts. We evaluated forecasts using yearly
 timesteps up to a decade into the future. In contrast, many ecological forecasts
-are temporally aggregated to 5-30 year timesteps and projected up to a century
+are temporally aggregated to 5-32 year timesteps and projected up to a century
 into the future. These are commonly beyond the career or even lifespan of the
 researchers, which makes it impossible to directly validate the models'
 predictions. Currently, assessments at these long time-scales can only be made
