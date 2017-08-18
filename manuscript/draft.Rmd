@@ -59,26 +59,26 @@ making and evaluating different forecasting methods.
 ## Introduction
 
 Forecasting the future state of ecological systems is increasingly important for
-planning and management, and also for quantitatively evaluating how well our
-models capture the key ecological processes governing these systems [@clark2001;
-@houlahan2017; @dietze2017]. Forecasts regarding biodiversity are especially
-important, due to biodiversity's central role in conservation planning and its
-sensitivity to anthropogenic effects [@cardinale2012; @diaz2015; @tilman2017].
-High-profile studies forecasting large biodiversity declines over the coming
-decades have played a large role in shaping ecologists' priorities [as well as
-those of policymakers; e.g. @ipcc2014], but it is inherently difficult to
-evaluate such long-term predictions before the projected biodiversity declines
-have occurred. 
+planning and management, and also for quantitatively evaluating how well
+ecological models capture the key processes governing natural systems
+[@clark2001; @houlahan2017; @dietze2017]. Forecasts regarding biodiversity are
+especially important, due to biodiversity's central role in conservation
+planning and its sensitivity to anthropogenic effects [@cardinale2012;
+@diaz2015; @tilman2017]. High-profile studies forecasting large biodiversity
+declines over the coming decades have played a large role in shaping ecologists'
+priorities [as well as those of policymakers; e.g. @ipcc2014], but it is
+inherently difficult to evaluate such long-term predictions before the projected
+biodiversity declines have occurred.
 
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models
-(SDMs). In general, these models describe individual species' occurrence
-patterns as functions of the environment [@thomas2004; @urban2015]. By plugging
-forecasts of future environmental conditions into these functions, ecologists
-can make predictions about where each species will occur in the future. These
-species-level predictions can then be added up ("stacked") to generate predicted
-richness values [e.g. @calabrese2014]. Alternatively, models that directly
-relate spatial patterns of species richness to the environment have been
+[SDMs; @thomas2004; @urban2015]. In general, these models describe individual
+species' occurrence patterns as functions of the environment. Predictions about
+where each species will occur in the future are made by using forecasts of
+future environmental conditions to generate predictions from these models. These
+species-level predictions are then combined ("stacked") to generate forecasts
+for species richness [e.g. @calabrese2014]. Alternatively, models that directly
+relate spatial patterns of species richness to environment conditions have been
 developed and generally perform equivalently to stacked SDMs [@algar2009;
 @distler2015]. This approach is sometimes referred to as "macroecological"
 modeling, because it models the larger-scale pattern (richness) directly
@@ -94,51 +94,20 @@ data on species occurrence and richness from the past and evaluated on their
 ability to predict contemporary patterns [e.g., @algar2009; @distler2015]. These
 studies are a valuable first step, but lack several components that are
 important for developing forecasting models with high predictive accuracy, and
-for understanding how well different methods can predict the future. The
-components an effective forecasting and evaluation strategy (Box 1) broadly
-involve: 1) expanding the use of data to include biological and environmental
-time-series [@tredennick2016]; 2) accounting for uncertainty in observations,
-processes, model choice, and forecast evaluation [@clark2001; @dietze2017]; and
-3) conducting meaningful evaluations of the forecasts by hindcasting, archiving
+for understanding how well different methods can predict the future. These "best
+practices" for effective forecasting and evaluation (Box 1) broadly involve: 1)
+expanding the use of data to include biological and environmental time-series
+[@tredennick2016]; 2) accounting for uncertainty in observations, processes,
+model choice, and forecast evaluation [@clark2001; @dietze2017]; and 3)
+conducting meaningful evaluations of the forecasts by hindcasting, archiving
 short-term forecasts, and comparing forecasts to baselines to determine whether
-the forecasts are more accurate than simply assuming the system is basically
-static [@perretti2013].
-
-\begin{singlespace}
-
-```{r table, echo=FALSE} 
-
-table_caption = "A summary of the six models evaluated here. The single-site
-models were trained site-by-site, without access to any environmental
-information. The environmental models were trained at a continental scale,
-without information regarding which transects occurred at which site or during
-which year. Most of the models were trained to predict richness directly.
-However, the random forest SDMs were each trained to predict the occurrence of
-individual species at each site, and these species-level predictions were added
-up to produce richness estimates. The mistnet JSDM was trained to predict the
-full species composition at each site, and the number of species in its
-predictions was used as an estimate of richness."
-
-table_data = read_csv("../figures/table.csv",col_types = "ccccc") 
-
-table_data %>% 
-  knitr::kable(
-    format = "latex", 
-    escape = FALSE, 
-    booktabs = TRUE, 
-    caption = table_caption
-  ) %>% 
-  add_header_above(c(" " = 2, "Predictors" = 3)) %>%
-  group_rows("Single-site models", 1, 3) %>% 
-  group_rows("Environmental models", 4, 6) %>% kable_styling(position = "center")
-```
-
-\end{singlespace}
+the forecasts are more accurate than assuming the system is basically static
+[@perretti2013].
 
 In this paper, we attempt to forecast the species richness of breeding birds at
-over 1,000 of sites located throughout North America, while following the best
-practices in Box 1 for ecological forecasting. To do this, we combine 32 years
-of time-series data on bird distributions from annual surveys with monthly
+over 1,200 of sites located throughout North America, while following best
+practices for ecological forecasting (Box 1). To do this, we combine 32 years of
+time-series data on bird distributions from annual surveys with monthly
 time-series of climate data and satellite-based remote-sensing. Datasets that
 span a time scale of 30 years or more have only recently become available for
 large-scale time-series based forecasting. A dataset of this size allows us to
@@ -146,7 +115,7 @@ model and assess changes a decade or more into the future in the presence of
 shifts in environmental conditions on par with predicted climate change. We
 compare traditional distribution modeling based approaches to spatial models of
 species richness, time-series methods, and two simple baselines that predict
-constant richness for each site, on average (Table 1). All of our forecasting
+constant richness for each site, on average (Figure 1). All of our forecasting
 models account for uncertainty and observation error, are evaluated across
 different time lags using hindcasting, and are publicly archived to allow future
 assessment. We discuss the implications of these practices for our understanding
@@ -267,6 +236,37 @@ models that were fit separately to the 500 Monte Carlo estimates of the observer
 effects, to account for our uncertainty in the true values of those effects. All
 of these models use a Gaussian error distribution (rather than a count
 distribution) for the reasons discussed below (see "Model evaluation").
+
+\begin{singlespace}
+
+```{r table, echo=FALSE}
+
+table_caption = "A summary of the six models evaluated here. The single-site
+models were trained site-by-site, without access to any environmental
+information. The environmental models were trained at a continental scale,
+without information regarding which transects occurred at which site or during
+which year. Most of the models were trained to predict richness directly.
+However, the random forest SDMs were each trained to predict the occurrence of
+individual species at each site, and these species-level predictions were added
+up to produce richness estimates. The mistnet JSDM was trained to predict the
+full species composition at each site, and the number of species in its
+predictions was used as an estimate of richness."
+
+table_data = read_csv("../figures/table.csv",col_types = "ccccc")
+
+table_data %>%
+  knitr::kable(
+    format = "latex",
+    escape = FALSE,
+    booktabs = TRUE,
+    caption = table_caption
+  ) %>%
+  add_header_above(c(" " = 2, "Predictors" = 3)) %>%
+  group_rows("Single-site models", 1, 3) %>%
+  group_rows("Environmental models", 4, 6) %>% kable_styling(position = "center")
+```
+
+\end{singlespace}
 
 **Baseline models.** We used two simple baseline models as a basis for
 comparison with the more complex models (Figure 2A). These baselines treated
