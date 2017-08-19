@@ -4,6 +4,11 @@ library(cowplot)
 library(ggjoy)
 library(mvtnorm)
 
+ts_models = c("average", "naive", "auto.arima")
+env_models = c("richness_gbm", "rf_sdm", "mistnet")
+models = c(ts_models, env_models)
+
+
 settings = yaml::yaml.load_file("settings.yaml")
 
 timeframe = "train_22"
@@ -20,6 +25,7 @@ my_ggsave = function(filename, plot, height, width = 14.59, units = "cm", ...){
          height = height, 
          width = width, 
          units = units, 
+         dpi = 500,
          ...)
 }
 
@@ -52,18 +58,17 @@ bound = bind_rows(forecast_results, gbm_results, average_results,
   mutate(diff = richness - mean, z = diff / sd,
          p = pnorm(richness, mean, sd),
          deviance = -2 * dnorm(richness, mean, sd, log = TRUE)) %>% 
-  ungroup() %>% 
-  mutate(
-    model_name = forcats::fct_recode(
-      factor(model), 
-      Average = "average", 
-      Naive = "naive",
-      Auto.arima = "auto.arima", 
-      `Stacked random forest SDMs` = "rf_sdm",
-      `Mistnet JSDM` = "mistnet",
-      `GBM richness regression` = "richness_gbm"
-    )
-  )
+  ungroup()
+
+formal_names = read_csv("figures/table.csv", col_types = "ccccc") %>% 
+  pull(Model)
+formal_names = formal_names
+
+bound = mutate(bound) %>% 
+  mutate(formal_name = factor(model, levels = models, 
+                              labels = formal_names))
+
+distinct(bound, model, formal_name)
 
 # Divide squared error by predictive variance to get the optimal sd factor
 # for the RF model
@@ -81,11 +86,6 @@ rf2 = rf2 %>%
 
 # scatterplot -------------------------------------------------------------
 
-ts_models = c("average", "naive", "auto.arima")
-env_models = c("richness_gbm", "rf_sdm", "mistnet")
-models = c(ts_models, env_models)
-model_names = unique(bound$model_name)
-
 R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>% 
   mutate(x = min(mean - 4), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
@@ -100,7 +100,7 @@ make_scatterplots = function(models, main){
          aes(x = mean, y = richness)) +
     geom_hex() + 
     geom_abline(intercept = 0, slope = 1, alpha = .5) +
-    facet_grid(year ~ model) +
+    facet_grid(year ~ formal_name) +
     coord_equal() + 
     scale_fill_continuous(low = "gray90", high = "navy",
                           limits = c(1, 30)) +
@@ -110,15 +110,25 @@ make_scatterplots = function(models, main){
               hjust = 0, vjust = 1, size = 3) +
     theme_light(base_size = base_size) +
     xlim(x_range) + 
-    ggtitle(main)
+    ggtitle(main) + 
+    theme(plot.margin = rep(unit(c(4, 0), "pt"), 2))
 }
 
+scatter1 = make_scatterplots(ts_models, main = "A. Single-site models")
+scatter2 = make_scatterplots(env_models, 
+                             main = "B. Multi-site environmental models")
+
+scatter_legend = get_legend(scatter1)
+
 scatters = plot_grid(
-  make_scatterplots(ts_models, main = "A. Time-series models"),
-  make_scatterplots(env_models, main = "B. Environmental models"),
+  scatter1 + theme(legend.position = "none"),
+  scatter2 + theme(legend.position = "none"),
   align = "h",
-  nrow = 2)
-my_ggsave(filename = "figures/scatter.png", plot = scatters, height = 15)
+  nrow = 2
+) %>% 
+  plot_grid(scatter_legend, rel_widths = c(4, 1))
+
+my_ggsave(filename = "figures/scatter.png", plot = scatters, height = 18)
 
 # Violins -----------------------------------------------------------------
 
@@ -134,7 +144,7 @@ for_violins = bound %>%
 
 make_violins = function(data, ylab = "", ylim, yintercept, adjust = 2, main){
   data %>% 
-    ggplot(aes(x = model, y = y)) + 
+    ggplot(aes(x = formal_name.other, y = y)) + 
     geom_hline(yintercept = yintercept, color = alpha(1, .25), size = 1/2) +
     geom_violin(fill = alpha("cornflowerblue", .9), size = 0, adjust = adjust) + 
     stat_summary(fun.data = "mean_cl_boot", colour = "darkblue", geom = "point",
@@ -154,7 +164,7 @@ model_violins = plot_grid(
     make_violins(yintercept = 0, 
                  ylim = quantile(for_violins$abs_diff, c(.0005, .9995)),
                  main = "A. Absolute error increase versus \"Average\" baseline",
-                 ylab = "Absolute error increase (species)"),
+                 ylab = "Absolute error increase"),
   for_violins %>% 
     mutate(model = model.other, y = dev_diff) %>%
     make_violins(yintercept = 0, 
@@ -172,26 +182,34 @@ my_ggsave(file = "figures/model_violins.png",
 # Metrics over time -------------------------------------------------------
 
 d = bound %>% 
-  group_by(year, model, use_obs_model) %>% 
+  group_by(year, formal_name, use_obs_model) %>% 
   summarize(rmse = sqrt(mean(diff^2)), 
             mean_deviance = -2 * mean(dnorm(richness, mean, sd, log = TRUE)),
             coverage = mean(p > .025 & p < .975)) %>% 
   filter(use_obs_model) %>% 
   gather(key = "variable", value = "value", rmse, mean_deviance, coverage) %>% 
   mutate(variable = forcats::fct_relevel(variable, "rmse", "mean_deviance", 
-                                         "coverage"))
+                                         "coverage"),
+         variable = factor(variable, 
+                           labels = c("Root mean squared error (RMSE)",
+                                      "Mean deviance",
+                                      "Coverage")))
 
-# Possibly-useful alternative 6-color colorblind palette
-colors = c("#000000", dichromat::colorschemes$Categorical.12[c(4, 6, 10, 11, 12)])
+# "Color Universal Design" by Okabe and Ito
+# http://jfly.iam.u-tokyo.ac.jp/color/,
+# via the in-progress package at https://github.com/clauswilke/colorblindr
+colors = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+           "#0072B2", "#D55E00", "#CC79A7", "#999999")
+
 
 make_time_error = function(var_name, title){
-  ggplot(filter(d, variable == var_name), 
-         aes(x = year, y = value, color = model)) +
-    geom_line() +
+  filter(d, variable == var_name) %>% 
+    ggplot(aes(x = year, y = value, color = formal_name)) +
+    geom_line(size = 1) +
     scale_x_continuous(expand = c(0, 0)) +
     theme_light(base_size = base_size) +
-    scale_color_brewer(palette = "Set1") +
-    ylab(var_name) + 
+    scale_color_manual(values = colors, name = "Model") +
+    ylab(ifelse(var_name == "Root mean squared error (RMSE)", "RMSE", var_name)) + 
     ggtitle(paste0(title, ". ", var_name))
 }
 
@@ -215,7 +233,7 @@ plotlist[[3]] = plotlist[[3]] +
 time_error = plot_grid(
   plot_grid(plotlist = plotlist, nrow = 3, align = "v"),
   time_error_legend,
-  rel_widths = c(4, 1)
+  rel_widths = c(3.5, 1)
 )
 my_ggsave(file = "figures/performance_time.png", plot = time_error, height = 15)
 
@@ -252,7 +270,7 @@ make_error_barchart = function(use_env){
     scale_y_continuous(limits = c(0, max(barchart_data$value) + 1), 
                        expand = c(FALSE, FALSE)) +
     theme_cowplot(base_size - 1) + 
-    ggtitle(ifelse(use_env, "Environment", "Time series")) + 
+    ggtitle(ifelse(use_env, "Environment models", "Single-site models")) + 
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
           plot.margin = margin(1, 1, 1, 1)) +
     scale_fill_brewer(palette = "Paired") + 
@@ -320,15 +338,19 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     left_join(grid, by = "year") %>% 
     left_join(select(bound, -richness), by = c("year", "model", "use_obs_model",
                                                "site_id")) %>% 
-    mutate(model = forcats::fct_relevel(model, unique(models)),
-           observer_id = ifelse(use_obs_model, observer_id, 0)) %>% 
+    filter(model %in% models) %>% 
+    mutate(observer_id = ifelse(use_obs_model, observer_id, 0)) %>% 
     select(site_id, year, model, use_obs_model, mean, sd, richness, observer_id,
-           deviance)
-  
+           deviance) %>% 
+    left_join(distinct(bound, model, formal_name), "model") %>% 
+    mutate(use_obs_model = ifelse(use_obs_model, 
+                                  "With observer model",
+                                  "Without observer model"))
+
   faceting = if (length(use_obs_model) == 2) {
-    facet_grid(model ~ use_obs_model)
+    facet_grid(formal_name ~ use_obs_model)
   } else {
-    (facet_grid(~ model))
+    (facet_grid(~ formal_name))
   }
   
   title = if (main != "") {
@@ -337,7 +359,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     NULL
   }
   
-  ggplot(filter(time_series_data, model %in% models), aes(x = year)) +
+  ggplot(time_series_data, aes(x = year)) +
     geom_ribbon(aes(ymin = mean - 1.96 * sd, ymax = mean + 1.96 * sd),
                 fill = "gray80") +
     geom_ribbon(aes(ymin = mean - 1 * sd, ymax = mean + 1 * sd),
@@ -352,7 +374,7 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
     coord_cartesian(ylim = ylim, expand = TRUE) +
     scale_shape_manual(values = c(16, 22, 23), guide = FALSE) + 
     ylab("Richness") +
-    scale_fill_manual(values = c("white", "#fdcc8a", "#d7301f"), guide = FALSE) + 
+    scale_fill_manual(values = colors[c(8, 1, 2)], guide = FALSE) + 
     theme_light(base_size = base_size) + 
     theme(plot.margin = unit(c(10, 7, 1, 7), units = "pt"),
           strip.background = element_rect(fill="white"), 
@@ -370,7 +392,7 @@ model_predictions = list(ts_models, env_models) %>%
                      sample_site_id = 72084,
                      main = ifelse(
                        all(.x %in% ts_models),
-                       "A. Time series models", 
+                       "A. Single-site models", 
                        "B. Environmental models"))
   ) %>% 
   plot_grid(plotlist = ., nrow = 2)
@@ -387,7 +409,7 @@ obs_predictions = make_ts_plots(
 )
 my_ggsave("figures/observer_predictions.png", 
           obs_predictions, 
-          height = 10)
+          height = 11)
 
 
 # correlations in the residuals -------------------------------------------
@@ -518,22 +540,28 @@ variance_frac = colMeans(variance_components / rowSums(variance_components))
 ms_numbers = list(
   N_species =  bbs_data %>% 
     distinct(species_id) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   N_runs = obs_model$data %>% 
     distinct(site_id, year) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   N_sites = obs_model$data %>% 
     distinct(site_id) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   N_predict_sites = bound %>% 
     distinct(site_id) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   N_predictions = bound %>% 
     distinct(site_id, year) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   N_obs = obs_model$data %>% 
     distinct(observer_id) %>% 
-    nrow(),
+    nrow() %>% 
+    format(big.mark = ","),
   richness_summary = obs_model$data %>% 
     distinct(site_id, year, richness) %>% 
     summarize(mean = round(mean(richness)),
@@ -544,7 +572,8 @@ ms_numbers = list(
     group_by(use_obs_model) %>% 
     summarize(means = mean(n.trees)) %>% 
     pull(means) %>% 
-    signif(2),
+    signif(2) %>% 
+    format(big.mark = ","),
   rf_coverage_pct = bound %>% 
     filter(model == "rf_sdm", use_obs_model) %>% 
     summarize(round(100 * mean(p > .025 & p < .975))) %>% 
