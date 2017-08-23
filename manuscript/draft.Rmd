@@ -34,7 +34,7 @@ library(kableExtra, quietly = TRUE)
 
 Biodiversity forecasts are important for conservation, management, and
 evaluating how well current models characterize natural systems. While the
-number of forecasts for biodiversity are increasing, there is little information
+number of forecasts for biodiversity is increasing, there is little information
 available on how well these forecasts work. Most biodiversity forecasts are not
 evaluated to determine how well they predict future diversity, fail to account
 for uncertainty, and do not use time-series data that captures the actual
@@ -71,16 +71,15 @@ biodiversity declines have occurred.
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models
 [SDMs; @thomas2004; @urban2015]. In general, these models describe individual
-species' occurrence patterns as functions of the environment. Predictions about
-where each species will occur in the future are made by using forecasts of
-future environmental conditions to generate predictions from these models. These
-species-level predictions are then combined ("stacked") to generate forecasts
-for species richness [e.g. @calabrese2014]. Alternatively, models that directly
-relate spatial patterns of species richness to environment conditions have been
-developed and generally perform equivalently to stacked SDMs [@algar2009;
-@distler2015]. This approach is sometimes referred to as "macroecological"
-modeling, because it models the larger-scale pattern (richness) directly
-[@distler2015].
+species' occurrence patterns as functions of the environment. Given forecasts for
+environmental conditions, these models can predict where each species will occur 
+in the future. These species-level predictions are then combined ("stacked") to 
+generate forecasts for species richness [e.g. @calabrese2014]. Alternatively, 
+models that directly relate spatial patterns of species richness to environment 
+conditions have been developed and generally perform equivalently to stacked SDMs 
+[@algar2009; @distler2015]. This approach is sometimes referred to as 
+"macroecological" modeling, because it models the larger-scale pattern (richness) 
+directly [@distler2015].
 
 Despite the emerging interest in forecasting species richness and other aspects
 of biodiversity [[refs]], little is known about how effectively we can
