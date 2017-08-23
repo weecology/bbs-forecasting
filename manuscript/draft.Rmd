@@ -71,7 +71,7 @@ biodiversity declines have occurred.
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models
 [SDMs; @thomas2004; @urban2015]. In general, these models describe individual
-species' occurrence patterns as functions of the environment. Given forecasted
+species' occurrence patterns as functions of the environment. Given forecasts for
 environmental conditions, these models can predict where each species will occur 
 in the future. These species-level predictions are then combined ("stacked") to 
 generate forecasts for species richness [e.g. @calabrese2014]. Alternatively, 
