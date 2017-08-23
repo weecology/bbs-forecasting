@@ -441,15 +441,15 @@ estimates and the observed richness values. Note that the three environmental
 models tend to show the largest errors. **B.** Deviance (-2 times the Gaussian
 log-likelihood) describes the lack of fit of entire predictive distributions.
 Note that the stack of single-species random forest SDMs shows much higher error
-than the other models (since its predictions are too confident), and that the
-"naive" model's deviance grows relatively quickly (as its predictions become
-broader and less informative). **C.** Coverage of a model's 95% confidence
-intervals indicates how often the observed values fall inside the predicted
-range. For well-calibrated models, the coverage of the 95% confidence intervals
-should be 95%. As in the previous panel, the "naive" model's predictive
-distribution is too wide (capturing almost all of the data) and the stacked
-SDM's predictive distribution is too narrow (missing almost a third of the
-observed richness values by 2014).](../figures/performance_time.png)
+than the other models (since its predictions are too confident, see Fig. 1), and 
+that the "naive" model's deviance grows relatively quickly (as its predictions
+become broader and less informative, see Fig. 1). **C.** Coverage of a model's
+95% confidence intervals indicates how often the observed values fall inside the
+predicted range. For well-calibrated models, the coverage of the 95% confidence
+intervals should be 95% (indicated by the black line). As in the previous panel,
+the "naive" model's predictive distribution is too wide (capturing almost all of
+the data) and the stacked SDM's predictive distribution is too narrow (missing
+almost a third of the observed richness values by 2014).](../figures/performance_time.png)
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 5C). The random forest-based SDM stack was the
