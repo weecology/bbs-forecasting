@@ -306,7 +306,7 @@ observer effects and the associated uncertainty by running these models 500
 times (once per MCMC sample).
 
 **"Macroecological" model: richness GBM.** We used a boosted regression tree
-model using the `gbm` package [@ridgeway2017] to directly model species richness
+model using the `gbm` package [@gbm] to directly model species richness
 as a function of environmental variables. Boosted regression trees are a form of
 tree-based modeling that work by fitting thousands of small tree-structured
 models sequentially, with each tree optimized to reduce the error of its
