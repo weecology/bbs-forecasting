@@ -95,11 +95,11 @@ predictive accuracy, and for understanding how well different methods can
 predict the future. These "best practices" for effective forecasting and
 evaluation (Box 1) broadly involve: 1) expanding the use of data to include
 biological and environmental time-series [@tredennick2016]; 2) accounting for
-uncertainty in observations, processes, model choice, and forecast evaluation
-[@clark2001; @dietze2017]; and 3) conducting meaningful evaluations of the
-forecasts by hindcasting, archiving short-term forecasts, and comparing
-forecasts to baselines to determine whether the forecasts are more accurate than
-assuming the system is basically static [@perretti2013].
+uncertainty in observations and processes, [@harris2015; @yu2010]; and 3)
+conducting meaningful evaluations of the forecasts by hindcasting, archiving
+short-term forecasts, and comparing forecasts to baselines to determine whether
+the forecasts are more accurate than assuming the system is basically static
+[@perretti2013].
 
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,200 of sites located throughout North America, while following best
