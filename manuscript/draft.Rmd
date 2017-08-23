@@ -412,11 +412,11 @@ sites, resulting in a notable clustering of predicted values near ~60 species
 and the poorest model performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r
 numbers$ts_R2s` for the within-site methods).
 
-![Performance of the six models we evaluated when predicting one year into the
-future (2004) or ten years into the future (2013).  In general, the single-site
-models (**A.**) outperformed the environmental models. (**B.**) The accuracy of
-the predictions generally declined as the forecast horizon was
-extended.](../figures/scatter.png)
+![Performance of the six models, trained with data from 1982-2003, when 
+predicting one year into the future (2004) or ten years into the future (2013).
+In general, the single-site models (**A.**) outperformed the environmental
+models (**B.**). The accuracy of the predictions generally declined as the
+timescale of the forecast was extended from 2004 to 2013.](../figures/scatter.png)
 
 While the models generally did well in absolute terms (Figure 3), none
 consistently outperformed the "average" baseline (Figure 4). The auto-ARIMA was
