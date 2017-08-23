@@ -34,7 +34,7 @@ library(kableExtra, quietly = TRUE)
 
 Biodiversity forecasts are important for conservation, management, and
 evaluating how well current models characterize natural systems. While the
-number of forecasts for biodiversity are increasing, there is little information
+number of forecasts for biodiversity is increasing, there is little information
 available on how well these forecasts work. Most biodiversity forecasts are not
 evaluated to determine how well they predict future diversity, fail to account
 for uncertainty, and do not use time-series data that captures the actual
@@ -80,6 +80,16 @@ Alternatively, models that directly relate spatial patterns of species richness
 to environment conditions have been developed and generally perform equivalently
 to stacked SDMs [@algar2009; @distler2015]. This approach is sometimes referred
 to as "macroecological" modeling, because it models the larger-scale pattern
+(richness) directly [@distler2015]. [SDMs; @thomas2004; @thuiller2011;
+@urban2015]. In general, these models describe individual species' occurrence
+patterns as functions of the environment. Given forecasts for environmental
+conditions, these models can predict where each species will occur in the
+future. These species-level predictions are then combined ("stacked") to
+generate forecasts for species richness [e.g. @calabrese2014]. Alternatively,
+models that directly relate spatial patterns of species richness to environment
+conditions have been developed and generally perform equivalently to stacked
+SDMs [@algar2009; @distler2015]. This approach is sometimes referred to as
+"macroecological" modeling, because it models the larger-scale pattern
 (richness) directly [@distler2015].
 
 Despite the emerging interest in forecasting species richness and other aspects
@@ -120,18 +130,17 @@ assessment. We discuss the implications of these practices for our understanding
 of, and confidence in, the resulting forecasts, and how we can continue to build
 on these approaches to improve ecological forecasting in the future.
 
-![Example predictions from our six models for a single site. The data points
-from 1982 through 2003, connected by solid lines, were used for training all six
-models; the remaining points were used for evaluating the models' forecasts. In
-each panel, point estimates for each year are shown with lines; the darker
-ribbon indicates 1 standard deviation of uncertainty, and the lighter ribbon
-indicates 95% confidence intervals. **A.** The single-site models models were
-trained using one site at a time, based solely on observed richness values
-shown. The first two models ("average" and "naive") served as our simple
-forecasting baselines. **B.** The environmental models were trained to predict
-richness based on elevation, climate, and NDVI; unlike the single-site models,
-the environmental models' predictions change from year to year as environmental
-conditions change.](../figures/model_predictions.png)
+![Example predictions from six forecasting models for a single site. Data from
+1982 through 2003, connected by solid lines, were used for training the models;
+the remaining points were used for evaluating the models' forecasts. In each
+panel, point estimates for each year are shown with lines; the darker ribbon
+indicates the 68% prediction interval (1 standard deviation of uncertainty), and
+the lighter ribbon indicates the 95% prediction interval. **A.** Single-site
+models were trained independently on each site's observed richness values. The
+first two models ("average" and "naive") served as baselines. **B.** The
+environmental models were trained to predict richness based on elevation,
+climate, and NDVI; the environmental models' predictions change from year to
+year as environmental conditions change.](../figures/model_predictions.png)
 
 ## Methods
 
