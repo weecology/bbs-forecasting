@@ -70,37 +70,37 @@ biodiversity declines have occurred.
 
 Previous efforts to predict future patterns of species richness, and diversity
 more generally, have focused primarily on building species distributions models
-[SDMs; @thomas2004; @urban2015]. In general, these models describe individual
-species' occurrence patterns as functions of the environment. Predictions about
-where each species will occur in the future are made by using forecasts of
-future environmental conditions to generate predictions from these models. These
-species-level predictions are then combined ("stacked") to generate forecasts
-for species richness [e.g. @calabrese2014]. Alternatively, models that directly
-relate spatial patterns of species richness to environment conditions have been
-developed and generally perform equivalently to stacked SDMs [@algar2009;
-@distler2015]. This approach is sometimes referred to as "macroecological"
-modeling, because it models the larger-scale pattern (richness) directly
-[@distler2015].
+[SDMs; @thomas2004; @thuiller2011; @urban2015]. In general, these models
+describe individual species' occurrence patterns as functions of the
+environment. Predictions about where each species will occur in the future are
+made by using forecasts of future environmental conditions to generate
+predictions from these models. These species-level predictions are then combined
+("stacked") to generate forecasts for species richness [e.g. @calabrese2014].
+Alternatively, models that directly relate spatial patterns of species richness
+to environment conditions have been developed and generally perform equivalently
+to stacked SDMs [@algar2009; @distler2015]. This approach is sometimes referred
+to as "macroecological" modeling, because it models the larger-scale pattern
+(richness) directly [@distler2015].
 
 Despite the emerging interest in forecasting species richness and other aspects
-of biodiversity [[refs]], little is known about how effectively we can
-anticipate these dynamics. This is due in part to the long time scales over
-which many ecological forecasts are applied [and the resulting difficulty in
-assessing whether the predicted changes occurred; @dietze2016]. What we do know
-comes from a small number of hindcasting studies, where models are built using
-data on species occurrence and richness from the past and evaluated on their
-ability to predict contemporary patterns [e.g., @algar2009; @distler2015]. These
-studies are a valuable first step, but lack several components that are
-important for developing forecasting models with high predictive accuracy, and
-for understanding how well different methods can predict the future. These "best
-practices" for effective forecasting and evaluation (Box 1) broadly involve: 1)
-expanding the use of data to include biological and environmental time-series
-[@tredennick2016]; 2) accounting for uncertainty in observations, processes,
-model choice, and forecast evaluation [@clark2001; @dietze2017]; and 3)
-conducting meaningful evaluations of the forecasts by hindcasting, archiving
-short-term forecasts, and comparing forecasts to baselines to determine whether
-the forecasts are more accurate than assuming the system is basically static
-[@perretti2013].
+of biodiversity [@jetz2007; @thuiller2011], little is known about how
+effectively we can anticipate these dynamics. This is due in part to the long
+time scales over which many ecological forecasts are applied [and the resulting
+difficulty in assessing whether the predicted changes occurred; @dietze2016].
+What we do know comes from a small number of hindcasting studies, where models
+are built using data on species occurrence and richness from the past and
+evaluated on their ability to predict contemporary patterns [e.g., @algar2009;
+@distler2015]. These studies are a valuable first step, but lack several
+components that are important for developing forecasting models with high
+predictive accuracy, and for understanding how well different methods can
+predict the future. These "best practices" for effective forecasting and
+evaluation (Box 1) broadly involve: 1) expanding the use of data to include
+biological and environmental time-series [@tredennick2016]; 2) accounting for
+uncertainty in observations, processes, model choice, and forecast evaluation
+[@clark2001; @dietze2017]; and 3) conducting meaningful evaluations of the
+forecasts by hindcasting, archiving short-term forecasts, and comparing
+forecasts to baselines to determine whether the forecasts are more accurate than
+assuming the system is basically static [@perretti2013].
 
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,200 of sites located throughout North America, while following best
@@ -166,9 +166,9 @@ an average richness of `r numbers$richness_summary$mean` species.
 **Past environmental data.** Environmental data included a combination of
 elevation, bioclimatic variables and a remotely sensed vegetation index (the
 normalized difference vegetation index; NDVI), all of which are known to
-influence richness and distribution in the BBS data [[ref]]. For each year in
-the dataset, we used the 4 km resolution PRISM data [@prism] to calculate eight
-bioclimatic variables identified as relevant to bird distributions
+influence richness and distribution in the BBS data [@kent2014]. For each year
+in the dataset, we used the 4 km resolution PRISM data [@prism] to calculate
+eight bioclimatic variables identified as relevant to bird distributions
 [@harris2015]: mean diurnal range, isothermality, max temperature of the warmest
 month, mean temperature of the wettest quarter, mean temperature of the driest
 quarter, precipitation seasonality, precipitation of the wettest quarter, and
@@ -177,10 +177,10 @@ correlate of richness in BBS data [@hurlbert2002], was obtained from the NDIV3g
 dataset with an 8 km resolution [@pinzon2014] and was available from 1981-2013.
 Average summer (May, June, July) and winter (December, January, Feburary) NDVI
 values were used as predictors. Elevation was from the SRTM 90m elevation
-dataset [@jarvis2008] obtained using the R package raster
-[@hijmans2016]. Because BBS routes are 40-km transects rather than point counts,
-we used the average value of each environmental variable within a 40 km radius
-of each BBS route's starting point.
+dataset [@jarvis2008] obtained using the R package raster [@hijmans2016].
+Because BBS routes are 40-km transects rather than point counts, we used the
+average value of each environmental variable within a 40 km radius of each BBS
+route's starting point.
 
 **Future environmental projections.** We made long term forecasts from 2014-2050
 using the CMIP5 multi-model ensemble dataset as the source for climate
@@ -348,7 +348,7 @@ explicitly account for the possibility that a site will be much more (or less)
 suitable for birds in general (or particular groups of birds) than one would
 expect based on the available environmental measurements alone. As a result,
 JSDMs do a better job of representing uncertainty about richness than stacked
-SDMs [@harris2015; [[other refs, e.g., Clark]]]. We used the `mistnet` package
+SDMs [@harris2015; @warton2015]. We used the `mistnet` package
 [@harris2015] because it is the only JSDM that describes species' environmental
 associations with nonlinear functions.
 
@@ -526,7 +526,7 @@ to predict changes over time. This issue has also recently been highlighted as a
 potential downside of using SDMs to predict the future locations of individual
 species [@rapacciuolo2012; @oedekoven2017]. This result is particularly sobering
 because SDMs form the main foundation for estimates of the predicted loss of
-biodiversity to climate change [@thomas2004; @urban2015].
+biodiversity to climate change [@thomas2004; @thuiller2011; @urban2015].
 
 Second, our results highlight the importance of comparing multiple modeling
 approaches when conducting ecological forecasts, and in particular, the value of
@@ -552,7 +552,7 @@ approach to forecasting richness. A similar result is seen when comparing joint
 species distribution models (JSDMs) to stacked single species distribution
 models. For point estimates, the joint distribution models are roughly
 equivalent to stacked SDMs, but the JSDMs provide much better estimates of
-uncertainty [@harris2015; others?]. In fact, JSDMs and direct richness modeling
+uncertainty [@harris2015; @warton2015]. In fact, JSDMs and direct richness modeling
 provide some of the best estimates of uncertainty across all modeling
 approaches. This highlights the importance of evaluating models based on their
 uncertainty as well as their mean estimates (Box 1). Not doing so is
@@ -738,10 +738,10 @@ valuable comments that improved the clarity of this manuscript.
 Typically ecological forecasts use one modeling approach or a small number of
 related approaches. By fitting and evaluating multiple modeling approaches we
 can learn more rapidly about the best approaches for making predictions for a
-given ecological quantity. This includes comparing process-based [e.g. [[refs]]]
-and data-driven models, as well as comparing the accuracy of forecasts to simple
-baselines to determine if the modeled forecasts are more accurate than the naive
-assumption that the world is static [@ye2015].
+given ecological quantity. This includes comparing process-based [e.g.
+@kearney2009] and data-driven models, as well as comparing the accuracy of
+forecasts to simple baselines to determine if the modeled forecasts are more
+accurate than the naive assumption that the world is static [@ye2015].
 
 ### 2. Use time-series data when possible
 
@@ -770,7 +770,7 @@ include predictor variables that are expected to relate to the ecological
 quantity being forecast and dynamic time-series of predictors instead of
 long-term averages. Investing time in identifying and acquiring better predictor
 variables may have at least as many benefits as using more sophisticated
-modeling techniques. [[Need a citation or two here]]
+modeling techniques [@kent2014].
 
 ### 5. Address unknown or unmeasured predictors
 
@@ -794,7 +794,7 @@ and comparing models.
 Ecological observations are influenced by both the underlying biological
 processes (e.g. resource limitation) and how the system is sampled. When
 possible, forecasts should model the factors influencing the observation of the
-data. [[citation?]]
+data. [@yu2010; @hutchinson2011; @schurr2012]
 
 ### 8. Validate using hindcasting
 
