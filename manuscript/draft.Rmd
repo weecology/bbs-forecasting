@@ -197,7 +197,7 @@ approach, we trained two versions of the corresponding model: one with
 corrections for differences among observers, and one without (Figure 2). We
 estimated the observer effects (and associated uncertainty about those effects)
 with a linear mixed model, with observer as a random effect, built in the Stan
-probabilistic programming language [@stan]. Because observer and site are
+probabilistic programming language [@carpenter2017]. Because observer and site are
 strongly related (observers tend to repeatedly sample the same site), site was
 also included as a random effect to ensure that inferred deviations were
 actually observer-related (as opposed to being related to the sites that a given
