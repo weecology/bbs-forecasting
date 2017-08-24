@@ -672,7 +672,7 @@ predictions. Currently, assessments at these long time-scales can only be made
 with a small number of opportune datasets. For example, hindcasts have been used
 to assess models of species richness [@algar2009; @distler2015] and distribution
 [@rapacciuolo2012; @moran-ordonez2017; @araujo2005; @eskildsen2013] using data
-aggregated across similar time scales to those studied here. More evaluation
+aggregated across similar time scales. More evaluation
 studies like these are needed but there is a paucity of adequate long term data
 available. Short term forecasts will allow for relatively rapid validation of
 models by researchers without needing to wait for enough data to accumulate
