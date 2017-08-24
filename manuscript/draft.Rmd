@@ -306,16 +306,16 @@ observer effects and the associated uncertainty by running these models 500
 times (once per MCMC sample).
 
 **"Macroecological" model: richness GBM.** We used a boosted regression tree
-model using the `gbm` package [@gbm] to directly model species richness
-as a function of environmental variables. Boosted regression trees are a form of
-tree-based modeling that work by fitting thousands of small tree-structured
-models sequentially, with each tree optimized to reduce the error of its
-predecessors. They are flexible models that are considered well suited for
-prediction [@elith2008]. This model was optimized using a Gaussian likelihood,
-with a maximum interaction depth of 5, shrinkage of 0.015, and up to 10,000
-trees. The number of trees used for prediction was selected using the "out of
-bag" estimator; this number averaged `r numbers$n_gbm[1]` for the non-observer
-data and `r numbers$n_gbm[2]` for the observer-corrected data.
+model using the `gbm` package [Ridgeway *et al.* -@gbm] to directly model
+species richness as a function of environmental variables. Boosted regression
+trees are a form of tree-based modeling that work by fitting thousands of small
+tree-structured models sequentially, with each tree optimized to reduce the
+error of its predecessors. They are flexible models that are considered well
+suited for prediction [@elith2008]. This model was optimized using a Gaussian
+likelihood, with a maximum interaction depth of 5, shrinkage of 0.015, and up to
+10,000 trees. The number of trees used for prediction was selected using the
+"out of bag" estimator; this number averaged `r numbers$n_gbm[1]` for the
+non-observer data and `r numbers$n_gbm[2]` for the observer-corrected data.
 
 **Species Distribution Model: stacked random forests.** Species distribution
 models (SDMs) predict individual species' occurrence probabilities using
@@ -387,9 +387,10 @@ analysis included dplyr [@dplyr], tidyr [@tidyr], gimms [@gimms], sp [@sp1;
 @sp2], raster [@raster], prism [@prism], rdataretriever [@rdataretriever],
 forecast [@forecast1; @forecast2], git2r [@git2r], ggplot [@ggplot2], mistnet
 [@harris2015], viridis [@viridis], rstan [@rstan], yaml [@yaml], purrr [@purrr],
-gbm [@gbm], randomForest [@randomForest]. Code to fully reproduce this analysis
-is available on GitHub (https://github.com/weecology/bbs-forecasting) and
-archived on Zenodo (https://doi.org/10.5281/zenodo.839581).
+gbm [Ridgeway *et al.* -@gbm], randomForest [@randomForest]. Code to fully
+reproduce this analysis is available on GitHub
+(https://github.com/weecology/bbs-forecasting) and archived on Zenodo
+(https://doi.org/10.5281/zenodo.839581).
 
 
 ## Results
