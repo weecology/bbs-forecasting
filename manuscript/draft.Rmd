@@ -95,11 +95,11 @@ predictive accuracy, and for understanding how well different methods can
 predict the future. These "best practices" for effective forecasting and
 evaluation (Box 1) broadly involve: 1) expanding the use of data to include
 biological and environmental time-series [@tredennick2016]; 2) accounting for
-uncertainty in observations, processes, model choice, and forecast evaluation
-[@clark2001; @dietze2017]; and 3) conducting meaningful evaluations of the
-forecasts by hindcasting, archiving short-term forecasts, and comparing
-forecasts to baselines to determine whether the forecasts are more accurate than
-assuming the system is basically static [@perretti2013].
+uncertainty in observations and processes, [@harris2015; @yu2010]; and 3)
+conducting meaningful evaluations of the forecasts by hindcasting, archiving
+short-term forecasts, and comparing forecasts to baselines to determine whether
+the forecasts are more accurate than assuming the system is basically static
+[@perretti2013].
 
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,200 of sites located throughout North America, while following best
@@ -197,7 +197,7 @@ approach, we trained two versions of the corresponding model: one with
 corrections for differences among observers, and one without (Figure 2). We
 estimated the observer effects (and associated uncertainty about those effects)
 with a linear mixed model, with observer as a random effect, built in the Stan
-probabilistic programming language [@stan]. Because observer and site are
+probabilistic programming language [@carpenter2017]. Because observer and site are
 strongly related (observers tend to repeatedly sample the same site), site was
 also included as a random effect to ensure that inferred deviations were
 actually observer-related (as opposed to being related to the sites that a given
@@ -306,7 +306,7 @@ observer effects and the associated uncertainty by running these models 500
 times (once per MCMC sample).
 
 **"Macroecological" model: richness GBM.** We used a boosted regression tree
-model using the `gbm` package [@ridgeway2017] to directly model species richness
+model using the `gbm` package [@gbm] to directly model species richness
 as a function of environmental variables. Boosted regression trees are a form of
 tree-based modeling that work by fitting thousands of small tree-structured
 models sequentially, with each tree optimized to reduce the error of its
@@ -412,11 +412,11 @@ sites, resulting in a notable clustering of predicted values near ~60 species
 and the poorest model performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r
 numbers$ts_R2s` for the within-site methods).
 
-![Performance of the six models we evaluated when predicting one year into the
-future (2004) or ten years into the future (2013).  In general, the single-site
-models (**A.**) outperformed the environmental models. (**B.**) The accuracy of
-the predictions generally declined as the forecast horizon was
-extended.](../figures/scatter.png)
+![Performance of the six models, trained with data from 1982-2003, when 
+predicting one year into the future (2004) or ten years into the future (2013).
+In general, the single-site models (**A.**) outperformed the environmental
+models (**B.**). The accuracy of the predictions generally declined as the
+timescale of the forecast was extended from 2004 to 2013.](../figures/scatter.png)
 
 While the models generally did well in absolute terms (Figure 3), none
 consistently outperformed the "average" baseline (Figure 4). The auto-ARIMA was
@@ -427,11 +427,13 @@ terms), making it similar to the "average" model. All five alternatives to the
 "average" model achieved lower error on some of the sites in some years, but
 each one had a higher mean absolute error and higher mean deviance (Figure 4).
 
-![None of the models provided a consistent improvement over the "average"
-baseline, indicated by a horizontal line. **A.** Models' absolute error was
-generally similar or larger than "average" model, with large outliers in both
-directions. **B.** The other models' deviance was also generally higher than the
-"average" baseline.](../figures/model_violins.png)
+![Site/year difference between the average model and all other models in absolute
+error (**A.**) and deviance (**B.**). All testing years (2004-2013) are used here. 
+None of the five other models provided a consistent improvement over the "average"
+baseline, indicated by a horizontal line. Models' absolute error was generally
+similar or larger than "average" model, with large outliers in both directions.
+The other models' deviance was also generally higher than the "average"
+baseline.](../figures/model_violins.png)
 
 ![Performance of all six models over time, according to three metrics. **A.**
 Root mean square error (rmse) describes the distance between each model's point
@@ -439,15 +441,15 @@ estimates and the observed richness values. Note that the three environmental
 models tend to show the largest errors. **B.** Deviance (-2 times the Gaussian
 log-likelihood) describes the lack of fit of entire predictive distributions.
 Note that the stack of single-species random forest SDMs shows much higher error
-than the other models (since its predictions are too confident), and that the
-"naive" model's deviance grows relatively quickly (as its predictions become
-broader and less informative). **C.** Coverage of a model's 95% confidence
-intervals indicates how often the observed values fall inside the predicted
-range. For well-calibrated models, the coverage of the 95% confidence intervals
-should be 95%. As in the previous panel, the "naive" model's predictive
-distribution is too wide (capturing almost all of the data) and the stacked
-SDM's predictive distribution is too narrow (missing almost a third of the
-observed richness values by 2014).](../figures/performance_time.png)
+than the other models (since its predictions are too confident, see Fig. 1), and 
+that the "naive" model's deviance grows relatively quickly (as its predictions
+become broader and less informative, see Fig. 1). **C.** Coverage of a model's
+95% confidence intervals indicates how often the observed values fall inside the
+predicted range. For well-calibrated models, the coverage of the 95% confidence
+intervals should be 95% (indicated by the black line). As in the previous panel,
+the "naive" model's predictive distribution is too wide (capturing almost all of
+the data) and the stacked SDM's predictive distribution is too narrow (missing
+almost a third of the observed richness values by 2014).](../figures/performance_time.png)
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 5C). The random forest-based SDM stack was the
