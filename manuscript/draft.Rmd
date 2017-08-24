@@ -224,7 +224,7 @@ it.](../figures/observer_predictions.png)
 
 ### Models: site-level models
 
-Three of models used in this study were fit to each site separately, with no
+Three of the models used in this study were fit to each site separately, with no
 environmental information (Table 1). These models were fit to each BBS route
 twice: once using the residuals from the observer model, and once using the raw
 richness values. When correcting for observer effects, we averaged across 500
@@ -543,7 +543,7 @@ facilitates the assessment of predicted dynamics within sites or regions.
 
 One of the main alternatives to stacked SDMs is modeling richness directly using
 environmental variables and using the resulting models to make forecasts. Two
-studied compared the SDM and direct richness modeling approaches, and reported
+studies compared the SDM and direct richness modeling approaches, and reported
 that the methods yielded equivalent results for forecasting diversity
 [@algar2009; @distler2015]. While our results generally support the idea of
 rough equivalence between stacked SDMs and direct richness modeling for point
