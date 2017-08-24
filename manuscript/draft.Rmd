@@ -768,8 +768,9 @@ accuracy of models' estimated uncertainties as well as their point estimates
 Many ecological forecasts use data that is readily available and easy to work
 with. While ease of use is a reasonable consideration it is also important to
 include predictor variables that are expected to relate to the ecological
-quantity being forecast and dynamic time-series of predictors instead of
-long-term averages. Investing time in identifying and acquiring better predictor
+quantity being forecast. Time-series of predictors, instead of long-term
+averages, are also preferable to match the ecologial data (see #2).
+Investing time in identifying and acquiring better predictor
 variables may have at least as many benefits as using more sophisticated
 modeling techniques [@kent2014].
 
