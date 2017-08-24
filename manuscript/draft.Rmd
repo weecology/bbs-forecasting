@@ -521,7 +521,7 @@ best forecasts for future biodiversity.
 These results raise a number of important issues. First, we should be skeptical
 of predictions about future biodiversity from models that have not been
 validated in terms of repeated observations at the same site. Since site-level
-richness is relatively stable [[refs]], model evaluations that show high
+richness is relatively stable, model evaluations that show high
 accuracy across spatial gradients may not indicate much about a model's ability
 to predict changes over time. This issue has also recently been highlighted as a
 potential downside of using SDMs to predict the future locations of individual
