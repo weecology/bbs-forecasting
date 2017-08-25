@@ -134,9 +134,9 @@ year as environmental conditions change.](../figures/model_predictions.png)
 ## Methods
 
 We evaluated 6 types of forecasting models (Table 1) by dividing the 32 years
-of data into 22 years of training data and retained 10 years of data for 
-evaluation via hindcasting. We also made long term forecasts by using the full
-data set for training and making forecasts through the year 2050. For
+of data into 22 years of training data and 10 years of data for 
+evaluating forecasts using hindcasting. We also made long term forecasts by using
+the full data set for training and making forecasts through the year 2050. For
 both time scales, we made forecasts using each model with and without
 correcting for observer effects, as described below. 
 
