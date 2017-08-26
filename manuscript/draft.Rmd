@@ -413,93 +413,95 @@ sites, resulting in a notable clustering of predicted values near ~60 species
 and the poorest model performance ($R^2$=`r numbers$env_R2s`, versus $R^2$=`r
 numbers$ts_R2s` for the within-site methods).
 
-![Performance of the six models, trained with data from 1982-2003, when 
-predicting one year into the future (2004) or ten years into the future (2013).
-In general, the single-site models (**A.**) outperformed the environmental
-models (**B.**). The accuracy of the predictions generally declined as the
-timescale of the forecast was extended from 2004 to 2013.](../figures/scatter.png)
+![Performance of six forecasting models for predicting species richness one year
+(2004) and ten years into the future (2013). Plots show observed vs. predicted
+values for species richness. Models were trained with data from 1982-2003.  In
+general, the single-site models (**A**) outperformed the environmental models
+(**B**). The accuracy of the predictions generally declined as the timescale of
+the forecast was extended from 2004 to 2013.](../figures/scatter.png)
 
-While the models generally did well in absolute terms (Figure 3), none
+While all models generally performed well in absolute terms (Figure 3), none
 consistently outperformed the "average" baseline (Figure 4). The auto-ARIMA was
 generally the best-performing non-baseline model, but in many cases (67% of the
-time), the auto.arima procedure automatically selected a model with only an
-intercept term (i.e. no autoregressive terms, no drift, and no moving average
-terms), making it similar to the "average" model. All five alternatives to the
-"average" model achieved lower error on some of the sites in some years, but
-each one had a higher mean absolute error and higher mean deviance (Figure 4).
+time), the auto.arima procedure selected a model with only an intercept term
+(i.e. no autoregressive terms, no drift, and no moving average terms), making it
+similar to the "average" model. All five alternatives to the "average" model
+achieved lower error on some of the sites in some years, but each one had a
+higher mean absolute error and higher mean deviance (Figure 4).
 
-![Site/year difference between the average model and all other models in absolute
-error (**A.**) and deviance (**B.**). All testing years (2004-2013) are used here. 
-None of the five other models provided a consistent improvement over the "average"
-baseline, indicated by a horizontal line. Models' absolute error was generally
-similar or larger than "average" model, with large outliers in both directions.
-The other models' deviance was also generally higher than the "average"
-baseline.](../figures/model_violins.png)
+![Difference between the forecast error of models and the error of the average
+baseline using both absolute error (**A.**) and deviance (**B.**). Differences
+are taken for each site and testing year so that errors for the same forecast
+are directly compared. The error of the average baseline is by definition zero
+and is indicated by the horizontal gray line.  None of the five models provided
+a consistent improvement over the average baseline. The absolute error of the
+models was generally similar or larger than that of the "average" model, with
+large outliers in both directions.  The deviance of the models was also
+generally higher than the "average" baseline.](../figures/model_violins.png)
 
-![Performance of all six models over time, according to three metrics. **A.**
-Root mean square error (rmse) describes the distance between each model's point
-estimates and the observed richness values. Note that the three environmental
-models tend to show the largest errors. **B.** Deviance (-2 times the Gaussian
-log-likelihood) describes the lack of fit of entire predictive distributions.
-Note that the stack of single-species random forest SDMs shows much higher error
-than the other models (since its predictions are too confident, see Fig. 1), and 
-that the "naive" model's deviance grows relatively quickly (as its predictions
-become broader and less informative, see Fig. 1). **C.** Coverage of a model's
-95% confidence intervals indicates how often the observed values fall inside the
-predicted range. For well-calibrated models, the coverage of the 95% confidence
-intervals should be 95% (indicated by the black line). As in the previous panel,
-the "naive" model's predictive distribution is too wide (capturing almost all of
-the data) and the stacked SDM's predictive distribution is too narrow (missing
-almost a third of the observed richness values by 2014).](../figures/performance_time.png)
+![Change in performance of the six forecasting models with the time scale of the
+forecast (1-10 years into the future). **A.** Root mean square error (rmse; the
+error in the point estimates) shows the three environmental models tending to
+show the largest errors at all time scales and the models getting worse as they
+forecast further into the future at approximately the same rate. **B.** Deviance
+(lack of fit of the entire predictive distribution) shows the stacked species
+distribution models with much higher error than other models and shows that the
+"naive" model's deviance grows relatively quickly. **C.** Coverage of a model's
+95% confidence intervals (how often the observed values fall inside the
+predicted range; the black line indicates ideal performance) shows that the
+"naive" model's predictive distribution is too wide (capturing almost all of the
+data) and the stacked SDM's predictive distribution is too narrow (missing
+almost a third of the observed richness values by
+2014).](../figures/performance_time.png)
 
 Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 5C). The random forest-based SDM stack was the
 most overconfident model, with only `r numbers$rf_coverage_pct`% of observations
 falling inside its 95% confidence intervals. This stacked SDM's narrow
-predictive distribution also caused it to have notably higher deviance (Figure
-5B) than the next-worst model, even though its point estimates were not
-unusually bad in terms of RMSE (5A). As discussed elsewhere [@harris2015], this
+predictive distribution caused it to have notably higher deviance (Figure 5B)
+than the next-worst model, even though its point estimates were not unusually
+bad in terms of RMSE (5A). As discussed elsewhere [@harris2015], this
 overconfidence is a product of the assumption in stacked SDMs that errors in the
-species-level predictions are independent. Because they avoided this assumption,
-the GBM-based "macroecological" model and the mistnet JSDM had reasonably
-well-calibrated uncertainty estimates (Figure 5B); as a result, their relative
-performance was higher in terms of deviance than in terms of RMSE. The "naive"
-model was the only model whose confidence intervals were too wide (Figure 5C),
-which can be attributed to the rapid rate at which these intervals expand
-(Figure 1).
+species-level predictions are independent. The GBM-based "macroecological" model
+and the mistnet JSDM had the best calibrated uncertainty estimates (Figure
+5B)and therefore their relative performance was higher in terms of deviance than
+in terms of RMSE. The "naive" model was the only model whose confidence
+intervals were too wide (Figure 5C), which can be attributed to the rapid rate
+at which these intervals expand (Figure 1).
 
-Figure 6 shows each model's squared error, divided into consistent site-level
-biases, versus errors that fluctuated year-to-year. Across all models, most of
-the error came from errors in the site-level mean. The "average" model, which
-was based on the site-level mean, had the lowest error in this regard. In
-contrast, the three environmental models showed the largest biases at the site
-level; this makes sense, given that they could not explicitly distinguish among
-sites with similar climate, NDVI, and elevation. 
+Partitioning each model's squared error into consistent errors across sites and
+errors that fluctuated year-to-year shows that the majority of the error comes
+from errors in the site-level mean (Figure 6). The "average" model, which was
+based on the site-level mean, had the lowest error in this regard. In contrast,
+the three environmental models showed the largest biases at the site level; this
+makes sense, given that they could not explicitly distinguish among sites with
+similar climate, NDVI, and elevation.
 
-![Each model's squared error can be divided into two parts. If a model
-consistently over-estimates or under-estimates the richness at a given site,
-this contributes to its error in predicting the site-level mean. The second
-component is based on errors in predicting fluctuations in a site's richness
-over time. Both components of the mean squared error were lower for the
-single-site models than for the environmental models.](../figures/barcharts.png)
+![Partitioning of the squared error for each model into site and year
+components. The site-level mean component shows consistent over or under
+estimates of richness at a site across years. The annual fluctuation compoonent
+shows errors in predicting fluctuations in a site's richness over time. Both
+components of the mean squared error were lower for the single-site models than
+for the environmental models.](../figures/barcharts.png)
 
-When the differences among observers were not explicitly accounted for, nearly
-all metrics of fit worsened (Figure 7). The increased error resulted from a
-small number of forecasts where observer turnover caused a large shift in the
-reported richness values. The naive baseline was less sensitive to these shifts,
-because it largely ignored the richness values reported by observers that had
-retired by the end of the training period (Figure 1). The average model, which
-gave equal weight to observations from the whole training period, showed a
-larger decline in performance -- especially in terms of coverage. The
-performance of the mistnet JSDM was notable here, because its prediction
-intervals retained very good coverage in the presence of uncorrected
-observer-based noise, which we attribute to the JSDM's ability to model this
+Accounting for differences among observers generally improved measures of model
+fit (Figure 7). Improvements primarily resulted from a small number of forecasts
+where observer turnover caused a large shift in the reported richness
+values. The naive baseline was less sensitive to these shifts, because it
+largely ignored the richness values reported by observers that had retired by
+the end of the training period (Figure 1). The average model, which gave equal
+weight to observations from the whole training period, showed a larger decline
+in performance when not accounting for observer effects -- especially in terms
+of coverage. The performance of the mistnet JSDM was notable here, because its
+prediction intervals retained good coverage even when not correcting for
+observer differences, which we attribute to the JSDM's ability to model this
 variation with its latent variables.
 
 ![Accounting for differences between observers typically has a small impact on
 accuracy (especially for the "naive" model), but occasonally changes a
-prediction's accuracy by more than 10 species. These changes are beneficial, on
-average.](../figures/observers.png)
+prediction's accuracy by more than 10 species. As a result the inclusion of
+observer effects results in average improvements in overall model
+fit.](../figures/observers.png)
 
 ## Discussion
 
