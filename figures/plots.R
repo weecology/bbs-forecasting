@@ -188,12 +188,12 @@ d = bound %>%
             coverage = mean(p > .025 & p < .975)) %>% 
   filter(use_obs_model) %>% 
   gather(key = "variable", value = "value", rmse, mean_deviance, coverage) %>% 
-  mutate(variable = forcats::fct_relevel(variable, "rmse", "mean_deviance", 
-                                         "coverage"),
+  mutate(variable = forcats::fct_relevel(variable, "rmse", "coverage", 
+                                         "mean_deviance"),
          variable = factor(variable, 
                            labels = c("Root mean squared error (RMSE)",
-                                      "Mean deviance",
-                                      "Coverage")))
+                                      "Coverage",
+                                      "Mean deviance")))
 
 # "Color Universal Design" by Okabe and Ito
 # http://jfly.iam.u-tokyo.ac.jp/color/,
@@ -226,7 +226,7 @@ plotlist = pmap(
 time_error_legend = get_legend(plotlist[[1]])
 plotlist = map(plotlist, ~.x + theme(legend.position = "none"))
 
-plotlist[[3]] = plotlist[[3]] + 
+plotlist[[2]] = plotlist[[2]] + 
   geom_hline(yintercept = 0.95) +
   scale_y_continuous(limits = c(.65, 1.0025), expand = c(0, 0))
 
@@ -482,28 +482,28 @@ observer_deviance_data = bound %>%
   mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
                                              no = "FALSE", 
                                              yes = "TRUE")) %>% 
-  select(site_id, year, model, use_obs_model, deviance) %>% 
+  select(site_id, year, formal_name, use_obs_model, deviance) %>% 
   spread(key = use_obs_model, value = deviance) %>% 
-  mutate(y = no - yes)
+  mutate(y = no - yes, formal_name.other = gsub(" ", "\n", formal_name))
 
 observer_error_data = bound %>% 
   mutate(use_obs_model = forcats::fct_recode(factor(use_obs_model), 
                                              no = "FALSE", 
                                              yes = "TRUE")) %>% 
-  select(site_id, year, model, use_obs_model, diff) %>% 
+  select(site_id, year, formal_name, use_obs_model, diff) %>% 
   spread(key = use_obs_model, value = diff) %>% 
-  mutate(y = abs(no) - abs(yes))
+  mutate(y = abs(no) - abs(yes), formal_name.other = gsub(" ", "\n", formal_name))
 
 
 obs_violins = plot_grid(
   make_violins(observer_error_data, 
-               main = "Absolute error reduction from observer model",
-               ylab = "Reduction in absolute\nrichness error (species)",
+               main = "Absolute error increase from omitting observers",
+               ylab = "Absolute error increase",
                ylim = quantile(observer_error_data$y, c(.0005, .9995)), 
                yintercept = 0),
   make_violins(observer_deviance_data, 
-               main = "Deviance reduction from observer model",
-               ylab = "Posterior weight of\nobserver model",
+               main = "Deviance increase versus from omitting observers",
+               ylab = "Deviance increase",
                ylim = quantile(observer_deviance_data$y, c(.005, .995)), 
                yintercept = 0),
   nrow = 2
@@ -523,7 +523,7 @@ rf2_plot = ggplot(NULL, aes(x = rf2_diff)) +
   scale_y_continuous(expand = c(FALSE, FALSE)) +
   xlab("Deviance improvement from scaling the SDM uncertainty")
 
-my_ggsave("figures/rf2.png", rf2_plot, height = 10)
+my_ggsave("figures/rf2.png", rf2_plot, height = 12.5)
 
 # Numerical odds and ends for manuscript ----------------------------------
 bbs_data = get_pop_ts_env_data(
