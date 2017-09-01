@@ -729,9 +729,10 @@ accurate than the naive assumption that the world is static [@ye2015].
 
 Forecasts describe how systems are expected to change through time. While some
 areas of ecological forecasting focus primarily on time-series data, others
-primarily focus on using spatial models and space-for-time substitutions. Using
-ecological and environmental time-series data allows the consideration of actual
-dynamics from both a process and error structure perspective [@tredennick2016].
+primarily focus on using spatial models and space-for-time substitutions
+[@blois2013]. Using ecological and environmental time-series data allows the
+consideration of actual dynamics from both a process and error structure
+perspective [@tredennick2016].
 
 ### 3. Pay attention to uncertainty
 
