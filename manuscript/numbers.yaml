@@ -1,19 +1,19 @@
-N_species: 385
-N_runs: 34494
-N_sites: 1279
-N_predict_sites: 1237
-N_predictions: 9857
-N_obs: 2818
+N_species: '385'
+N_runs: '34,494'
+N_sites: '1,279'
+N_predict_sites: '1,237'
+N_predictions: '9,857'
+N_obs: '2,818'
 richness_summary:
   mean: 51.0
   min: 8.0
   max: 91.0
 n_gbm:
-- 6700.0
-- 7800.0
+- '6,700'
+- '7,800'
 rf_coverage_pct: 72.0
 ts_R2s: 0.67-0.87
-env_R2s: 0.53-0.78
+env_R2s: 0.52-0.78
 variance_percent:
   site: 70.0
   observer: 21.0
@@ -23,5 +23,5 @@ pct_is_average:
 - 67.0
 resid_sd: 3.6
 residual_autocor: 0.1160954
-mistnet_rmse: 7.4517629
-mistnet_rmse_singles: 8.3558468
+mistnet_rmse: 7.4413443
+mistnet_rmse_singles: 8.2000391
