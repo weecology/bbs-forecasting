@@ -576,25 +576,25 @@ behind changes in the environment. However, as the lead time of the forecast
 increases the amount of environmental change should increase and the systems
 will have more time to respond, potentially resulting in shifts towards improved
 relative performance of models incorporating environmental and ecological
-information. This is potentially important for interpreting our results because
-we only evaluated annual forecasts up to a decade into the future. In contrast,
-many ecological forecasts are temporally aggregated to 5-30 year timesteps and
-have lead times of up to a century. These long-term forecasts are difficult to
-evaluate given the small number of century scale datasets, but are important for
-understanding changes in biodiversity at some of the lead times relevant for
-conservation and management. Two studies have assessed models of species
-richness at longer lead times [@algar2009; @distler2015], but the results were
-not compared to baseline or time-series models (in part due to data limitations)
-making them difficult to compare to our results. Given the potential changes
-with lead time of the models and processes are most relevant to forecasting, it
-is important that more long lead time evaluation studies are conducted and that
-the inferences drawn from short-term and long-term forecasting studies be
-compared. For true forecasts, short term forecasts will allow for relatively
-rapid validation of models by researchers without needing to wait decades for
-data to accumulate [@tredennick2016; @dietze2016]. However, since drivers of
-species richness differ at different temporal scales [@rosenzweig1995;
-@white2004; @white2007], short-term forecasts should be viewed as informing, not
-replacing, long-term forecasts [@tredennick2016].
+information [@blonder2017]. This is potentially important for interpreting our
+results because we only evaluated annual forecasts up to a decade into the
+future. In contrast, many ecological forecasts are temporally aggregated to 5-30
+year timesteps and have lead times of up to a century. These long-term forecasts
+are difficult to evaluate given the small number of century scale datasets, but
+are important for understanding changes in biodiversity at some of the lead
+times relevant for conservation and management. Two studies have assessed models
+of species richness at longer lead times [@algar2009; @distler2015], but the
+results were not compared to baseline or time-series models (in part due to data
+limitations) making them difficult to compare to our results. Given the
+potential changes with lead time of the models and processes are most relevant
+to forecasting, it is important that more long lead time evaluation studies are
+conducted and that the inferences drawn from short-term and long-term
+forecasting studies be compared. For true forecasts, short term forecasts will
+allow for relatively rapid validation of models by researchers without needing
+to wait decades for data to accumulate [@tredennick2016; @dietze2016]. However,
+since drivers of species richness differ at different temporal scales
+[@rosenzweig1995; @white2004; @white2007], short-term forecasts should be viewed
+as informing, not replacing, long-term forecasts [@tredennick2016].
 
 While it is possible that models that include species' relationships to their
 environments or direct environmental constraints on richness will provide better
