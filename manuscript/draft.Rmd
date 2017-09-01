@@ -713,23 +713,24 @@ of Energy's Program for Climate Model Diagnosis and Intercomparison, and the
 Global Organization for Earth System Science Portals. A. C. Perry provided
 valuable comments that improved the clarity of this manuscript.
 
-## Box 1: Ten simple rules for making and evaluating ecological forecasts
+## Box 1: Best practices for making and evaluating ecological forecasts
 
 ### 1. Compare multiple modeling approaches
 
 Typically ecological forecasts use one modeling approach or a small number of
 related approaches. By fitting and evaluating multiple modeling approaches we
 can learn more rapidly about the best approaches for making predictions for a
-given ecological quantity. This includes comparing process-based [e.g.
-@kearney2009] and data-driven models, as well as comparing the accuracy of
-forecasts to simple baselines to determine if the modeled forecasts are more
-accurate than the naive assumption that the world is static [@ye2015].
+given ecological quantity [@clark2001; @ward2014]. This includes comparing
+process-based [e.g., @kearney2009] and data-driven models [e.g., @ward2014], as
+well as comparing the accuracy of forecasts to simple baselines to determine if
+the modeled forecasts are more accurate than the naive assumption that the world
+is static [@jolliffe2003; @ye2015].
 
 ### 2. Use time-series data when possible
 
 Forecasts describe how systems are expected to change through time. While some
-areas of ecological forecasting focus primarily on time-series data, others
-primarily focus on using spatial models and space-for-time substitutions
+areas of ecological forecasting focus primarily on time-series data [@ward2014], 
+others primarily focus on using spatial models and space-for-time substitutions
 [@blois2013]. Using ecological and environmental time-series data allows the
 consideration of actual dynamics from both a process and error structure
 perspective [@tredennick2016].
@@ -738,12 +739,12 @@ perspective [@tredennick2016].
 
 Understanding uncertainty in a forecast is just as important as understanding
 the average or expected outcome. Failing to account for uncertainty can result
-in overconfidence in highly uncertain outcomes leading to poor decision making
-and erosion of confidence in ecological forecasts. Models should explicitly
-include sources of uncertainty and propagate them through the forecast where
-possible [@clark2001; @dietze2017]. Evaluations of forecasts should assess the
-accuracy of models' estimated uncertainties as well as their point estimates
-[@dietze2017].
+in overconfidence in uncertain outcomes leading to poor decision making and
+erosion of confidence in ecological forecasts [@clark2001]. Models should
+explicitly include sources of uncertainty and propagate them through the
+forecast where possible [@clark2001; @dietze2017]. Evaluations of forecasts
+should assess the accuracy of models' estimated uncertainties as well as their
+point estimates [@dietze2017].
 
 ### 4. Use predictors related to the question
 
@@ -768,41 +769,43 @@ gradients [@harris2015].
 ### 6. Assess how forecast accuracy changes with time-lag
 
 In general, the accuracy of forecasts decreases with the length of time into the
-future being forecast [@petchey2015]. This decay in accuracy (and the potential
-for different rates of decay to result in different relative model performance
-at different lead times) should be considered when evaluating forecasts
-and comparing models.
+future being forecast [@petchey2015]. This decay in accuracy should be
+considered when evaluating forecasts. In addition to simple decreases in
+forecast accuracy the potential for different rates of decay to result in
+different relative model performance at different lead times should be
+considered.
 
 ### 7. Include an observation model
 
 Ecological observations are influenced by both the underlying biological
 processes (e.g. resource limitation) and how the system is sampled. When
 possible, forecasts should model the factors influencing the observation of the
-data. [@yu2010; @hutchinson2011; @schurr2012]
+data [@yu2010; @hutchinson2011; @schurr2012].
 
 ### 8. Validate using hindcasting
 
-Evalutating a model's predictive performance across time is critical.
-Hindcasting uses a temporal out-of-sample validation approach to mimic how well
-a model would have performed had it been run in the past. For example, using
-occurance data from the early 20th century to model distributions which are
-validated with late 20th century occurances. Dense time series, such as yearly
-observations, are desirable to also evalulate the forecast horizon (see #6), but
-this is not a strict requirement.
+Evalutating a model's predictive performance across time is critical for
+understanding if it is useful for forecasting the future. Hindcasting uses a
+temporal out-of-sample validation approach to mimic how well a model would have
+performed had it been run in the past. For example, using occurance data from
+the early 20th century to model distributions which are validated with late 20th
+century occurances. Dense time series, such as yearly observations, are
+desirable to also evalulate the forecast horizon (see #6), but this is not a
+strict requirement.
 
 ### 9. Publicly archive forecasts
 
 Forecast values and/or models should be archived so that they can be assessed
-after new data is generated [@mcgill2012; @silver2012]. Enough information
-should be provided in the archive to allow ecologists to make an unambiguous
-assessment of each forecast's performance.
+after new data is generated [@mcgill2012; @silver2012; @dietze2016]. Enough
+information should be provided in the archive to allow unambiguous assessment of
+each forecast's performance [@tetlock2016].
 
 ### 10. Make both short-term and long-term predictions
 
-In cases where long-term predictions are the primary goal, short-term
+Even in cases where long-term predictions are the primary goal, short-term
 predictions should also be made to accommodate the time-scales of planning and
 management decisions and to allow the accuracy of the forecasts to be quickly
-evaluated [@tredennick2016].
+evaluated [@dietze2016; @tredennick2016].
 
 
 ## References
