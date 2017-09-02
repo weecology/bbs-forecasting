@@ -186,14 +186,14 @@ d = bound %>%
   summarize(rmse = sqrt(mean(diff^2)), 
             mean_deviance = -2 * mean(dnorm(richness, mean, sd, log = TRUE)),
             coverage = mean(p > .025 & p < .975)) %>% 
-  filter(use_obs_model) %>% 
   gather(key = "variable", value = "value", rmse, mean_deviance, coverage) %>% 
   mutate(variable = forcats::fct_relevel(variable, "rmse", "coverage", 
                                          "mean_deviance"),
          variable = factor(variable, 
                            labels = c("Root mean squared error (RMSE)",
                                       "Coverage",
-                                      "Mean deviance")))
+                                      "Mean deviance"))) %>% 
+  ungroup()
 
 # "Color Universal Design" by Okabe and Ito
 # http://jfly.iam.u-tokyo.ac.jp/color/,
@@ -203,13 +203,13 @@ colors = c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
 
 
 make_time_error = function(var_name, title){
-  filter(d, variable == var_name) %>% 
+  filter(filter(d, use_obs_model), variable == var_name) %>% 
     ggplot(aes(x = year, y = value, color = formal_name)) +
     geom_line(size = 1) +
     scale_x_continuous(expand = c(0, 0)) +
     theme_light(base_size = base_size) +
     scale_color_manual(values = colors, name = "Model") +
-    ylab(ifelse(var_name == "Root mean squared error (RMSE)", "RMSE", var_name)) + 
+    ylab(ifelse(grepl("RMSE", var_name), "RMSE", var_name)) + 
     ggtitle(paste0(title, ". ", var_name))
 }
 
@@ -228,7 +228,7 @@ plotlist = map(plotlist, ~.x + theme(legend.position = "none"))
 
 plotlist[[2]] = plotlist[[2]] + 
   geom_hline(yintercept = 0.95) +
-  scale_y_continuous(limits = c(.65, 1.0025), expand = c(0, 0))
+  scale_y_continuous(limits = c(.64, 1.0025), expand = c(0, 0))
 
 time_error = plot_grid(
   plot_grid(plotlist = plotlist, nrow = 3, align = "v"),
@@ -306,7 +306,7 @@ observer_uncertainties = obs_model$data %>%
   group_by(observer_id, year, site_id, training_observer) %>% 
   summarize(observer_sd = sd(observer_effect)) %>% 
   ungroup() %>% 
-  mutate(obs_class = cut_number(observer_sd, 10)) %>% 
+  mutate(obs_class = cut_number(observer_sd, 4)) %>% 
   left_join(filter(bound, model == "average", use_obs_model), 
             by = c("year", "site_id"))
 
@@ -322,6 +322,45 @@ obs_joy = observer_uncertainties %>%
   theme(axis.title.x = element_text(hjust = .5),
         axis.title.y = element_text(hjust = .5))
 my_ggsave("figures/observer_uncertainty.png", obs_joy, height = 11)
+
+
+
+make_obs_arrows = function(variable, letter){
+  levels(d$formal_name) = gsub(" ", "\n", levels(d$formal_name))
+  out = d %>% 
+    filter(variable == !!variable) %>% 
+    group_by(formal_name, use_obs_model) %>% 
+    summarize(value = mean(value)) %>% 
+    spread(key = use_obs_model, value = value, sep = "_") %>% 
+    ggplot(aes(x = formal_name, y = use_obs_model_FALSE)) + 
+    geom_segment(
+      aes(xend = formal_name, yend = use_obs_model_TRUE),
+      arrow = arrow(length = unit(0.1, "cm"))
+    ) +
+    theme_light(base_size = base_size) + 
+    ggtitle(paste0(letter, ". ", variable)) +
+    ylab(ifelse(grepl("RMSE", variable), "RMSE", variable)) +
+    xlab("model")
+  
+  if (variable == "Coverage") { 
+    out = out + geom_hline(yintercept = 0.95)# +
+    scale_y_continuous(limits = c(.64, 1.0025), expand = c(0, 0))
+  }
+  
+  out
+}
+
+obs_arrows = pmap(
+  list(
+    levels(d$variable), 
+    LETTERS[1:3]
+  ), 
+  make_obs_arrows) %>% 
+  plot_grid(plotlist = ., nrow = 3, align = "v")
+my_ggsave("figures/obs_arrows.png", obs_arrows, height = 15)
+
+
+
 
 
 # Time series -------------------------------------------------------------
