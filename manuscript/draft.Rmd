@@ -525,23 +525,24 @@ The most commonly used methods for forecasting future biodiversity, SDMs and
 macroecological models, both produced worse forecasts than time-series models
 and simple baselines. This weakness suggests that predictions about future
 biodiversity change should be viewed with skepticism unless the underlying
-models have been validated temporally, via hindcasting. Since site-level
-richness is relatively stable, spatial validation is not enough: a model can
-have high accuracy across spatial gradients without being able to predict
-changes over time. This gap between spatial and temporal accuracy is known to be
-important for species-level predictions [@rapacciuolo2012; @oedekoven2017]; our
-results indicate that it is substantial for higher-level patterns like richness
-as well. SDMs' poor temporal predictions are particularly sobering, as these
-models have been one of the main foundations for estimates of the predicted loss
-of biodiversity to climate change over the past decade or so [@thomas2004;
-@thuiller2011; @urban2015]. Our results also highlight the importance of
-comparing multiple modeling approaches when conducting ecological forecasts, and
-in particular, the value of comparing results to simple baselines to avoid
-over-interpreting the information present in these forecasts [Box 1].
-Disciplines that have more mature forecasting cultures often do this by
-reporting "forecast skill", i.e., the improvement in the forecast relative to a
-simple baseline [@jolliffe2003]. We recommend following the example of @ye2015
-and adopting this approach in future ecological forecasting research.
+models have been validated temporally, via hindcasting and comparison with
+simple baselines. Since site-level richness is relatively stable, spatial
+validation is not enough: a model can have high accuracy across spatial
+gradients without being able to predict changes over time. This gap between
+spatial and temporal accuracy is known to be important for species-level
+predictions [@rapacciuolo2012; @oedekoven2017]; our results indicate that it is
+substantial for higher-level patterns like richness as well. SDMs' poor temporal
+predictions are particularly sobering, as these models have been one of the main
+foundations for estimates of the predicted loss of biodiversity to climate
+change over the past decade or so [@thomas2004; @thuiller2011; @urban2015]. Our
+results also highlight the importance of comparing multiple modeling approaches
+when conducting ecological forecasts, and in particular, the value of comparing
+results to simple baselines to avoid over-interpreting the information present
+in these forecasts [Box 1]. Disciplines that have more mature forecasting
+cultures often do this by reporting "forecast skill", i.e., the improvement in
+the forecast relative to a simple baseline [@jolliffe2003]. We recommend
+following the example of @ye2015 and adopting this approach in future ecological
+forecasting research.
 
 When comparing different methods for forecasting our results demonstrate the
 importance of considering uncertainty [Box 1; @clark2001; @dietz2016]. Previous
