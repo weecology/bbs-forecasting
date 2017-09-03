@@ -214,13 +214,12 @@ downstream models with each of the Monte Carlo samples. Each Monte Carlo sample
 represented a different possible set of observer-level and site-level random
 effect values across the full 32-year dataset.
 
-![**A.** Model predictions for [[STATE]] route [[ROUTE NUMBER]] when all
-observers are treated the same (black points). **B.** Model predictions for the
-same route when accounting for systematic differences between observers
-(represented by the points' colors). In this example most models are made more
-robust to observer turnover. Note that the "naive" model is less sensitive to
-observer turnover, and does not benefit as much from modeling
-it.](../figures/observer_predictions.png)
+![**A.** Model predictions for route 72035 when all observers are treated the
+same (black points). **B.** Model predictions for the same route when accounting
+for systematic differences between observers (represented by the points'
+colors). In this example most models are made more robust to observer turnover.
+Note that the "naive" model is less sensitive to observer turnover, and does not
+benefit as much from modeling it.](../figures/observer_predictions.png)
 
 ### Models: site-level models
 
@@ -486,22 +485,20 @@ for the environmental models.](../figures/barcharts.png)
 
 Accounting for differences among observers generally improved measures of model
 fit (Figure 7). Improvements primarily resulted from a small number of forecasts
-where observer turnover caused a large shift in the reported richness
-values. The naive baseline was less sensitive to these shifts, because it
-largely ignored the richness values reported by observers that had retired by
-the end of the training period (Figure 1). The average model, which gave equal
-weight to observations from the whole training period, showed a larger decline
-in performance when not accounting for observer effects -- especially in terms
-of coverage. The performance of the mistnet JSDM was notable here, because its
-prediction intervals retained good coverage even when not correcting for
-observer differences, which we attribute to the JSDM's ability to model this
-variation with its latent variables.
+where observer turnover caused a large shift in the reported richness values
+(Appendix [[Figure Number]]). The naive baseline was less sensitive to these
+shifts, because it largely ignored the richness values reported by observers
+that had retired by the end of the training period (Figure 1). The average
+model, which gave equal weight to observations from the whole training period,
+showed a larger decline in performance when not accounting for observer effects
+-- especially in terms of coverage. The performance of the mistnet JSDM was
+notable here, because its prediction intervals retained good coverage even when
+not correcting for observer differences, which we attribute to the JSDM's
+ability to model this variation with its latent variables.
 
-![Accounting for differences between observers typically has a small impact on
-accuracy (especially for the "naive" model), but occasonally changes a
-prediction's accuracy by more than 10 species. As a result the inclusion of
-observer effects results in average improvements in overall model
-fit.](../figures/observers.png)
+![Controlling for differences among observers generally improved each model's
+predictions, on average. The magnitude of this effect was negligible for the
+Naive baseline, however.](../figures/obs_arrows.png)
 
 ## Discussion
 
