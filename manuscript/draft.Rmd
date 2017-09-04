@@ -214,12 +214,13 @@ downstream models with each of the Monte Carlo samples. Each Monte Carlo sample
 represented a different possible set of observer-level and site-level random
 effect values across the full 32-year dataset.
 
-![**A.** Model predictions for route 72035 when all observers are treated the
-same (black points). **B.** Model predictions for the same route when accounting
-for systematic differences between observers (represented by the points'
-colors). In this example most models are made more robust to observer turnover.
-Note that the "naive" model is less sensitive to observer turnover, and does not
-benefit as much from modeling it.](../figures/observer_predictions.png)
+![**A.** Model predictions for Pennsylvania route 35 when all observers are
+treated the same (black points). **B.** Model predictions for the same route
+when accounting for systematic differences between observers (represented by the
+points' colors). In this example most models are made more robust to observer
+turnover. Note that the "naive" model is less sensitive to observer turnover,
+and does not benefit as much from modeling
+it.](../figures/observer_predictions.png)
 
 ### Models: site-level models
 
