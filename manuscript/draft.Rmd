@@ -514,9 +514,9 @@ However, none of the methods evaluated reliably determined how site-level
 richness changes over time (Figure 6), which is generally the stated purpose of
 these forecasts. As a result, baseline models, which did not attempt to
 anticipate changes in richness over time, generally provided the best forecasts
-for future biodiversity. While this study was based on a single data set, its
-results are consistent with a growing literature on the limits of ecological 
-forecasting, as discussed below.
+for future biodiversity. While this study is restricted to breeding birds in
+North America, its results are consistent with a growing literature on the
+limits of ecological forecasting, as discussed below.
 
 The most commonly used methods for forecasting future biodiversity, SDMs and
 macroecological models, both produced worse forecasts than time-series models
