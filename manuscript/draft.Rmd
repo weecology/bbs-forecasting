@@ -543,7 +543,7 @@ following the example of @ye2015 and adopting this approach in future ecological
 forecasting research.
 
 When comparing different methods for forecasting our results demonstrate the
-importance of considering uncertainty [Box 1; @clark2001; @dietz2016]. Previous
+importance of considering uncertainty [Box 1; @clark2001; @dietze2016]. Previous
 comparisons between stacked SDMs and macroecological models reported that the
 methods yielded equivalent results for forecasting diversity [@algar2009;
 @distler2015]. While our results support this equivalence for point estimates,
