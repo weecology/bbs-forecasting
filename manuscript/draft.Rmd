@@ -594,9 +594,12 @@ this study show little change in richness [site-level SD of `r numbers$resid_sd`
 species, after controlling for differences among observers; see also
 @lasorte2005]. The absence of rapid change in this dataset is beneficial for the
 absolute accuracy of forecasts across different sites: when a past year's
-richness is already known, it is easy to estimate future richness.  The
-site-level stability of the BBS data also explains why SDMs and macroecological
-models perform relatively well at predicting future richness, despite failing to
+richness is already known, it is easy to estimate future richness. Ward et al.
+(2014) found similar patterns in time series of fisheries stocks, where
+relatively stable time series were best predicted by simple models and more
+complex models were only beneficial with dynamic time series. The site-level
+stability of the BBS data also explains why SDMs and macroecological models
+perform relatively well at predicting future richness, despite failing to
 capture changes in richness over time. However, this stability also makes it
 difficult to improve forecasts relative to simple baselines, since those
 baselines are already close to representing what is actually occurring in the
