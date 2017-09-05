@@ -625,26 +625,29 @@ for models incorporating environmental variables, and this may result in a
 continued advantage for simple single-site approaches.
 
 In addition to comparing and improving the process models used for forecasting
-it is important to consider the observation models [Box 1].  When working with
-any ecological dataset, there are imperfections in the sampling process that
-have the potential to influence results. With large scale surveys and citizen
-science datasets, such as the Breeding Bird Survey, these issues are potentially
+it is important to consider the observation models.  When working with any
+ecological dataset, there are imperfections in the sampling process that have
+the potential to influence results. With large scale surveys and citizen science
+datasets, such as the Breeding Bird Survey, these issues are potentially
 magnified by the large number of different observers and by major differences in
 the habitats and species being surveyed [@sauer1994]. Accounting for differences
 in observers reduced the average error in our point estimates and also improved
 the coverage of the confidence intervals. In addition, controlling for observer
 effects resulted in changes in which models performed best, most notably
 improving most models' point estimates relative to the naive baseline. This
-suggests that, prior to accounting for observer effects, the naive model
-performed well largely because it was capable of accommodating rapid shifts in
-estimated richness introduced by changes in the observer. These kinds of rapid
-changes were difficult for the other single-site models to accommodate. Another
-key aspect of an ideal observation model is imperfect detection. In this study,
-we did not address differences in detection probability across species and sites
-[@boulinier1998] since there is no clear way to address this issue using North
-American Breeding Bird Survey data without making strong assumptions about the
-data [i.e., assuming there is no biological variation in stops along a route;
-@white2010], but this would be a valuable addition to future forecasting models.
+demonstrates that modeling observation error can be important for properly
+estimating and reducing uncertainty in forecasts and can also lead to changes in
+the best methods for forecasting [Box 1]. This suggests that, prior to
+accounting for observer effects, the naive model performed well largely because
+it was capable of accommodating rapid shifts in estimated richness introduced by
+changes in the observer. These kinds of rapid changes were difficult for the
+other single-site models to accommodate. Another key aspect of an ideal
+observation model is imperfect detection. In this study, we did not address
+differences in detection probability across species and sites [@boulinier1998]
+since there is no clear way to address this issue using North American Breeding
+Bird Survey data without making strong assumptions about the data [i.e.,
+assuming there is no biological variation in stops along a route; @white2010],
+but this would be a valuable addition to future forecasting models.
 
 The science of forecasting biodiversity remains in its infancy and it is
 important to consider weaknesses in current forecasting methods in that context.
