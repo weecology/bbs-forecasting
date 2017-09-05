@@ -562,22 +562,20 @@ the lead times relevant for conservation and management. Two studies have
 assessed models of species richness at longer lead times [@algar2009;
 @distler2015], but the results were not compared to baseline or time-series
 models (in part due to data limitations) making them difficult to compare to our
-results directly. Given the potential changes with lead time of the models and
-processes are most relevant to forecasting, it is important that more forecasts
-with longer lead times are evaluated and that the inferences drawn from
-short-term and long-term forecasting studies be compared. By evaluating
-shorter-term forecasts, researchers can avoid waiting so many decades to
-evaluate their methods [@petchey2015; @tredennick2016; @dietze2016]. However,
-since drivers of species richness differ at different temporal scales
-[@rosenzweig1995; @white2004; @white2007], short-term evaluations should be
-viewed as informing, not replacing, long-term evaluations [@tredennick2016]. In
-particular, we might expect environmental and ecological information to become
-more important at longer time scales, and thus for the performance of simple
-baseline forecasts to degrade faster than forecasts from SDMs and other similar
-models [@blonder2017].  On the other hand, there is evidence that species
-respond differently to spatial versus temporal variation in the environment
-[@oedekoven2017], implying that most SDMs are not using environmental
-information well enough to make accurate forecasts.
+results directly. Studies on shorter time scales, such as ours, provide one way
+to evaluate our forecasting methods without having to wait several decades to
+observe the effects of environmental change on biodiversity [@petchey2015;
+@tredennick2016; @dietze2016], but cannot fully replace longer-term evaluations
+[@tredennick2016]. In general, drivers of species richness can differ at
+different temporal scales [@rosenzweig1995; @white2004; @white2007], so
+different methods may perform better for different lead times. In particular, we
+might expect environmental and ecological information to become more important
+at longer time scales, and thus for the performance of simple baseline forecasts
+to degrade faster than forecasts from SDMs and other similar models
+[@blonder2017].  We did observe a small trend in this direction: deviance for
+the auto-ARIMA models and for the average baseline grew faster than for two of
+the environmental models (the JSDM and the macroecological model), although this
+growth was not statistically significant for the average baseline.
 
 While it is possible that models that include species' relationships to their
 environments or direct environmental constraints on richness will provide better
