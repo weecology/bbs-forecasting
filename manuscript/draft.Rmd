@@ -567,12 +567,12 @@ to evaluate our forecasting methods without having to wait several decades to
 observe the effects of environmental change on biodiversity [@petchey2015;
 @tredennick2016; @dietze2016], but cannot fully replace longer-term evaluations
 [@tredennick2016]. In general, drivers of species richness can differ at
-different temporal scales [@rosenzweig1995; @white2004; @white2007], so
-different methods may perform better for different lead times. In particular, we
-might expect environmental and ecological information to become more important
-at longer time scales, and thus for the performance of simple baseline forecasts
-to degrade faster than forecasts from SDMs and other similar models
-[@blonder2017].  We did observe a small trend in this direction: deviance for
+different temporal scales [@rosenzweig1995; @white2004; @white2007;
+@blonder2017], so different methods may perform better for different lead times.
+In particular, we might expect environmental and ecological information to
+become more important at longer time scales, and thus for the performance of
+simple baseline forecasts to degrade faster than forecasts from SDMs and other
+similar models.  We did observe a small trend in this direction: deviance for
 the auto-ARIMA models and for the average baseline grew faster than for two of
 the environmental models (the JSDM and the macroecological model), although this
 growth was not statistically significant for the average baseline.
