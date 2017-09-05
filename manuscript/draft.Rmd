@@ -552,44 +552,35 @@ possible outcomes; after ten years, more than a third of the observed richness
 values fell outside the stacked SDMs' 95% prediction intervals. Consistent with
 @harris2015 and @warton2015, we found that JSDMs' wider prediction intervals
 enabled them to avoid this problem. Macroecological models appear to share this
-advantage, while being considerably easier to implement.
+advantage, while being considerably easier to implement. 
 
-The accuracy for forecasts is expected to decline as forecasts are made further
-into the future, so it is important to evaluate forecasts at different lead
-times [Box 1; @petchey2015]. For deviance (the error metric that evaluates both
-models' point estimates and their uncertainty simultaneously), there is some
-indication that the JSDM and the nonlinear richness model converge towards the
-time-series and baseline models as the lead time of the forecast increases. This
-potential convergence is biologically plausible because at short lead times,
-environmental changes are relatively small and changes in the biota may lag
-behind changes in the environment. However, as the lead time of the forecast
-increases the amount of environmental change should increase and the systems
-will have more time to respond, potentially resulting in shifts towards improved
-relative performance of models incorporating environmental and ecological
-information [@blonder2017]. This is potentially important for interpreting our
-results because we only evaluated annual forecasts up to a decade into the
-future. In contrast, many ecological forecasts are temporally aggregated to 5-30
-year timesteps and have lead times of up to a century. These long-term forecasts
-are difficult to evaluate given the small number of century scale datasets, but
-are important for understanding changes in biodiversity at some of the lead
-times relevant for conservation and management. Two studies have assessed models
-of species richness at longer lead times [@algar2009; @distler2015], but the
-results were not compared to baseline or time-series models (in part due to data
-limitations) making them difficult to compare to our results. Given the
-potential changes with lead time of the models and processes are most relevant
-to forecasting, it is important that more long lead time evaluation studies are
-conducted and that the inferences drawn from short-term and long-term
-forecasting studies be compared. For true forecasts, short term forecasts will
-allow for relatively rapid validation of models by researchers without needing
-to wait decades for data to accumulate [@tredennick2016; @dietze2016]. However,
-since drivers of species richness differ at different temporal scales
-[@rosenzweig1995; @white2004; @white2007], short-term forecasts should be viewed
-as informing, not replacing, long-term forecasts [@tredennick2016].
+We have only evaluated annual forecasts up to a decade into the future, but
+forecasts are often made with a lead time of 50 years or more. These long-term
+forecasts are difficult to evaluate given the small number of century-scale
+datasets, but are important for understanding changes in biodiversity at some of
+the lead times relevant for conservation and management. Two studies have
+assessed models of species richness at longer lead times [@algar2009;
+@distler2015], but the results were not compared to baseline or time-series
+models (in part due to data limitations) making them difficult to compare to our
+results directly. Studies on shorter time scales, such as ours, provide one way
+to evaluate our forecasting methods without having to wait several decades to
+observe the effects of environmental change on biodiversity [@petchey2015;
+@tredennick2016; @dietze2016], but cannot fully replace longer-term evaluations
+[@tredennick2016]. In general, drivers of species richness can differ at
+different temporal scales [@rosenzweig1995; @white2004; @white2007;
+@blonder2017], so different methods may perform better for different lead times.
+In particular, we might expect environmental and ecological information to
+become more important at longer time scales, and thus for the performance of
+simple baseline forecasts to degrade faster than forecasts from SDMs and other
+similar models.  We did observe a small trend in this direction: deviance for
+the auto-ARIMA models and for the average baseline grew faster than for two of
+the environmental models (the JSDM and the macroecological model), although this
+growth was not statistically significant for the average baseline.
 
 While it is possible that models that include species' relationships to their
 environments or direct environmental constraints on richness will provide better
 fits at longer lead times, it is also possible that they will continue to
-produce forecasts that are worse than baselines assuming that the systems are
+produce forecasts that are worse than baselines that assume the systems are
 static.  This would be expected to occur if richness in these systems is not
 changing over the relevant multi-decadal time scales, which would make simpler
 models with no directional change more appropriate. Recent suggestions that
@@ -603,18 +594,21 @@ this study show little change in richness [site-level SD of `r numbers$resid_sd`
 species, after controlling for differences among observers; see also
 @lasorte2005]. The absence of rapid change in this dataset is beneficial for the
 absolute accuracy of forecasts across different sites: when a past year's
-richness is already known, it is easy to estimate future richness.  The
-site-level stability of the BBS data also explains why SDMs and macroecological
-models perform relatively well at predicting future richness, despite failing to
+richness is already known, it is easy to estimate future richness. Ward et al.
+(2014) found similar patterns in time series of fisheries stocks, where
+relatively stable time series were best predicted by simple models and more
+complex models were only beneficial with dynamic time series. The site-level
+stability of the BBS data also explains why SDMs and macroecological models
+perform relatively well at predicting future richness, despite failing to
 capture changes in richness over time. However, this stability also makes it
 difficult to improve forecasts relative to simple baselines, since those
 baselines are already close to representing what is actually occurring in the
 system. These results suggest that single-site models should be actively
-considered for forecasts of richness and other stable aspects of
-biodiversity. Our results also suggest that future efforts to understand and
-forecast biodiversity should incorporate species composition, since lower-level
-processes are expected to be more dynamic [@ernest2001; @dornelas2014] and
-contain more useful information [@harris2015].
+considered for forecasts of richness and other stable aspects of biodiversity.
+Our results also suggest that future efforts to understand and forecast
+biodiversity should incorporate species composition, since lower-level processes
+are expected to be more dynamic [@ernest2001; @dornelas2014] and contain more
+useful information [@harris2015].
 
 Future biodiversity forecasting efforts also need to address the uncertainty
 introduced by the error in forecasting the environmental conditions that are
@@ -623,12 +617,12 @@ environmental conditions for the "future" are known because the data has already
 been observed. However, in real forecasts the environmental conditions
 themselves have to be predicted, and environmental forecasts will also have
 uncertainty and bias. Ultimately, ecological forecasts that use environmental
-data will therefore be more uncertain than our current hindcasting efforts. It
-is important to correctly incorporate this uncertainty in the predictor
-variables into forecasting models [@clark2001; @dietze2017]. Limitations in
-forecasting future environmental conditions, particularly at small scales, will
-present continued challenges for models incorporating environmental variables,
-and this may result in a continued advantage for simple single-site approaches.
+data will therefore be more uncertain than our current hindcasting efforts, and
+it is important to correctly incorporate this uncertainty into our models
+[@clark2001; @dietze2017]. Limitations in forecasting future environmental
+conditions---particularly at small scales---will present continued challenges
+for models incorporating environmental variables, and this may result in a
+continued advantage for simple single-site approaches.
 
 In addition to comparing and improving the process models used for forecasting
 it is important to consider the observation models.  When working with any
@@ -640,42 +634,40 @@ the habitats and species being surveyed [@sauer1994]. Accounting for differences
 in observers reduced the average error in our point estimates and also improved
 the coverage of the confidence intervals. In addition, controlling for observer
 effects resulted in changes in which models performed best, most notably
-reducing the relative performance of the naive model's point estimates. This
-suggests that, prior to accounting for observer effects, the naive model
-performed well because it was capable of accommodating rapid shifts in estimated
-richness introduced by changes in the observer. These kinds of rapid changes
-were difficult for the other single-site models to accommodate, and so the
-average performance of the ARIMA and average models improved once this source of
-observation error was addressed. This demonstrates that modeling observation
-error can be important for properly estimating and reducing uncertainty in
-forecasts and can also lead to changes in the best methods for forecasting [Box
-1]. Another key aspect of an ideal observation model is imperfect detection. In
-this study, we did not address differences in detection probability across
-species and sites [@boulinier1998] since there is no clear way to address this
-issue using NA Breeding Bird Survey data without making strong assumptions about
-the data [i.e., assuming there is no biological variation in stops along a
-route; @white2010], but this would be a valuable addition to future forecasting
-models.
+improving most models' point estimates relative to the naive baseline. This
+demonstrates that modeling observation error can be important for properly
+estimating and reducing uncertainty in forecasts and can also lead to changes in
+the best methods for forecasting [Box 1]. This suggests that, prior to
+accounting for observer effects, the naive model performed well largely because
+it was capable of accommodating rapid shifts in estimated richness introduced by
+changes in the observer. These kinds of rapid changes were difficult for the
+other single-site models to accommodate. Another key aspect of an ideal
+observation model is imperfect detection. In this study, we did not address
+differences in detection probability across species and sites [@boulinier1998]
+since there is no clear way to address this issue using North American Breeding
+Bird Survey data without making strong assumptions about the data [i.e.,
+assuming there is no biological variation in stops along a route; @white2010],
+but this would be a valuable addition to future forecasting models.
 
 The science of forecasting biodiversity remains in its infancy and it is
-important to consider weaknesses in current forecasting methods in that
-context. In the beginning weather forecasts were also worse than simple
-baselines, but these forecasts have continually improved throughout the history
-of the field [@mcgill2012; @silver2012; @bauer2015]. One practice that lead to
-improvements in weather forecasts was that large numbers of forecasts were made
-publicly, allowing different approaches to be regularly assessed and refined
-[@mcgill2012; @silver2012]. To facilitate this kind of improvement, it is
-important for ecologists to start regularly making and evaluating real
-ecological forecasts, even if they perform poorly, and to make these forecasts
-openly available for assessment [@mcgill2012; @dietze2016]. These forecasts
-should include both short-term predictions, which can be assessed quickly, and
-mid- to long-term forecasts, which can help ecologists to assess long time-scale
-processes and determine how far into the future we can successfully forecast
-[@dietze2016; @tredennick2016]. Forecasts out to 2050 based on the models in
-this paper have been openly archived [@zenodo], so that we and others can assess
-how well they perform. We plan to evaluate these forecasts and report the
-results as each new year of BBS data becomes available, and make iterative
-improvements to the forecasting models in response to these assessments.
+important to consider weaknesses in current forecasting methods in that context.
+In the beginning, weather forecasts were also worse than simple baselines, but
+these forecasts have continually improved throughout the history of the field
+[@mcgill2012; @silver2012; @bauer2015]. One practice that lead to improvements
+in weather forecasts was that large numbers of forecasts were made publicly,
+allowing different approaches to be regularly assessed and refined [@mcgill2012;
+@silver2012]. To facilitate this kind of improvement, it is important for
+ecologists to start regularly making and evaluating real ecological forecasts,
+even if they perform poorly, and to make these forecasts openly available for
+assessment [@mcgill2012; @dietze2016]. These forecasts should include both
+short-term predictions, which can be assessed quickly, and mid- to long-term
+forecasts, which can help ecologists to assess long time-scale processes and
+determine how far into the future we can successfully forecast [@dietze2016;
+@tredennick2016]. We have openly archived forecasts from all six models through
+the year 2050 [@zenodo], so that we and others can assess how well they perform.
+We plan to evaluate these forecasts and report the results as each new year of
+BBS data becomes available, and make iterative improvements to the forecasting
+models in response to these assessments.
 
 Making successful ecological forecasts will be challenging. Ecological systems
 are complex, our fundamental theory is less refined than for simpler physical
