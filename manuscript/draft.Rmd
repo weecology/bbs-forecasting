@@ -469,13 +469,16 @@ in terms of RMSE. The "naive" model was the only model whose confidence
 intervals were too wide (Figure 5C), which can be attributed to the rapid rate
 at which these intervals expand (Figure 1).
 
-Partitioning each model's squared error into consistent errors across sites and
-errors that fluctuated year-to-year shows that the majority of the error comes
-from errors in the site-level mean (Figure 6). The "average" model, which was
-based on the site-level mean, had the lowest error in this regard. In contrast,
-the three environmental models showed the largest biases at the site level; this
-makes sense, given that they could not explicitly distinguish among sites with
-similar climate, NDVI, and elevation.
+Partitioning each model's squared error shows that the majority of the residual
+error was attributed to errors in estimating site-level means, rather than
+errors in tracking year-to-year fluctuations (Figure 6). The "average" model,
+which was based entirely on site-level means, had the lowest error in this
+regard. In contrast, the three environmental models showed larger biases at the
+site level, though they still explained most of the variance in this component.
+This makes sense, given that they could not explicitly distinguish among sites
+with similar climate, NDVI, and elevation. Interestingly, the environmental
+models had higher squared error than the baselines did for tracking year-to-year
+fluctuations in richness as well.
 
 ![Partitioning of the squared error for each model into site and year
 components. The site-level mean component shows consistent over or under

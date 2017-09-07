@@ -257,43 +257,26 @@ barchart_data = bound %>%
   gather(key = `Error component`, value = value, -1) %>% 
   mutate(
     env = model %in% env_models,
-    model = factor(model, levels = !!models),
     `Error component` = factor(`Error component`, 
                                levels = rev(sort(unique(`Error component`))))
-  )
+  ) %>% 
+  left_join(distinct(bound, model, formal_name), "model") %>% 
+  mutate(formal_name = factor(formal_name, levels = rev(levels(formal_name))),
+         `Model type` = factor(ifelse(env, "Environmental", "Single-site"),
+                               levels = c("Single-site", "Environmental")))
 
-
-make_error_barchart = function(use_env){
-  filter(barchart_data, env == use_env) %>% 
-    ggplot(aes(x = model, y = value, fill = `Error component`)) +
-    geom_col(position = "dodge") +
-    scale_y_continuous(limits = c(0, max(barchart_data$value) + 1), 
-                       expand = c(FALSE, FALSE)) +
-    theme_cowplot(base_size - 1) + 
-    ggtitle(ifelse(use_env, "Environment models", "Single-site models")) + 
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-          plot.margin = margin(1, 1, 1, 1)) +
-    scale_fill_brewer(palette = "Paired") + 
-    xlab("")
-}
-
-barchart_list = map(c(FALSE, TRUE), make_error_barchart)
-barchart_legend = get_legend(barchart_list[[1]])
-
-barcharts = plot_grid(
-  plot_grid(
-    barchart_list[[1]] + 
-      theme(legend.position = "none") + 
-      ylab("Mean squared error"),
-    barchart_list[[2]] + 
-      theme(legend.position = "none") +
-      ylab(""),
-    align = "h"
-  ),
-  barchart_legend,
-  rel_widths = c(3, 1)
-)
-my_ggsave("figures/barcharts.png", barcharts, height = 10)
+barcharts = barchart_data %>%
+  ggplot(aes(x = formal_name, y = value, fill = `Model type`)) +
+  facet_grid(~`Error component`) + 
+  geom_col() + 
+  scale_y_continuous(limits = c(0, max(barchart_data$value) + 1), 
+                     expand = c(FALSE, FALSE)) +
+  theme_cowplot(base_size) + 
+  scale_fill_brewer(palette = "Paired") + 
+  xlab("") +
+  ylab("Mean squared error") + 
+  coord_flip()
+my_ggsave("figures/barcharts.png", barcharts, height = 9)
 
 
 
