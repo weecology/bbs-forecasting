@@ -390,7 +390,7 @@ forecast [@forecast1; @forecast2], git2r [@git2r], ggplot [@ggplot2], mistnet
 gbm [Ridgeway *et al.* -@gbm], randomForest [@randomForest]. Code to fully
 reproduce this analysis is available on GitHub
 (https://github.com/weecology/bbs-forecasting) and archived on Zenodo
-(https://doi.org/10.5281/zenodo.839581).
+[@zenodoCode].
 
 
 ## Results
@@ -489,16 +489,16 @@ for the environmental models.](../figures/barcharts.png)
 
 Accounting for differences among observers generally improved measures of model
 fit (Figure 7). Improvements primarily resulted from a small number of forecasts
-where observer turnover caused a large shift in the reported richness values
-(Appendix [[Figure Number]]). The naive baseline was less sensitive to these
-shifts, because it largely ignored the richness values reported by observers
-that had retired by the end of the training period (Figure 1). The average
-model, which gave equal weight to observations from the whole training period,
-showed a larger decline in performance when not accounting for observer effects
--- especially in terms of coverage. The performance of the mistnet JSDM was
-notable here, because its prediction intervals retained good coverage even when
-not correcting for observer differences, which we attribute to the JSDM's
-ability to model this variation with its latent variables.
+where observer turnover caused a large shift in the reported richness values.
+The naive baseline was less sensitive to these shifts, because it largely
+ignored the richness values reported by observers that had retired by the end of
+the training period (Figure 1). The average model, which gave equal weight to
+observations from the whole training period, showed a larger decline in
+performance when not accounting for observer effects -- especially in terms of
+coverage. The performance of the mistnet JSDM was notable here, because its
+prediction intervals retained good coverage even when not correcting for
+observer differences, which we attribute to the JSDM's ability to model this
+variation with its latent variables.
 
 ![Controlling for differences among observers generally improved each model's
 predictions, on average. The magnitude of this effect was negligible for the
@@ -667,10 +667,10 @@ short-term predictions, which can be assessed quickly, and mid- to long-term
 forecasts, which can help ecologists to assess long time-scale processes and
 determine how far into the future we can successfully forecast [@dietze2016;
 @tredennick2016]. We have openly archived forecasts from all six models through
-the year 2050 [@zenodo], so that we and others can assess how well they perform.
-We plan to evaluate these forecasts and report the results as each new year of
-BBS data becomes available, and make iterative improvements to the forecasting
-models in response to these assessments.
+the year 2050 [@zenodoPredict], so that we and others can assess how well they
+perform. We plan to evaluate these forecasts and report the results as each new
+year of BBS data becomes available, and make iterative improvements to the
+forecasting models in response to these assessments.
 
 Making successful ecological forecasts will be challenging. Ecological systems
 are complex, our fundamental theory is less refined than for simpler physical
