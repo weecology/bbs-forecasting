@@ -1,9 +1,9 @@
 ---
-title: "Best practices for forecasting changes in biodiversity: an example using breeding birds"
+title: "Forecasting biodiversity in breeding birds using best practices"
 author:
-- David J. Harris
-- Shawn D. Taylor
-- Ethan P. White
+- David J. Harris$^1$ (corresponding author)
+- Shawn D. Taylor$^2$
+- Ethan P. White$^1$
 bibliography: refs.bib
 csl: csl.csl
 geometry: left=3.5cm, right=3.5cm, top=2.25cm, bottom=2.25cm, headheight=12pt, letterpaper
@@ -16,9 +16,15 @@ header-includes:
     - \usepackage{lineno}
     - \linenumbers
 output:
-  pdf_document: default
+  pdf_document: 
+    keep_tex: true
   html_document: default
 ---
+
+$^1$ Department of Wildlife Ecology and Conservation, University of Florida, Gainesville, FL, United States
+
+$^2$ School of Natural Resources and Environment, University of Florida Gainesville, FL, United States
+
 
 ```{r, echo=FALSE, message=FALSE}
 library(tidyverse, quietly = TRUE)
@@ -29,6 +35,8 @@ library(kableExtra, quietly = TRUE)
 `r settings = yaml::yaml.load_file("../settings.yaml")` 
 `r timeframe = settings$timeframes$train_22` 
 `r numbers = yaml::yaml.load_file("numbers.yaml")`
+
+\newpage
 
 ## Abstract
 
