@@ -105,7 +105,7 @@ Here are some comments:
 - Birds are not the best system for doing any sort of distribution analyses. They are incredibly vagile, hard to detect, and the distributions of breeding birds are affected by many components besides environmental variables (particularly interspecific interactions). No assessment of detectability is included here other than accounting for observer identity. However, I do realize that BBS data are detailed and compelling data to use given what a large amount of detailed time-series it provides.
 - Abstract: The authors forecast the data and then test it using known data. Hindcast only refers to back-in-time predictions.
 
-The definition of hindcasting varies by field. We use it here as it's used meteorology, where any prediction of observations already available is generally a hindcast, and forecasts are only for predictions which are actually in the future. See Jolliffe & Stephenson 2003 (in manuscript) section 1.4.2 for a longer discussion. 
+The definition of hindcasting varies by field. We use it here as it's used in meteorology, where any prediction of observations already available is generally a hindcast, and forecasts are only for predictions which are actually in the future. See Jolliffe & Stephenson 2003 (in manuscript) section 1.4.2 for a longer discussion. We've clarified this in the text. 
 
 - 25-29: rather than relay the type of information that the paper will provide, the authors should summarize their results and findings
 - 57-58: this is not the definition of hindcasting. This is the definition of testing. Also, the authors exclude the many deeper-time hindcasting studies that have been performed on these types of models
