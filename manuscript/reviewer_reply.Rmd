@@ -74,9 +74,9 @@ Table 1: Just my personal preference, but I’d include the check marks and repl
 
 Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?
 
-"Line 216: Cite randomForest / caret/ party R package – or whatever else you used?"
+> "Line 216: Cite randomForest / caret/ party R package – or whatever else you used?"
 
---We've cited this here. 
+**The randomForest package was cited in the final methods paragraph. We've cited it where it is first mentioned as well. **
 
 Line 242: Again, I think including the equation here would be useful
 
