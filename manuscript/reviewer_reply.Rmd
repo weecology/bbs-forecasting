@@ -37,9 +37,13 @@ https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm"
 --BBS data are generally viewed as annual data, even though the observations happen on a single day. The presence of an individual species is primarily a function of suitable habitat and, for many species, timing of migration. Environmental variables with a shorter temporal scale could likely improve models, such as incorporating cool weather days into the observation model, and would be worth pursuing in a different study. 
 
 Methods:
-Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?
+"Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?"
 
-Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included.
+--This is correct, we've added clarification to the Methods. 
+
+"Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included."
+
+--This is correct, see the section "Richness Data" in the Methods.
 
 "Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc."
 
