@@ -47,8 +47,10 @@ Line 105: I assume all these species have been similarly ID’d over the course 
 
 Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?
 
-Line 138: Maybe also cite any of the interfaces you used, like RStan:
-http://mc-stan.org/users/citations/
+"Line 138: Maybe also cite any of the interfaces you used, like RStan:
+http://mc-stan.org/users/citations/"
+
+--RStan is cited in the last paragraph of the Methods. 
 
 Line 140: I’m curious why you didn’t consider spatial structure in the random effects here, using GMRF models or similar? One hand these models might be overkill if the habitat/environmental variables (which are spatially correlated) explain variability in richness, but the spatial correlation may pick up other sources of variability not accounted for by those variables.
 
