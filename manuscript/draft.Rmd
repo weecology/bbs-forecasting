@@ -283,17 +283,18 @@ are centered on a constant value, so neither model can anticipate any trends in
 richness or any responses to future environmental changes.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
-function in @forecast1] to represent an array of different time-series modeling
-approaches. These models can include an autoregressive component (as in the
-"naive" model, but with the possibility of longer-term dependencies in the
-underlying process), a moving average component (where the noise can have serial
-autocorrelation) and an integration/differencing component (so that the analysis
-could be performed on sequential differences of the raw data, accommodating more
-complex patterns including trends). The `auto.arima` function chooses whether to
-include each of these components (and how many terms to include for each one)
-using AICc [@forecast1]. Since there is no seasonal component to the BBS
-time-series, we did not include a season component in these models. Otherwise we
-used the default settings for this function [@forecast1]. 
+function in the package `forecast`; @forecast1] to represent an array of
+different time-series modeling approaches. These models can include an
+autoregressive component (as in the "naive" model, but with the possibility of
+longer-term dependencies in the underlying process), a moving average component
+(where the noise can have serial autocorrelation) and an
+integration/differencing component (so that the analysis could be performed on
+sequential differences of the raw data, accommodating more complex patterns
+including trends). The `auto.arima` function chooses whether to include each of
+these components (and how many terms to include for each one) using AICc
+[@forecast1]. Since there is no seasonal component to the BBS time-series, we
+did not include a season component in these models. Otherwise we used the
+default settings for this function [@forecast1].
 
 ### Models: environmental models
 
@@ -333,13 +334,13 @@ itself, this approach is known to underestimate the true community-level
 uncertainty because it ignores the uncertainty in the species-level probabilites
 [@calabrese2014]. To mitigate this problem, we used an ensemble of 500 estimates
 for each of the species-level probabilities instead of just one, propagating the
-uncertainty forward. We obtained these estimates using random forests, a common
-approach in the species distribution modeling literature. Random forests are
-constructed by fitting hundreds of independent regression trees to
-randomly-perturbed versions of the data [@cutler2007; @caruana2008]. When
-correcting for observer effects, each of the 500 trees in our species-level
-random forests used a different Monte Carlo estimate of the observer effects as
-a predictor variable.
+uncertainty forward. We obtained these estimates using random forests
+[@randomForest], a common approach in the species distribution modeling
+literature. Random forests are constructed by fitting hundreds of independent
+regression trees to randomly-perturbed versions of the data [@cutler2007;
+@caruana2008]. When correcting for observer effects, each of the 500 trees in
+our species-level random forests used a different Monte Carlo estimate of the
+observer effects as a predictor variable.
 
 **Joint Species Distribution Model: mistnet.** Joint species distribution models
 (JSDMs) are a new approach that makes predictions about the full composition of

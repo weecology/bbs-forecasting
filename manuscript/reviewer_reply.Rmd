@@ -62,7 +62,9 @@ Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a 
 
 Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.
 
-Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?
+"Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?"
+
+--We have added this. 
 
 Line 183: Because these defaults may change over time, it’d be good to specify things like the ranges of AR / MA order that you searched over, which criteria was used to compare models, etc. And whether or not you included a drift parameter?
 
@@ -72,7 +74,9 @@ Table 1: Just my personal preference, but I’d include the check marks and repl
 
 Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?
 
-Line 216: Cite randomForest / caret/ party R package – or whatever else you used?
+"Line 216: Cite randomForest / caret/ party R package – or whatever else you used?"
+
+--We've cited this here. 
 
 Line 242: Again, I think including the equation here would be useful
 
