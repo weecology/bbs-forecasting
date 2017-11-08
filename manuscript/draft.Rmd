@@ -145,7 +145,7 @@ correcting for observer effects, as described below.
 **Richness data.** Bird species richness was obtained from the North American
 Breeding Bird Survey (BBS) [@pardieck2017] using the Data Retriever Python
 package [@morris2013] and rdataretriever R package [@rdataretriever]. BBS
-observations are three minute point counts made at 50 fixed locations along a
+observations are three-minute point counts made at 50 fixed locations along a
 40km route. Here we denote each route as a site and summarize richness as the
 total species observed at all 50 locations in each surveyed year. Prior to
 summarizing the data was filtered to exclude all nocturnal, cepuscular, and
