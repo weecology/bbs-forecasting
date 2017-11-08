@@ -31,15 +31,19 @@ Line 41: I think this is generally more common in terrestrial ecology – in fis
 
 Line 62: I really like the recommendations / clarity in Box 1, and think these will be accessible to most ecologists
 
-Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?
-https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm
+"Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?
+https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm"
+
+--BBS data are generally viewed as annual data, even though the observations happen on a single day. The presence of an individual species is primarily a function of suitable habitat and, for many species, timing of migration. Environmental variables with a shorter temporal scale could likely improve models, such as incorporating cool weather days into the observation model, and would be worth pursuing in a different study. 
 
 Methods:
 Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?
 
 Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included.
 
-Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc.
+"Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc."
+
+--See comment above on using shorter time scale environmental variables. 
 
 Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?
 
