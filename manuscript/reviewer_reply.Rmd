@@ -31,20 +31,30 @@ Line 41: I think this is generally more common in terrestrial ecology – in fis
 
 Line 62: I really like the recommendations / clarity in Box 1, and think these will be accessible to most ecologists
 
-Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?
-https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm
+"Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?
+https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm"
+
+--BBS data are generally viewed as annual data, even though the observations happen on a single day. The presence of an individual species is primarily a function of suitable habitat and, for many species, timing of migration. Environmental variables with a shorter temporal scale could likely improve models, such as incorporating cool weather days into the observation model, and would be worth pursuing in a different study. 
 
 Methods:
-Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?
+"Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?"
 
-Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included.
+--This is correct, we've added clarification to the Methods. 
 
-Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc.
+"Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included."
+
+--This is correct, see the section "Richness Data" in the Methods.
+
+"Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc."
+
+--See comment above on using shorter time scale environmental variables. 
 
 Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?
 
-Line 138: Maybe also cite any of the interfaces you used, like RStan:
-http://mc-stan.org/users/citations/
+"Line 138: Maybe also cite any of the interfaces you used, like RStan:
+http://mc-stan.org/users/citations/"
+
+--RStan is cited in the last paragraph of the Methods. 
 
 Line 140: I’m curious why you didn’t consider spatial structure in the random effects here, using GMRF models or similar? One hand these models might be overkill if the habitat/environmental variables (which are spatially correlated) explain variability in richness, but the spatial correlation may pick up other sources of variability not accounted for by those variables.
 
@@ -52,7 +62,9 @@ Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a 
 
 Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.
 
-Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?
+"Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?"
+
+--We have added this. 
 
 Line 183: Because these defaults may change over time, it’d be good to specify things like the ranges of AR / MA order that you searched over, which criteria was used to compare models, etc. And whether or not you included a drift parameter?
 
@@ -62,7 +74,9 @@ Table 1: Just my personal preference, but I’d include the check marks and repl
 
 Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?
 
-Line 216: Cite randomForest / caret/ party R package – or whatever else you used?
+> "Line 216: Cite randomForest / caret/ party R package – or whatever else you used?"
+
+**The randomForest package was cited in the final methods paragraph. We've cited it where it is first mentioned as well. **
 
 Line 242: Again, I think including the equation here would be useful
 
