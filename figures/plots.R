@@ -366,8 +366,8 @@ make_ts_plots = function(models, ylim, use_obs_model, sample_site_id,
            deviance) %>% 
     left_join(distinct(bound, model, formal_name), "model") %>% 
     mutate(use_obs_model = ifelse(use_obs_model, 
-                                  "With observer model",
-                                  "Without observer model"))
+                                  "B. With observer model",
+                                  "A. Without observer model"))
 
   faceting = if (length(use_obs_model) == 2) {
     facet_grid(formal_name ~ use_obs_model)
