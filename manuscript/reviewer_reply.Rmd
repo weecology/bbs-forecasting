@@ -39,21 +39,21 @@
 
 *Line 92: For those not familiar with the BBS protocol, maybe describe in a sentence. I could be mis-remembering, but isn’t each site made up of 50 stops, and presumably you aggregated richness across these stops?*
 
-**This is correct, we've added clarification to the Methods. **
+**This is correct, we've added clarification to the Methods.**
 
 *Line 105: I assume all these species have been similarly ID’d over the course of the dataset – e.g. birds split into sub-species haven’t been included.*
 
-**This is correct, see the section "Richness Data" in the Methods. **
+**This is correct, see the section "Richness Data" in the Methods.**
 
 *Line 107: For the environmental variables, do you have any that match up with the temporal resolution of the response data (monthly?). It seems like all the variables are annual / quarterly / etc.*
 
-**See comment above on using shorter time scale environmental variables. **
+**See comment above on using shorter time scale environmental variables.**
 
 *Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?*
 
-*Line 138: Maybe also cite any of the interfaces you used, like RStan: http://mc-stan.org/users/citations/ *
+*Line 138: Maybe also cite any of the interfaces you used, like RStan: http://mc-stan.org/users/citations/*
 
-**RStan is cited in the last paragraph of the Methods. **
+**RStan is cited in the last paragraph of the Methods.**
 
 *Line 140: I’m curious why you didn’t consider spatial structure in the random effects here, using GMRF models or similar? One hand these models might be overkill if the habitat/environmental variables (which are spatially correlated) explain variability in richness, but the spatial correlation may pick up other sources of variability not accounted for by those variables.*
 
@@ -63,7 +63,7 @@
 
 *Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?*
 
-**We have added this. **
+**We have added this.**
 
 *Line 183: Because these defaults may change over time, it’d be good to specify things like the ranges of AR / MA order that you searched over, which criteria was used to compare models, etc. And whether or not you included a drift parameter?*
 
@@ -75,7 +75,7 @@
 
 *Line 216: Cite randomForest / caret/ party R package – or whatever else you used?*
 
-**The randomForest package was cited in the final methods paragraph. We've cited it where it is first mentioned as well. **
+**The randomForest package was cited in the final methods paragraph. We've cited it where it is first mentioned as well.**
 
 *Line 242: Again, I think including the equation here would be useful*
 
@@ -117,15 +117,15 @@
 
 *I find it a bit surprising that the authors think that any of these richness models could predict a high level of accuracy for theses ten years. I think of richness estimations as a very coarse technique for looking at broad shifts in richness over relatively long time periods rather than these 5-species (~5-7%) shifts in richness on annual bases indicated in Figure 2. The authors don’t provide a lot of their raw data on sites other than as examples, but my impression is that they are pursuing an unrealistic level of accuracy and detail. That being said, given what the paper does, it’s okay. The models seem to be performed well. The authors give all of the keywords to indicate that they know what they are doing.*
 
-*Here are some comments:    *
+*Here are some comments:*
 
 *Birds are not the best system for doing any sort of distribution analyses. They are incredibly vagile, hard to detect, and the distributions of breeding birds are affected by many components besides environmental variables (particularly interspecific interactions). No assessment of detectability is included here other than accounting for observer identity. However, I do realize that BBS data are detailed and compelling data to use given what a large amount of detailed time-series it provides.*
 
 *Abstract: The authors forecast the data and then test it using known data. Hindcast only refers to back-in-time predictions.*
 
-**The definition of hindcasting varies by field. We use it here as it's used in meteorology, where any prediction of observations already available is generally a hindcast, and forecasts are only for predictions which are actually in the future. See Jolliffe & Stephenson 2003 (in manuscript) section 1.4.2 for a longer discussion. We've clarified this in the text. **
+**The definition of hindcasting varies by field. We use it here as it's used in meteorology, where any prediction of observations already available is generally a hindcast, and forecasts are only for predictions which are actually in the future. See Jolliffe & Stephenson 2003 (in manuscript) section 1.4.2 for a longer discussion. We've clarified this in the text.**
 
-*25-29: rather than relay the type of information that the paper will provide, the authors should summarize their results and findings  *
+*25-29: rather than relay the type of information that the paper will provide, the authors should summarize their results and findings*
 
 *57-58: this is not the definition of hindcasting. This is the definition of testing. Also, the authors exclude the many deeper-time hindcasting studies that have been performed on these types of models*
 
@@ -142,4 +142,3 @@
 *Fig. 6 caption: “compoonents”*  
 
 *466: only other mention of future forecasts… not sure why this is included in this paper.*  
-
