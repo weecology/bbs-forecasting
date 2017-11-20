@@ -263,7 +263,7 @@ mistnet JSDM was trained to predict the full species composition at each site,
 and the number of species in its predictions was used as an estimate of
 richness."
 
-table_data = read_csv("../figures/table.csv",col_types = "ccccc")
+table_data = read_csv("../figures/table.csv",col_types = "ccccc", na = "na")
 
 table_data %>%
   knitr::kable(
