@@ -379,8 +379,7 @@ richness had a relatively large mean (`r numbers$richness_summary$mean`) and all
 models produce continuous richness estimates. When a model was run multiple
 times for the purpose of correcting for observer effects, we used the mean of
 those runs' point estimates as our final point estimate and we calculated the
-uncertainty using the law of total variance (i.e. the average of the model runs'
-variance, plus the variance in the point estimates).
+uncertainty using the law of total variance (i.e. $\mathrm{Var}(\bar{y}) + \mathop{{}\mathbb{E}}\big[\mathrm{Var}(y)\big]$, or the variance in point estimates plus the average residual variance).
 
 We evaluated each model's forecasts using the data for each year between `r
 timeframe$last_train_year + 1` and `r timeframe$end_yr`. We used three metrics

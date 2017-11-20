@@ -86,6 +86,8 @@
 
 *Line 242: Again, I think including the equation here would be useful*
 
+**We have added an in-line equation and clarified the wording**
+
 *Line 245: In our 2014 forecasting paper, we used MASE over RMSE because of rationale in Hyndmand and Koehler (2006). Using RMSE here is probably ok because you probably don’t have zeros/huge values/etc*
 
 *Line 249: Can you elaborate on what you did with the deviance? By itself mean deviance is just a measure of average fit (I think most of the models are giving you this). Var(deviance) should incorporate precision – but I’ve only seen this extracted from Bayesian models*
