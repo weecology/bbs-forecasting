@@ -1,7 +1,7 @@
 Model,Response variable,Site id,Time,Environment
-Average baseline,richness,\checkmark,\text{\sffamily X},\text{\sffamily X}
-Naive baseline,richness,\checkmark,\checkmark,\text{\sffamily X}
-Auto-ARIMA,richness,\checkmark,\checkmark,\text{\sffamily X}
-GBM richness,richness,\text{\sffamily X},\text{\sffamily X},\checkmark
-Stacked SDMs,species-level presence,\text{\sffamily X},\text{\sffamily X},\checkmark
-Mistnet JSDM,species composition,\text{\sffamily X},\text{\sffamily X},\checkmark
+Average baseline,richness,\checkmark, , 
+Naive baseline,richness,\checkmark,\checkmark, 
+Auto-ARIMA,richness,\checkmark,\checkmark, 
+GBM richness,richness, , ,\checkmark
+Stacked SDMs,species-level presence, , ,\checkmark
+Mistnet JSDM,species composition, , ,\checkmark
