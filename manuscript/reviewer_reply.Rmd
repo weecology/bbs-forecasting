@@ -6,8 +6,9 @@
 
 *Finally, your figure two seems to reverse panels A and B, neither of which is marked in the text.*
 
-*I will leave the remainder of the comments to the two reviewers.*
+**We have switched the panels and labeled them. Thank you for noticing this error**.
 
+*I will leave the remainder of the comments to the two reviewers.*
 
 ## Reviewer 1: Eric Ward
 #### Basic reporting
@@ -26,10 +27,14 @@
 
 *In general, I thought this paper was interesting and well written. These results add to the increasing literature supporting the idea that ecological forecasting in time/space is difficult. I think the recommendations/best practice bullet points described by the authors are essential for anyone interested in forecasting this kind of data. All of my points below can be considered minor issues, which I think will improve the paper’s clarity.*
 
+**Thank you.**
+
 #### Introduction:
 *Line 41: I think this is generally more common in terrestrial ecology – in fisheries these SDM models with more of a theoretical background don’t seem to be used as much*
 
 *Line 62: I really like the recommendations / clarity in Box 1, and think these will be accessible to most ecologists*
+
+**Thank you.**
 
 *Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?* https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm
 
@@ -71,7 +76,7 @@
 
 *Table 1: Just my personal preference, but I’d include the check marks and replace the ‘Xs’ with blank cells*
 
-** We have made this change**
+**We have made this change**
 
 *Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?*
 
@@ -139,8 +144,12 @@
 
 *124-130: I didn’t see where future projections were performed/used in this paper. Why is this here?*  
 
+**Thank you for pointing out that we were unclear here.  The methods and purpose for the future predictions are now explained in more detail on lines [[XX]].**
+
 *Fig. 2: Panels not labeled. No key for colors. Somewhat confusing.*  
 
 *Fig. 6 caption: “compoonents”*  
+
+**Thank you for pointing out this error. We have fixed it**
 
 *466: only other mention of future forecasts… not sure why this is included in this paper.*  
