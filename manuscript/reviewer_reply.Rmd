@@ -57,6 +57,8 @@
 
 *Line 140: I’m curious why you didn’t consider spatial structure in the random effects here, using GMRF models or similar? One hand these models might be overkill if the habitat/environmental variables (which are spatially correlated) explain variability in richness, but the spatial correlation may pick up other sources of variability not accounted for by those variables.*
 
+**We agree that accounting for spatial autocorrelation in the observer model would have improved our estimates of the site-level random effects. However, we do not believe that this change would affect the paper's main results. Improvements would primarily benefit the "average" baseline, which is based directly on the observer model. As a result, it would be even harder for the three environmental models to outperform the baseline---especially since (as you noted), spatial and environmental explanations for variation in species richness trade off with one another.**
+
 *Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a few equations here – it helps me especially when components start to become hierarchical!*
 
 *Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.*
