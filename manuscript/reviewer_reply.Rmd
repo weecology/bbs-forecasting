@@ -32,6 +32,8 @@
 #### Introduction:
 *Line 41: I think this is generally more common in terrestrial ecology – in fisheries these SDM models with more of a theoretical background don’t seem to be used as much*
 
+**This is a good point. We have added the word "terrestrial" to this line.**
+
 *Line 62: I really like the recommendations / clarity in Box 1, and think these will be accessible to most ecologists*
 
 **Thank you.**
@@ -64,6 +66,8 @@
 
 *Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a few equations here – it helps me especially when components start to become hierarchical!*
 
+**We have added the equations and Stan code as a supplemental file.**
+
 *Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.*
 
 *Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?*
@@ -80,13 +84,19 @@
 
 *Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?*
 
+**We chose not to drop uninformative predictors for two reasons. First, boosted trees are relatively robust to their inclusion ("A working guide to boosted regression trees", Elith et al. 2008), so it seemed unlikely to affect our results. Second, it would have added complexity to the model-fitting procedure, which already involved 500 rounds of cross-validation (one per Monte Carlo sample of the observer effect).**
+
 *Line 216: Cite randomForest / caret/ party R package – or whatever else you used?*
 
 **The randomForest package was cited in the final methods paragraph. We've cited it where it is first mentioned as well.**
 
 *Line 242: Again, I think including the equation here would be useful*
 
+**We have added an equation and clarified the wording here.**
+
 *Line 245: In our 2014 forecasting paper, we used MASE over RMSE because of rationale in Hyndmand and Koehler (2006). Using RMSE here is probably ok because you probably don’t have zeros/huge values/etc*
+
+**We agree.**
 
 *Line 249: Can you elaborate on what you did with the deviance? By itself mean deviance is just a measure of average fit (I think most of the models are giving you this). Var(deviance) should incorporate precision – but I’ve only seen this extracted from Bayesian models*
 
@@ -147,6 +157,8 @@
 **Thank you for pointing out that we were unclear here.  The methods and purpose for the future predictions are now explained in more detail on lines [[XX]].**
 
 *Fig. 2: Panels not labeled. No key for colors. Somewhat confusing.*  
+
+**Thank you for pointing this out.  As the Editor noted, we had inadvertently reversed the two panels. We have fixed this, and also labeled them as you suggested.**
 
 *Fig. 6 caption: “compoonents”*  
 
