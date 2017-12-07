@@ -2,13 +2,13 @@
 
 *The reviewers and I agree that this manuscript is interesting, timely and well-written. I will add a few of my own observations here. First, and least important - normally submitted manuscripts do not hyphenate and do not right justify.*
 
-**Thank you. We have removed the right justification and hyphenation.**
+>Thank you. We have removed the right justification and hyphenation.
 
 *Next, in your figure 1, which forms the basis for comparison of model accuracy over time, I really expected you to choose data WITH a temporal pattern. After all, it looks to me like you have a time series in which species richness simply varies around a more or less stable average value, and the variation can be due to nothing (random), observer bias, and any number of species population trends (and combinations thereof). Thus, you have a situation of years of no trend, and use those data to predict no trend into the future? I would have thought you would choose data with a definite time trend that was already potentially correlated with, say, climate change, and then use hindcasting and forecasting to test whether the models accurately predict a trend into the "future"! To me, it is not surprising that models do not "...successfully turn spatial data into useful temporal predictions about biodiversity at decadal time-scales." But, I wonder if you chose data WITH a trend, you would have gotten other results.*
 
 *Finally, your figure two seems to reverse panels A and B, neither of which is marked in the text.*
 
->We have switched the panels and labeled them. Thank you for noticing this error**.
+>We have switched the panels and labeled them. Thank you for noticing this error.
 
 *I will leave the remainder of the comments to the two reviewers.*
 
@@ -34,7 +34,7 @@
 #### Introduction:
 *Line 41: I think this is generally more common in terrestrial ecology – in fisheries these SDM models with more of a theoretical background don’t seem to be used as much*
 
-**This is a good point. We have added the word "terrestrial" to this line.**
+>This is a good point. We have added the word "terrestrial" to this line.
 
 *Line 62: I really like the recommendations / clarity in Box 1, and think these will be accessible to most ecologists*
 
@@ -60,7 +60,7 @@
 
 *Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?*
 
-**The accuracy of CMIP5 models varies by the variable considered. Temperature is represented very well over North America. Precipitation is challenging, especially over mountainous terrain, but the CMIP5 ensemble represents precipitation across North America relatively well ("Evaluation of precipitation and temperature simulation performance of the CMIP3 and CMIP5 historical experiments", Koutroulis et al. 2016).**
+>The accuracy of CMIP5 models varies by the variable considered. Temperature is represented very well over North America. Precipitation is challenging, especially over mountainous terrain, but the CMIP5 ensemble represents precipitation across North America relatively well ("Evaluation of precipitation and temperature simulation performance of the CMIP3 and CMIP5 historical experiments", Koutroulis et al. 2016).
 
 *Line 138: Maybe also cite any of the interfaces you used, like RStan: http://mc-stan.org/users/citations/*
 
@@ -70,7 +70,7 @@
 
 *Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a few equations here – it helps me especially when components start to become hierarchical!*
 
-**We have added the equations and Stan code as a supplemental file.**
+>We have added the equations and Stan code as a supplemental file.
 
 *Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.*
 
@@ -88,7 +88,7 @@
 
 *Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?*
 
-**We considered dropping uninformative predictors, but decided not to because of the complexity it would add to our analyses. In particular, it wasn't clear how to assess variable importance in a consistent way across three different model types and 500 Monte Carlo samples, and we did not want to bias the results by choosing a variable selection method that worked better for one method than another.**
+>We considered dropping uninformative predictors, but decided not to because of the complexity it would add to our analyses. In particular, it wasn't clear how to assess variable importance in a consistent way across three different model types and 500 Monte Carlo samples, and we did not want to bias the results by choosing a variable selection method that worked better for one method than another.
 
 *Line 216: Cite randomForest / caret/ party R package – or whatever else you used?*
 
@@ -96,11 +96,11 @@
 
 *Line 242: Again, I think including the equation here would be useful*
 
-**We have added an in-line equation and clarified the wording**
+>We have added an in-line equation and clarified the wording
 
 *Line 245: In our 2014 forecasting paper, we used MASE over RMSE because of rationale in Hyndmand and Koehler (2006). Using RMSE here is probably ok because you probably don’t have zeros/huge values/etc*
 
-**We agree.**
+>We agree.
 
 *Line 249: Can you elaborate on what you did with the deviance? By itself mean deviance is just a measure of average fit (I think most of the models are giving you this). Var(deviance) should incorporate precision – but I’ve only seen this extracted from Bayesian models*
 
@@ -162,7 +162,7 @@
 
 *Fig. 2: Panels not labeled. No key for colors. Somewhat confusing.*  
 
-**Thank you for pointing this out.  As the Editor noted, we had inadvertently reversed the two panels. We have fixed this, and also labeled them as you suggested.**
+>Thank you for pointing this out.  As the Editor noted, we had inadvertently reversed the two panels. We have fixed this, and also labeled them as you suggested.
 
 *Fig. 6 caption: “compoonents”*  
 
