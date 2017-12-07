@@ -2,6 +2,8 @@
 
 *The reviewers and I agree that this manuscript is interesting, timely and well-written. I will add a few of my own observations here. First, and least important - normally submitted manuscripts do not hyphenate and do not right justify.*
 
+**Thank you. We have removed the right justification and hyphenation.**
+
 *Next, in your figure 1, which forms the basis for comparison of model accuracy over time, I really expected you to choose data WITH a temporal pattern. After all, it looks to me like you have a time series in which species richness simply varies around a more or less stable average value, and the variation can be due to nothing (random), observer bias, and any number of species population trends (and combinations thereof). Thus, you have a situation of years of no trend, and use those data to predict no trend into the future? I would have thought you would choose data with a definite time trend that was already potentially correlated with, say, climate change, and then use hindcasting and forecasting to test whether the models accurately predict a trend into the "future"! To me, it is not surprising that models do not "...successfully turn spatial data into useful temporal predictions about biodiversity at decadal time-scales." But, I wonder if you chose data WITH a trend, you would have gotten other results.*
 
 *Finally, your figure two seems to reverse panels A and B, neither of which is marked in the text.*
@@ -92,7 +94,7 @@
 
 *Line 242: Again, I think including the equation here would be useful*
 
-**We have added an equation and clarified the wording here.**
+**We have added an in-line equation and clarified the wording**
 
 *Line 245: In our 2014 forecasting paper, we used MASE over RMSE because of rationale in Hyndmand and Koehler (2006). Using RMSE here is probably ok because you probably don’t have zeros/huge values/etc*
 
