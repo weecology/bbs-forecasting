@@ -86,7 +86,7 @@
 
 *Line 194-221: It seems for each approach you only considered the full models with all environmental covariates? I’m curious whether any of the covariates appeared to not improve explanatory power, and whether you considered models that dropped these uninformative predictors?*
 
-**We chose not to drop uninformative predictors for two reasons. First, boosted trees are relatively robust to their inclusion ("A working guide to boosted regression trees", Elith et al. 2008), so it seemed unlikely to affect our results. Second, it would have added complexity to the model-fitting procedure, which already involved 500 rounds of cross-validation (one per Monte Carlo sample of the observer effect).**
+**We considered dropping uninformative predictors, but decided not to because of the complexity it would add to our analyses. In particular, it wasn't clear how to assess variable importance in a consistent way across three different model types and 500 Monte Carlo samples, and we did not want to bias the results by choosing a variable selection method that worked better for one method than another.**
 
 *Line 216: Cite randomForest / caret/ party R package – or whatever else you used?*
 
