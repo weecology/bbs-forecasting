@@ -58,6 +58,8 @@
 
 *Line 124: I’m not as familiar with terrestrial projections, but are the CMIP5 projections relatively unbiased / precise when compared to recent data?*
 
+**The accuracy of CMIP5 models varies by the variable considered. Temperature is represented very well over North America. Precipitation is challenging, especially over mountainous terrain, but the CMIP5 ensemble represents precipitation across North America relatively well ("Evaluation of precipitation and temperature simulation performance of the CMIP3 and CMIP5 historical experiments", Koutroulis et al. 2016).**
+
 *Line 138: Maybe also cite any of the interfaces you used, like RStan: http://mc-stan.org/users/citations/*
 
 **RStan is cited in the last paragraph of the Methods.**
