@@ -1,0 +1,34 @@
+---
+output: pdf_document
+fontsize: 10pt
+geometry: left=2.5cm, right=2.5cm, top=1.5cm, bottom=2cm, headheight=0pt, letterpaper
+---
+
+\begin{center}
+
+\textbf{Supplement to "Forecasting biodiversity in breeding birds using best practices"}
+
+by David J. Harris, Shawn D. Taylor, and Ethan P. White
+
+\end{center}
+
+\raggedright
+
+\vspace{3mm}
+
+**Observer model description**
+
+Richness at site $i$, as recorded by observer $j$ is estimated using a linear mixed model.  Thus, the response variable was modeled as $y_{ij} \sim \mathcal{N}(\mu_{ij}, \sigma^\mathrm{residual}).$
+
+Here, $\mu_{ij}$ is defined as an intercept term, plus a site-level effect, plus an observer-level effect: $\mu_{ij} = \alpha + \alpha^\mathrm{site}_i + \alpha^\mathrm{observer}_j.$
+
+These two effects are each drawn from zero-mean Gaussians: $\alpha^\mathrm{site} \sim \mathcal{N}(0, \sigma^\mathrm{site})$ and $\alpha^\mathrm{observer} \sim \mathcal{N}(0, \sigma^\mathrm{observer}).$
+
+Prior distributions on $\alpha$, $\sigma^\mathrm{residual}$, $\sigma^\mathrm{site}$, and $\sigma^\mathrm{observer}$ are included below.
+
+\vspace{3mm}
+
+**Stan code**
+
+```{text, code=readLines("../mixed.stan")}
+```
