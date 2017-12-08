@@ -6,6 +6,8 @@
 
 *Next, in your figure 1, which forms the basis for comparison of model accuracy over time, I really expected you to choose data WITH a temporal pattern. After all, it looks to me like you have a time series in which species richness simply varies around a more or less stable average value, and the variation can be due to nothing (random), observer bias, and any number of species population trends (and combinations thereof). Thus, you have a situation of years of no trend, and use those data to predict no trend into the future? I would have thought you would choose data with a definite time trend that was already potentially correlated with, say, climate change, and then use hindcasting and forecasting to test whether the models accurately predict a trend into the "future"! To me, it is not surprising that models do not "...successfully turn spatial data into useful temporal predictions about biodiversity at decadal time-scales." But, I wonder if you chose data WITH a trend, you would have gotten other results.*
 
+>We chose the North American Breeding Bird Survey data because it is one of the largest scale most long running spatiotemporal datasets available, thus making this kind of quantitative assessment of both spatial and temporally focused forecasting methods possible. We agree that the relative stability of these time-series is important, which is why we dedicated a large discussion paragraph to this point in the initial submission. To further emphasize this point and to highlight the idea that assessing these methods on selectively chosen data exhibiting significant trends is interesting we have added an additional paragraph to the discussion addressing this point directly and recommending it for future research. 
+
 *Finally, your figure two seems to reverse panels A and B, neither of which is marked in the text.*
 
 >We have switched the panels and labeled them. Thank you for noticing this error.
@@ -145,9 +147,13 @@
 
 *I find it a bit surprising that the authors think that any of these richness models could predict a high level of accuracy for theses ten years. I think of richness estimations as a very coarse technique for looking at broad shifts in richness over relatively long time periods rather than these 5-species (~5-7%) shifts in richness on annual bases indicated in Figure 2. The authors don’t provide a lot of their raw data on sites other than as examples, but my impression is that they are pursuing an unrealistic level of accuracy and detail. That being said, given what the paper does, it’s okay. The models seem to be performed well. The authors give all of the keywords to indicate that they know what they are doing.*
 
+>We agree that the relative shortness of the forecasting window and the lack of major directional shifts in richness (on average) are important to consider in interpretting our results. This is why we included long paragraphs on both topics in the initial submission. To further emphasize this point and to highlight the importance of longer time scales analyses and assessments on data showing larger changes in richness we have added an additional paragraph to the discussion addressing these points directly and recommending them for future research.
+
 *Here are some comments:*
 
 *Birds are not the best system for doing any sort of distribution analyses. They are incredibly vagile, hard to detect, and the distributions of breeding birds are affected by many components besides environmental variables (particularly interspecific interactions). No assessment of detectability is included here other than accounting for observer identity. However, I do realize that BBS data are detailed and compelling data to use given what a large amount of detailed time-series it provides.*
+
+>As the reviewer notes the North American Breeding Bird Survey data is one of the largest scale most long running spatiotemporal datasets available. We chose it because these features make this kind of quantitative assessment of both spatial and temporally focused forecasting methods possible. While there are downsides to any dataset we do not agree that birds uniquely problematic for this type of analysis. In addition to large amount of available data the vagility of birds potentially allows them to respond more quickly to changes in environmental conditions due to their low dispersal limitation. Imperfect detection and non-environmental drivers are common challenges in most animal species.
 
 *Abstract: The authors forecast the data and then test it using known data. Hindcast only refers to back-in-time predictions.*
 
@@ -161,7 +167,9 @@
 
 #### Methods: 
 
-*the authors perform their analyses on data that are collected from an incredibly dynamic time period. I wouldn’t expect species to have settled into a richness pattern given the incredibly disrupted nature of the last 32 years. Some strategies to try to handle these issues might be to train and predict at different temporal scales and to both forecast and hindcast the predictions. (e.g. train on 2004-2013 and try to predict 1982-1992 data + 1993-2003 data). If the authors were to make splits based on expected periods of dynamism, they could better tell whether the drivers that are included in the models are accurate predictors.*  
+*the authors perform their analyses on data that are collected from an incredibly dynamic time period. I wouldn’t expect species to have settled into a richness pattern given the incredibly disrupted nature of the last 32 years. Some strategies to try to handle these issues might be to train and predict at different temporal scales and to both forecast and hindcast the predictions. (e.g. train on 2004-2013 and try to predict 1982-1992 data + 1993-2003 data). If the authors were to make splits based on expected periods of dynamism, they could better tell whether the drivers that are included in the models are accurate predictors.*
+
+>We agree that understanding the conditions under which forecasts are likely to perform well is an important step for ecological forecasting. We have added a sentence to the discussion making this point. That said, most ecological forecasts are intended to be applied to the future, which at least at the moment we would expect to remain "incredibly dynamic". As such the dynamics of the last decade are likely a reasonable representation of the kinds of dynamics we are trying to forecast.   
 
 *124-130: I didn’t see where future projections were performed/used in this paper. Why is this here?*  
 

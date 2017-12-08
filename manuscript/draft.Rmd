@@ -598,7 +598,7 @@ different temporal scales [@rosenzweig1995; @white2004; @white2007;
 In particular, we might expect environmental and ecological information to
 become more important at longer time scales, and thus for the performance of
 simple baseline forecasts to degrade faster than forecasts from SDMs and other
-similar models.  We did observe a small trend in this direction: deviance for
+similar models. We did observe a small trend in this direction: deviance for
 the auto-ARIMA models and for the average baseline grew faster than for two of
 the environmental models (the JSDM and the macroecological model), although this
 growth was not statistically significant for the average baseline.
@@ -626,15 +626,23 @@ relatively stable time series were best predicted by simple models and more
 complex models were only beneficial with dynamic time series. The site-level
 stability of the BBS data also explains why SDMs and macroecological models
 perform relatively well at predicting future richness, despite failing to
-capture changes in richness over time. However, this stability also makes it
+capture changes in richness over time.
+
+The relatively stable nature of the BBS richness time-series also makes it
 difficult to improve forecasts relative to simple baselines, since those
 baselines are already close to representing what is actually occurring in the
-system. These results suggest that single-site models should be actively
-considered for forecasts of richness and other stable aspects of biodiversity.
-Our results also suggest that future efforts to understand and forecast
-biodiversity should incorporate species composition, since lower-level processes
-are expected to be more dynamic [@ernest2001; @dornelas2014] and contain more
-useful information [@harris2015].
+system. It is possible that in systems exhibiting directional changes in
+richness and other biodiversity measures that models based on spatial patterns
+may yield better forecasts. Future research in this area should determine if
+regions or time periods exhibiting strong directional changes in biodiveristy
+are better predicted by these models and also extend our forecast horizon
+analyses to longer timescales where possible. Our results also suggest that
+future efforts to understand and forecast biodiversity should incorporate
+species composition, since lower-level processes are expected to be more dynamic
+[@ernest2001; @dornelas2014] and contain more information about how the systems
+are changing [@harris2015]. More generally, determining the forecastability of
+different aspects of ecological systems under different conditions is an
+important next step for the future of ecological forecasting.
 
 Future biodiversity forecasting efforts also need to address the uncertainty
 introduced by the error in forecasting the environmental conditions that are
