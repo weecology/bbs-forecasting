@@ -52,16 +52,19 @@ to explore our ability to forecast the species richness of breeding birds in
 North America. We used hindcasting to evaluate six different modeling approaches
 for predicting richness. Hindcasts for each method were evaluated annually for a
 decade at `r numbers$N_predict_sites` sites distributed throughout the
-continental United States. While each model could explain most of the variance
-in richness, none of them consistently outperformed a baseline model that
-predicted constant richness at each site. In particular, we found no evidence
-that current methods (such as species distribution models) can successfully turn
-spatial data into useful temporal predictions about biodiversity at decadal
-time-scales. The best practices implemented in this study directly influence the
-forecasts, the relative performance of different modeling approaches, and the
-conclusions about the current state of biodiversity forecasting . To facilitate
-the rapid improvement of biodiversity forecasts, we emphasize the value of
-specific best practices in making forecasts and evaluating forecasting methods.
+continental United States. All models explained more than 50% of the variance in
+richness, but none of them consistently outperformed a baseline model that
+predicted constant richness at each site. The best practices implemented in this
+study directly influenced the forecasts and evaluations. Stacked species
+distribution models and "naive" forecasts produced poor estimates of uncertainty
+and accounting for this resulted in these models dropping in the relative
+performance compared to other models. Accounting for observer effects improved
+model performance overall, but also changed the rank ordering of models because
+it did not improve the accuracy of the "naive" model. Considering the forecast
+horizon revealed that the prediction accuracy decreased across all models as the
+time horizon of the forecast increased. To facilitate the rapid improvement of
+biodiversity forecasts, we emphasize the value of specific best practices in
+making forecasts and evaluating forecasting methods.
 
 ## Introduction
 
