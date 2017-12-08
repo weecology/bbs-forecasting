@@ -307,7 +307,7 @@ including trends). The `auto.arima` function chooses whether to include each of
 these components (and how many terms to include for each one) using AICc
 [@forecast1]. Since there is no seasonal component to the BBS time-series, we
 did not include a season component in these models. Otherwise we used the
-default settings for this function (See suppliment for details).
+default settings for this function (See supplement for details).
 
 ### Models: environmental models
 

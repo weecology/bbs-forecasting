@@ -76,7 +76,7 @@
 
 *Line 183: Because these defaults may change over time, it’d be good to specify things like the ranges of AR / MA order that you searched over, which criteria was used to compare models, etc. And whether or not you included a drift parameter?*
 
->We agree that software can evolve over time and make methods non-repricable. We have add details of the auto.arima model in the suppliment. 
+>We agree that software can evolve over time and make methods non-repricable. We have added details of the auto.arima model in the supplement. 
 
 *Table 1 caption: without getting to more methods (below), I don’t understand the sentence ‘Environmental models were trained using all sites together, without information regarding which transects occurred at which site or during which year’.*
 
