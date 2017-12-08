@@ -57,11 +57,17 @@ in richness, none of them consistently outperformed a baseline model that
 predicted constant richness at each site. In particular, we found no evidence
 that current methods (such as species distribution models) can successfully turn
 spatial data into useful temporal predictions about biodiversity at decadal
-time-scales. The best practices implemented in this study directly influence the
-forecasts, the relative performance of different modeling approaches, and the
-conclusions about the current state of biodiversity forecasting . To facilitate
-the rapid improvement of biodiversity forecasts, we emphasize the value of
-specific best practices in making forecasts and evaluating forecasting methods.
+time-scales. Most methods' prediction intervals were also too narrow: twice as
+many observations fell outside the predicted 95% interval as should be expected.
+The intervals produced by "stacking" species distribution models---perhaps the
+most common forecasting approach for terrestrial species richness---were
+especially misleading, failing to contain the true value at 4-6 times the
+nominal rate.  The best practices implemented in this study directly influence
+the forecasts, the relative performance of different modeling approaches, and
+the conclusions about the current state of biodiversity forecasting. To
+facilitate the rapid improvement of biodiversity forecasts, we emphasize the
+value of specific best practices in making forecasts and evaluating forecasting
+methods.
 
 ## Introduction
 
