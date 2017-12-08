@@ -32,3 +32,8 @@ Prior distributions on $\alpha$, $\sigma^\mathrm{residual}$, $\sigma^\mathrm{sit
 
 ```{text, code=readLines("../mixed.stan")}
 ```
+
+
+**Details of the auto.arima model**
+
+We used non-seasonal time series model $ARIMA(p,d,q)$, with drift allowed, in the function `auto.arima` of the R package `forecast`. The search space for $p$ and $q$ were $(2,5)$ and $(2,5)$, respectively. $d$ was selected via KPSS unit-root tests as described in Hyndman and Khandakar (2008) and with a maximum value of $2$. Stepwise model selection was done using AICc as the model criteria. 
