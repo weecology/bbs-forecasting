@@ -87,6 +87,8 @@
 
 *Table 1 caption: without getting to more methods (below), I don’t understand the sentence ‘Environmental models were trained using all sites together, without information regarding which transects occurred at which site or during which year’.*
 
+>We have clarified the Table 1 caption to be more clear about model covariates.
+
 *Table 1: Just my personal preference, but I’d include the check marks and replace the ‘Xs’ with blank cells*
 
 >We have made this change
