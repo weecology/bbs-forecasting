@@ -115,15 +115,25 @@
 
 *Line 269: See my above comments about spatially correlated random effects / GMRF models. One way to confirm these other approaches are overkill would be to make some maps of the estimated random effects, and fit some simple models to estimate variogram parameters – e.g. even gls() in R can do this*
 
+>See our comments about spatial autocorrelation above
+
 *Line 276: Is one of the potential reasons that richness is stationary that presence/absence on the BBS varies less than other measures – maybe abundance, or other measures of diversity are more variable?*
 
+>We agree that this is likely. We make this point on [[lines]]
+
 *Line 294: Is the narrow predictive distribution for the stacked SDM also why this exhibits the strongest trend in decreasing coverge as a function of forecast length (Fig 5)?*
+
+>Yes, exactly. More and more observations fall outside the narrow prediction intervals.
 
 *Line 329 – maybe reword, you use forecast 3x in this sentence*
 
 *Line 414: Agreed – doing this same kind of forecasting competition with compositional data, or other species diversity measures (Simpson’s) would be interesting*
 
+>We are currently working on a few projects along these lines.
+
 *Line 461: Another thread with conservation implications is that back in the 1990s, it was pretty common for single species PVA models to be forecasted 100-200 years. This seems less common, in part because some predictions may have not performed well, and others are on a time horizon that can’t be evaluated. In Steve Beissinger’s PVA book he cites Goldwasser (2000) “Variability and measurement error in extinction risk analysis...” for this point (p 133).*
+
+>We agree that this is an apt comparison. However, we are unfamiliar with this literature and UF does not have access to the paper you cited. The existing citations should prove sufficient to justify these points.
 
 ## Reviewer 2  
 
