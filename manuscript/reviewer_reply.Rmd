@@ -133,7 +133,7 @@
 
 *Line 461: Another thread with conservation implications is that back in the 1990s, it was pretty common for single species PVA models to be forecasted 100-200 years. This seems less common, in part because some predictions may have not performed well, and others are on a time horizon that can’t be evaluated. In Steve Beissinger’s PVA book he cites Goldwasser (2000) “Variability and measurement error in extinction risk analysis...” for this point (p 133).*
 
->We agree that this is an apt comparion. However, we are unfamiliar with this literature and UF does not have access to the paper you cited.
+>We agree that this is an apt comparison. However, we are unfamiliar with this literature and UF does not have access to the paper you cited. The existing citations should prove sufficient to justify these points.
 
 ## Reviewer 2  
 
