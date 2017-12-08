@@ -260,10 +260,10 @@ distribution) for reasons discussed below (see "Model evaluation").
 ```{r table, echo=FALSE}
 
 table_caption = "Six forecasting models. Single-site models were trained
-site-by-site, without environmental data. Environmental models were trained
-using all sites together, without information regarding which transects occurred
-at which site or during which year. Most of the models were trained to predict
-richness directly. This mirrors the standard application of these
+site-by-site, without environmental data. Environmental models were trained at
+the continental scale, using only environmental variables (as opposed to site
+or time series information) as predictors. Most of the models were trained to 
+predict richness directly. This mirrors the standard application of these
 techniques. Separate random forest SDMs were fit for each species and used to
 predict the probability of that species occurring at each site. The
 species-level probabilities at a site were summed to predict richness. The
