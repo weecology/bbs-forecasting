@@ -68,6 +68,9 @@
 
 *Line 140: I’m curious why you didn’t consider spatial structure in the random effects here, using GMRF models or similar? One hand these models might be overkill if the habitat/environmental variables (which are spatially correlated) explain variability in richness, but the spatial correlation may pick up other sources of variability not accounted for by those variables.*
 
+>The goal of this model is to control for observer effects, not to provide a focal model of the system (though we do use it for the average model as a convenience). Because observers typically observe the same site year after year it was necessary to include site in this model to avoid classifying variation among sites as differences among observers and incorrectly removing it before fitting other models. Given the use of this model, it is unclear what including spatial structure would accomplish for the broader goals of the paper. Moreover, it seems possible that it could end up correcting out meaningful ecological patterns and therefore confuse the comparison of more complex models to the baselines. 
+
+
 *Line 141-143: I think the paper thus far is pretty clear. I was hoping to see a few equations here – it helps me especially when components start to become hierarchical!*
 
 >We have added the equations and Stan code as a supplemental file.
