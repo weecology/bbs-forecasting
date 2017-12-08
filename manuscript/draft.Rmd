@@ -77,18 +77,19 @@ priorities [as well as those of policymakers; e.g. @ipcc2014], but it is
 inherently difficult to evaluate such long-term predictions before the projected
 biodiversity declines have occurred.
 
-Previous efforts to predict future patterns of species richness, and diversity
-more generally, have focused primarily on building species distributions models
-[SDMs; @thomas2004; @thuiller2011; @urban2015]. In general, these models
-describe individual species' occurrence patterns as functions of the
-environment. Given forecasts for environmental conditions, these models can 
+Previous efforts to predict future patterns of terrestrial species richness, and
+diversity more generally, have focused primarily on building species
+distributions models [SDMs; @thomas2004; @thuiller2011; @urban2015]. In general,
+these models describe individual species' occurrence patterns as functions of
+the environment. Given forecasts for environmental conditions, these models can
 predict where each species will occur in the future. These species-level 
 predictions are then combined ("stacked") to generate forecasts for species 
-richness [e.g. @calabrese2014]. Alternatively, models that directly relate spatial 
-patterns of species richness to environment conditions have been developed and 
-generally perform equivalently to stacked SDMs [@algar2009; @distler2015]. 
-This approach is sometimes referred to as "macroecological" modeling, because it 
-models the larger-scale pattern (richness) directly [@distler2015].
+richness [e.g. @calabrese2014]. Alternatively, models that directly relate
+spatial patterns of species richness to environment conditions have been
+developed and generally perform equivalently to stacked SDMs [@algar2009;
+@distler2015]. This approach is sometimes referred to as "macroecological"
+modeling, because it models the larger-scale pattern (richness) directly
+[@distler2015].
 
 Despite the emerging interest in forecasting species richness and other aspects
 of biodiversity [@jetz2007; @thuiller2011], little is known about how
@@ -211,23 +212,29 @@ observers, and are known to occur in BBS [@sauer1994]. For each forecasting
 approach, we trained two versions of the corresponding model: one with
 corrections for differences among observers, and one without (Figure 2). We
 estimated the observer effects (and associated uncertainty about those effects)
-with a linear mixed model, with observer as a random effect, built in the Stan
-probabilistic programming language [@carpenter2017]. Because observer and site are
-strongly related (observers tend to repeatedly sample the same site), site was
-also included as a random effect to ensure that inferred deviations were
+using a linear mixed model, with observer as a random effect, built in the Stan
+probabilistic programming language [@carpenter2017]. Because observer and site
+are strongly related (observers tend to repeatedly sample the same site),
+site-level random effects were included to ensure that inferred deviations were
 actually observer-related (as opposed to being related to the sites that a given
-observer happened to see). The resulting model partitions the variance in
-observed richness values into site-level variance, observer-level variance, and
-residual variance (e.g.  variation within a site from year to year). The
-site-level estimates can also be used directly as the "average" baseline model
-(see below). The estimated observer effects can be subtracted from the richness
-values for a particular observer to provide an estimate of how many species
-would have been found by a "typical" observer. To incorporate uncertainty in
-these "corrected" richness values into the forecasting models we collected 500
-Monte Carlo samples from the model's posterior distribution, and fit each of the
-downstream models with each of the Monte Carlo samples. Each Monte Carlo sample
-represented a different possible set of observer-level and site-level random
-effect values across the full 32-year dataset.
+observer happened to see). The resulting model is described mathematically and
+with code in Supplement S1. The model partitions the variance in observed
+richness values into site-level variance, observer-level variance, and residual
+variance (e.g. variation within a site from year to year). 
+
+Across our six modeling approaches (described below), we used estimates from the
+observer model in three different ways.  First, the expected values for
+site-level richness were used directly as our "average" baseline model (see
+below). For the two models that made species-level predictions, the estimated
+observer effects were included alongside the environmental variables as
+predictors.  Finally, we trained the remaining models to predict
+observer-corrected richness values (i.e. observed richness minus the observer
+effect, or the number of species that would have been recorded by a "typical"
+observer). Since the site-level and observer-level random effects are not known
+precisely, we represented the range of possible values using 500 Monte Carlo
+samples from the posterior distribution over these effects. Each downstream
+model was then trained 500 times using different possible values for the random
+effects.
 
 ![**A.** Model predictions for Pennsylvania route 35 when all observers are
 treated the same (black points). **B.** Model predictions for the same route
