@@ -292,18 +292,29 @@ table_data %>%
 \end{singlespace}
 
 **Baseline models.** We used two simple baseline models as a basis for
-comparison with the more complex models (Figure 2A). These baselines treated
-site-level richness observations either as uncorrelated noise around a
-site-level constant (the "average" model) or as an autoregressive model with a
-single year of history [the "naive" model, @hyndman2014]. Predictions from the
-"average" model are centered on the average richness observed during training,
-and the confidence intervals are narrow and constant-width. The "naive" model,
-in contrast, predicts that future observations will be similar to the final
-observed value (e.g., in our hindcasts the value observed in `r
-timeframe$last_train_year`), and the confidence intervals expand rapidly as the
-predictions extend farther into the future. Both models' richness predictions
-are centered on a constant value, so neither model can anticipate any trends in
-richness or any responses to future environmental changes.
+comparison with the more complex models (Figure 2A). The first baseline, called
+the "average" model, treated site-level richness observations as uncorrelated
+noise around a site-level constant:
+
+$$y_t = \mu + \epsilon_t.$$ 
+
+Predictions from the "average" model are centered on the average richness
+observed during training, and the confidence intervals are narrow and
+constant-width.
+
+The second baseline, called the "naive" model [@hyndman2014], was a simple
+autoregressive process with a single year of history: 
+
+$$y_t = y_{t-1} + \epsilon_t$$
+
+In contrast to the "average" model, whose predictions were based on the average
+richness across the whole time series, the "naive" model predicts that future
+observations will be similar to the *final* observed value (e.g., in our
+hindcasts the value observed in `r timeframe$last_train_year`), and the
+confidence intervals expand rapidly as the predictions extend farther into the
+future. Both models' richness predictions are centered on a constant value, so
+neither model can anticipate any trends in richness or any responses to future
+environmental changes.
 
 **Time series models.** We used Auto-ARIMA models [based on the `auto.arima`
 function in the package `forecast`; @forecast1] to represent an array of
