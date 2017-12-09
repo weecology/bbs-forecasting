@@ -540,16 +540,16 @@ develop and follow best practices for conducting and evaluating ecological
 forecasts [@clark2001]. We have used a number of these practices (Box 1) in a
 single study that builds and evaluates forecasts of biodiversity in the form of
 species richness. The results of this effort are both promising and humbling.
-When comparing forecasts across sites, many different approaches to forecasting
-produce reasonable forecasts (Figure 3). If a site is predicted to have a high
-number of species in the future, relative to other sites, it generally does.
-However, none of the methods evaluated reliably determined how site-level
-richness changes over time (Figure 6), which is generally the stated purpose of
-these forecasts. As a result, baseline models, which did not attempt to
-anticipate changes in richness over time, generally provided the best forecasts
-for future biodiversity. While this study is restricted to breeding birds in
-North America, its results are consistent with a growing literature on the
-limits of ecological forecasting, as discussed below.
+When comparing predictions across sites, many different approaches produce
+reasonable forecasts (Figure 3). If a site is predicted to have a high number of
+species in the future, relative to other sites, it generally does.  However,
+none of the methods evaluated reliably determined how site-level richness
+changes over time (Figure 6), which is generally the stated purpose of these
+forecasts. As a result, baseline models, which did not attempt to anticipate
+changes in richness over time, generally provided the best forecasts for future
+biodiversity. While this study is restricted to breeding birds in North America,
+its results are consistent with a growing literature on the limits of ecological
+forecasting, as discussed below.
 
 The most commonly used methods for forecasting future biodiversity, SDMs and
 macroecological models, both produced worse forecasts than time-series models

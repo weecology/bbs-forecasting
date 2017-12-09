@@ -129,6 +129,8 @@
 
 *Line 329 – maybe reword, you use forecast 3x in this sentence*
 
+>Thanks for pointing this out. We have reduced this to 1x.
+
 *Line 414: Agreed – doing this same kind of forecasting competition with compositional data, or other species diversity measures (Simpson’s) would be interesting*
 
 >We are currently working on a few projects along these lines.
