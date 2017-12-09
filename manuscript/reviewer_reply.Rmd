@@ -167,7 +167,7 @@
 
 *57-58: this is not the definition of hindcasting. This is the definition of testing. Also, the authors exclude the many deeper-time hindcasting studies that have been performed on these types of models*
 
->See comment above on hindcasting.
+>See comment above on hindcasting. We agree that studies evaluating models using fossil records are an important aspect of this field of research and have included several references for them. 
 
 #### Methods: 
 
