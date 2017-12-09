@@ -1,3 +1,9 @@
+Dear XXX,
+We would like to thank you and the two reviewers for the productive feedback on our manuscript. We have made minor revisions in clarifying our results, being more descriptive in our data and methods, and including more language on future directions of this research. More detailed responses to individual comments are described below.
+
+Regards,
+
+
 ## Editors Comments
 
 *The reviewers and I agree that this manuscript is interesting, timely and well-written. I will add a few of my own observations here. First, and least important - normally submitted manuscripts do not hyphenate and do not right justify.*
