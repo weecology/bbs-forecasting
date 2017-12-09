@@ -165,6 +165,8 @@
 
 *25-29: rather than relay the type of information that the paper will provide, the authors should summarize their results and findings*
 
+>We have added a summary of our results and findings.
+
 *57-58: this is not the definition of hindcasting. This is the definition of testing. Also, the authors exclude the many deeper-time hindcasting studies that have been performed on these types of models*
 
 >See comment above on hindcasting.
