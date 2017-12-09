@@ -115,6 +115,8 @@
 
 *Line 266: I think you guys have done a great job putting together this public repository + made the analysis totally transparent. My one hang up with the repo was that it’d be awesome to include a short vignette with example data from this project that is more easily accessible to readers without having to install Jupyter/R packages/etc. For example – I was travelling when I started this review and couldn’t install one of the R packages on my government computer without making an appointment with our IT staff (so it took ~ a day). This isn’t your fault of course, but much harder for me to dig through the repo.*
 
+>Thanks! We tried to handle this using binder (https://mybinder.org/) to allow anyone to quickly engage with the full environment, but unfortunately the R support isn't quite ready yet. Fortunately it is under active development and as soon as it is available we plan to set it up and link to it from the repository to support this use case.
+
 *Line 269: See my above comments about spatially correlated random effects / GMRF models. One way to confirm these other approaches are overkill would be to make some maps of the estimated random effects, and fit some simple models to estimate variogram parameters – e.g. even gls() in R can do this*
 
 >See our comments about spatial autocorrelation above
