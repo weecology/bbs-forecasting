@@ -99,13 +99,13 @@ of biodiversity [@jetz2007; @thuiller2011], little is known about how
 effectively we can anticipate these dynamics. This is due in part to the long
 time scales over which many ecological forecasts are applied [and the resulting
 difficulty in assessing whether the predicted changes occurred; @dietze2016].
-What we do know comes from a small number of biodiversity studies, where models
-are built using data on species occurrence, richness, or community composition
-from distinct timeperiods and evaluated on their ability to predict contemporary
-[@algar2009; @distler2015] or historic [@maguire2016; @blois2013] patterns.
-These studies are a valuable first step, but lack several components that are
-important for developing forecasting models with high predictive accuracy, and
-for understanding how well different methods can predict the future. These "best
+What we do know comes from a small number of hindcasting studies, where models
+are built from different time periods and evaluated on their ability to predict
+biodiversity patterns in contemporary [@algar2009; @distler2015] or historic
+[@maguire2016; @blois2013] periods not used for model fitting. These studies are
+a valuable first step, but lack several components that are important for
+developing forecasting models with high predictive accuracy, and for
+understanding how well different methods can predict the future. These "best
 practices" for effective forecasting and evaluation (Box 1) broadly involve: 1)
 expanding the use of data to include biological and environmental time-series
 [@tredennick2016]; 2) accounting for uncertainty in observations and processes,
