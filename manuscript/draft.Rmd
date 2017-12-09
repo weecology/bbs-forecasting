@@ -199,14 +199,17 @@ Because BBS routes are 40-km transects rather than point counts, we used the
 average value of each environmental variable within a 40 km radius of each BBS
 route's starting point.
 
-**Future environmental projections.** We made long term forecasts from 2014-2050
-using the CMIP5 multi-model ensemble dataset as the source for climate
-variables [@brekke2013]. Precipitation and temperature from 37 downscaled model
-runs [@brekke2013, see Table S1] using the RCP6.0 scenario were averaged
-together to create a single ensemble used to calculate the bioclimatic variables
-for North America. For NDVI we used the per-site average values from 2000-2013
-as a simple forecast. For observer effects (see below) each site was set to have
-zero observer bias.
+**Future environmental projections.** In addition to the analyses presented
+here, we have also generated and archived long term forecasts from 2014-2050.
+This will allow future researchers to assess the performance of our six models
+on longer time horizons as more years of BBS data become available.
+Precipitation and temperature were forecast using the CMIP5 multi-model ensemble
+dataset [@brekke2013]. 37 downscaled model runs [@brekke2013, see Table S1]
+using the RCP6.0 scenario were averaged together to create a single ensemble
+used to calculate the bioclimatic variables for North America. For NDVI, we used
+the per-site average values from 2000-2013 as a simple forecast. For observer
+effects (see below), each site was set to have zero observer bias. The
+predictions have been archived at [@zenodoPredict].
 
 ### Accounting for observer effects
 
