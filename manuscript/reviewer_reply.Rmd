@@ -186,3 +186,5 @@
 >Thank you for pointing out this error. We have fixed it
 
 *466: only other mention of future forecasts… not sure why this is included in this paper.*  
+
+>As discussed throughout the paper we feel that forecast evaluation is beneficial to the field of ecology. While we do not perform any analysis on these long term forecasts, they will be archived for future evalation as a form of pre-registration. Since they are true forecasts (ie. predictions beyond the present day) evaluation of them will be a valuable contribution in the coming years. 
