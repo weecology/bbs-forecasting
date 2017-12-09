@@ -100,19 +100,19 @@ effectively we can anticipate these dynamics. This is due in part to the long
 time scales over which many ecological forecasts are applied [and the resulting
 difficulty in assessing whether the predicted changes occurred; @dietze2016].
 What we do know comes from a small number of hindcasting studies, where models
-are built using data on species occurrence and richness from the past and
-evaluated on their ability to predict contemporary patterns [e.g., @algar2009;
-@distler2015]. These studies are a valuable first step, but lack several
-components that are important for developing forecasting models with high
-predictive accuracy, and for understanding how well different methods can
-predict the future. These "best practices" for effective forecasting and
-evaluation (Box 1) broadly involve: 1) expanding the use of data to include
-biological and environmental time-series [@tredennick2016]; 2) accounting for
-uncertainty in observations and processes, [@harris2015; @yu2010]; and 3)
-conducting meaningful evaluations of the forecasts by hindcasting, archiving
-short-term forecasts, and comparing forecasts to baselines to determine whether
-the forecasts are more accurate than assuming the system is basically static
-[@perretti2013].
+are built from different time periods and evaluated on their ability to predict
+biodiversity patterns in contemporary [@algar2009; @distler2015] or historic
+[@maguire2016; @blois2013] periods not used for model fitting. These studies are
+a valuable first step, but lack several components that are important for
+developing forecasting models with high predictive accuracy, and for
+understanding how well different methods can predict the future. These "best
+practices" for effective forecasting and evaluation (Box 1) broadly involve: 1)
+expanding the use of data to include biological and environmental time-series
+[@tredennick2016]; 2) accounting for uncertainty in observations and processes,
+[@harris2015; @yu2010]; and 3) conducting meaningful evaluations of the
+forecasts by hindcasting, archiving short-term forecasts, and comparing
+forecasts to baselines to determine whether the forecasts are more accurate than
+assuming the system is basically static [@perretti2013].
 
 In this paper, we attempt to forecast the species richness of breeding birds at
 over 1,200 of sites located throughout North America, while following best
