@@ -117,6 +117,8 @@ all sites, as suggested.
 
 *Line 249: Can you elaborate on what you did with the deviance? By itself mean deviance is just a measure of average fit (I think most of the models are giving you this). Var(deviance) should incorporate precision – but I’ve only seen this extracted from Bayesian models*
 
+>We were unclear here. We had only intended to convey that mean deviance was lowest for predictions that were made with appropriate uncertainty. We did not use Var(deviance). The new sentence should be clearer on this point.
+
 *Line 266: I think you guys have done a great job putting together this public repository + made the analysis totally transparent. My one hang up with the repo was that it’d be awesome to include a short vignette with example data from this project that is more easily accessible to readers without having to install Jupyter/R packages/etc. For example – I was travelling when I started this review and couldn’t install one of the R packages on my government computer without making an appointment with our IT staff (so it took ~ a day). This isn’t your fault of course, but much harder for me to dig through the repo.*
 
 >Thanks! We tried to handle this using binder (https://mybinder.org/) to allow anyone to quickly engage with the full environment, but unfortunately the R support isn't quite ready yet. Fortunately it is under active development and as soon as it is available we plan to set it up and link to it from the repository to support this use case.
