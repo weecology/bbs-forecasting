@@ -312,7 +312,7 @@ model:
 $$y_t = y_{t-1} + \epsilon_t,$$
 
 where the standard deviation of $\epsilon$ is a free parameter for each site. In
-contrast to the "average" model, whose predictions were based on the average
+contrast to the "average" model, whose predictions are based on the average
 richness across the whole time series, the "naive" model predicts that future
 observations will be similar to the *final* observed value (e.g., in our
 hindcasts the value observed in `r timeframe$last_train_year`). Moreover,
