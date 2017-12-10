@@ -79,6 +79,10 @@
 
 *Line 163-164: again, I think equations could really help here to describe the baseline models. I think it’s also important to use these to clarify key details – for example, by training models on a site-by-site basis, you’re estimating separate parameters by site. For example with the uncorrelated noise model, you’re estimating unique variances by site right? Maybe say something like this, in addition to including equations.*
 
+>We now clarify this, using an equation for each baseline model. In particular, we identify
+which parameters are estimated on a site-by-site basis and which ones are constant across
+all sites, as suggested.
+
 *Line 180 – Maybe also mention this is in the forecast package – as you do with gbm below?*
 
 >We have added this.
