@@ -419,15 +419,15 @@ for evaluating performance: 1) root-mean-square error (RMSE) to determine how
 far, on average, the models' predictions were from the observed value; 2) the
 95% prediction interval coverage to determine how well the models predicted the
 range of possible outcomes; and 3) deviance (i.e. negative 2 times the Gaussian
-log-likelihood) as an integrative measure of fit incorporating good point
-estimates, precision, and coverage. In addition to evaluating forecast
-performance in general, we evaluated how performance changed as the time horizon
-of forecasting increased by plotting performance metrics against year. Finally,
-we decomposed each model's squared error into two components: the squared error
-associated with site-level means and the squared error associated with annual
-fluctuations in richness within a site. This decomposition describes the extent
-to which each model's error depends on consistent differences among sites versus
-changes in site-level richness from year to year.
+log-likelihood) as an integrative measure of fit that incorporates both accuracy
+and uncertainty. In addition to evaluating forecast performance in general, we
+evaluated how performance changed as the time horizon of forecasting increased
+by plotting performance metrics against year. Finally, we decomposed each
+model's squared error into two components: the squared error associated with
+site-level means and the squared error associated with annual fluctuations in
+richness within a site. This decomposition describes the extent to which each
+model's error depends on consistent differences among sites versus changes in
+site-level richness from year to year.
 
 All analyses were conducted using R [@R]. Primary R packages used in the
 analysis included dplyr [@dplyr], tidyr [@tidyr], gimms [@gimms], sp [@sp1;
