@@ -1,7 +1,6 @@
-Dear XXX,
-We would like to thank you and the two reviewers for the productive feedback on our manuscript. We have made minor revisions in clarifying our results, being more descriptive in our data and methods, and including more language on future directions of this research. More detailed responses to individual comments are described below.
 
-Regards,
+We would like to thank the editor and the two reviewers for the productive feedback on our manuscript. We have addressed the comments related to our choice of data, clarified the results, added more description to our data and methods, and included more language on future directions of this research. More detailed responses to individual comments are described below.
+
 
 
 ## Editors Comments
