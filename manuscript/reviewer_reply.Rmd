@@ -129,7 +129,7 @@ all sites, as suggested.
 
 *Line 276: Is one of the potential reasons that richness is stationary that presence/absence on the BBS varies less than other measures – maybe abundance, or other measures of diversity are more variable?*
 
->We agree that this is likely. We make this point on [[lines]]
+>We agree that this is likely. We make this point on lines 423-429 of the revised manuscript.
 
 *Line 294: Is the narrow predictive distribution for the stacked SDM also why this exhibits the strongest trend in decreasing coverge as a function of forecast length (Fig 5)?*
 
@@ -195,7 +195,7 @@ all sites, as suggested.
 
 *124-130: I didn’t see where future projections were performed/used in this paper. Why is this here?*  
 
->Thank you for pointing out that we were unclear here.  The methods and purpose for the future predictions are now explained in more detail on lines [[XX]].
+>Thank you for pointing out that we were unclear here.  The methods and purpose for the future predictions are now explained in more detail on lines 136-139 and 502-505 of the revised manuscript.
 
 *Fig. 2: Panels not labeled. No key for colors. Somewhat confusing.*  
 
@@ -207,4 +207,4 @@ all sites, as suggested.
 
 *466: only other mention of future forecasts… not sure why this is included in this paper.*  
 
-> Thank you again for pointing out that we were unclear here. The purpose of the future forecasts is now explained on lines [[xx]] and [[xx]].
+> Thank you again for pointing out that we were unclear here. The purpose of the future forecasts is now explained on lines 136-139 and 502-505.
