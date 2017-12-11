@@ -189,15 +189,16 @@ eight bioclimatic variables identified as relevant to bird distributions
 [@harris2015]: mean diurnal range, isothermality, max temperature of the warmest
 month, mean temperature of the wettest quarter, mean temperature of the driest
 quarter, precipitation seasonality, precipitation of the wettest quarter, and
-precipitation of the warmest quarter. Satellite-derived NDVI, a primary
-correlate of richness in BBS data [@hurlbert2002], was obtained from the NDIV3g
-dataset with an 8 km resolution [@pinzon2014] and was available from 1981-2013.
-Average summer (May, June, July) and winter (December, January, Feburary) NDVI
-values were used as predictors. Elevation was from the SRTM 90m elevation
-dataset [@jarvis2008] obtained using the R package raster [@raster].
-Because BBS routes are 40-km transects rather than point counts, we used the
-average value of each environmental variable within a 40 km radius of each BBS
-route's starting point.
+precipitation of the warmest quarter. These variables were calculated for the 12
+months leading up to the annual survey (July-June) as opposed to the calendar
+year. Satellite-derived NDVI, a primary correlate of richness in BBS data
+[@hurlbert2002], was obtained from the NDIV3g dataset with an 8 km resolution
+[@pinzon2014] and was available from 1981-2013. Average summer (April, May, June)
+and winter (December, January, Feburary) NDVI values were used as predictors.
+Elevation was from the SRTM 90m elevation dataset [@jarvis2008] obtained using
+the R package raster [@raster]. Because BBS routes are 40-km transects rather
+than point counts, we used the average value of each environmental variable
+within a 40 km radius of each BBS route's starting point.
 
 **Future environmental projections.** In addition to the analyses presented
 here, we have also generated and archived long term forecasts from 2014-2050.
