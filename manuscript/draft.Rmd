@@ -160,14 +160,15 @@ below.
 
 **Richness data.** Bird species richness was obtained from the North American
 Breeding Bird Survey (BBS) [@pardieck2017] using the Data Retriever Python
-package [@morris2013] and rdataretriever R package [@rdataretriever]. BBS
-observations are three-minute point counts made at 50 fixed locations along a
-40km route. Here we denote each route as a site and summarize richness as the
-total species observed at all 50 locations in each surveyed year. Prior to
-summarizing the data was filtered to exclude all nocturnal, cepuscular, and
-aquatic species [since these species are not well sampled by BBS methods;
-@hurlbert2005], as well as unidentified species, and hybrids. All data from
-surveys that did not meet BBS quality criteria were also excluded.
+package [@morris2013; @senyondo2017] and rdataretriever R package
+[@rdataretriever]. BBS observations are three-minute point counts made at 50
+fixed locations along a 40km route. Here we denote each route as a site and
+summarize richness as the total species observed at all 50 locations in each
+surveyed year. Prior to summarizing the data was filtered to exclude all
+nocturnal, cepuscular, and aquatic species [since these species are not well
+sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
+hybrids. All data from surveys that did not meet BBS quality criteria were also
+excluded.
 
 We used observed richness values from 1982 (the first year of complete
 environmental data) to 2003 to train the models, and from 2004 to 2013 to test
