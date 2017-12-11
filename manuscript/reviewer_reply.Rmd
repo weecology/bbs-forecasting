@@ -1,3 +1,8 @@
+
+We would like to thank the editor and the two reviewers for the productive feedback on our manuscript. We have addressed the comments related to our choice of data, clarified the results, added more description to our data and methods, and included more language on future directions of this research. More detailed responses to individual comments are included below.
+
+
+
 ## Editors Comments
 
 *The reviewers and I agree that this manuscript is interesting, timely and well-written. I will add a few of my own observations here. First, and least important - normally submitted manuscripts do not hyphenate and do not right justify.*
@@ -17,10 +22,12 @@
 ## Reviewer 1: Eric Ward
 #### Basic reporting
 
-*I found the paper very clear and easy to follow, with a good intro/discussion that tied the current work into previous studies. All data shared - in addition to code. More minor comments in General Comments section.*
+*I found the paper very clear and easy to follow, with a good intro/discussion that tied the current work into previous studies. All data shared - in addition to code. More minor comments in General Comments section.*  
+
 #### Experimental design
 
-*This question and forecasting competition was well designed. I had minor comments to improve clarity with models. The analysis is all documented/replicable on the Github repo. More minor comments in General Comments section.*
+*This question and forecasting competition was well designed. I had minor comments to improve clarity with models. The analysis is all documented/replicable on the Github repo. More minor comments in General Comments section.*  
+
 #### Validity of the findings
 
 *All data is robust, and analyses are sound. Conclusions and recommendations are well stated. The authors have really done a great job with transparency - this is a model of what all papers should strive for. See additional comments in General Comments section*
@@ -64,7 +71,7 @@
 
 >The accuracy of CMIP5 models varies by the variable considered. Temperature is represented very well over North America. Precipitation is challenging, especially over mountainous terrain, but the CMIP5 ensemble represents precipitation across North America relatively well ("Evaluation of precipitation and temperature simulation performance of the CMIP3 and CMIP5 historical experiments", Koutroulis et al. 2016).
 
-*Line 138: Maybe also cite any of the interfaces you used, like RStan: http://mc-stan.org/users/citations/*
+*Line 138: Maybe also cite any of the interfaces you used, like RStan*: http://mc-stan.org/users/citations/
 
 >RStan is cited in the last paragraph of the Methods.
 
