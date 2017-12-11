@@ -160,14 +160,15 @@ below.
 
 **Richness data.** Bird species richness was obtained from the North American
 Breeding Bird Survey (BBS) [@pardieck2017] using the Data Retriever Python
-package [@morris2013] and rdataretriever R package [@rdataretriever]. BBS
-observations are three-minute point counts made at 50 fixed locations along a
-40km route. Here we denote each route as a site and summarize richness as the
-total species observed at all 50 locations in each surveyed year. Prior to
-summarizing the data was filtered to exclude all nocturnal, cepuscular, and
-aquatic species [since these species are not well sampled by BBS methods;
-@hurlbert2005], as well as unidentified species, and hybrids. All data from
-surveys that did not meet BBS quality criteria were also excluded.
+package [@morris2013; @senyondo2017] and rdataretriever R package
+[@rdataretriever]. BBS observations are three-minute point counts made at 50
+fixed locations along a 40km route. Here we denote each route as a site and
+summarize richness as the total species observed at all 50 locations in each
+surveyed year. Prior to summarizing the data was filtered to exclude all
+nocturnal, cepuscular, and aquatic species [since these species are not well
+sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
+hybrids. All data from surveys that did not meet BBS quality criteria were also
+excluded.
 
 We used observed richness values from 1982 (the first year of complete
 environmental data) to 2003 to train the models, and from 2004 to 2013 to test
@@ -589,8 +590,8 @@ results to simple baselines to avoid over-interpreting the information present
 in these forecasts [Box 1]. Disciplines that have more mature forecasting
 cultures often do this by reporting "forecast skill", i.e., the improvement in
 the forecast relative to a simple baseline [@jolliffe2003]. We recommend
-following the example of @ye2015 and adopting this approach in future ecological
-forecasting research.
+following the example of @perretti2013 and adopting this approach in future
+ecological forecasting research.
 
 When comparing different methods for forecasting our results demonstrate the
 importance of considering uncertainty [Box 1; @clark2001; @dietze2016]. Previous
@@ -764,7 +765,7 @@ given ecological quantity [@clark2001; @ward2014]. This includes comparing
 process-based [e.g., @kearney2009] and data-driven models [e.g., @ward2014], as
 well as comparing the accuracy of forecasts to simple baselines to determine if
 the modeled forecasts are more accurate than the naive assumption that the world
-is static [@jolliffe2003; @ye2015].
+is static [@jolliffe2003; @perretti2013].
 
 ### 2. Use time-series data when possible
 
