@@ -44,7 +44,7 @@
 
 *Line 71-73: I’m re-reading this after commenting on data, and am now a little confused. The bird responses are annual snapshots during the breeding season? And I thought the environmental data you used was annual or quarterly, not monthly?* https://www.mbr-pwrc.usgs.gov/bbs/grass/genintro.htm
 
->BBS data are generally viewed as annual data, even though the observations happen on a single day. The presence of an individual species is primarily a function of suitable habitat and, for many species, timing of migration. Environmental variables with a shorter temporal scale could likely improve models, such as incorporating cool weather days into the observation model, and would be worth pursuing in a different study.
+>Bird data is collected once each year during the breeding season. Climate data is available monthly. We want to use the chunk of the climate data that is mostly likely to predict the the bird response. We used climate values from the 12 months leading up to the bird sampling since this is assumed to influence the habitat and other resources the birds are responding to (We have also clarified this in the methods). Other choices are possible, but rarely explored b/c what is most commonly used is long-term averages. Future work could explore shorter time scale environmental data such as monthly NDVI trends (instead of just means), migration indicators for migratory species, or more localized weather around each sampling site that could be incorporated into an observer model. 
 
 #### Methods:  
 
