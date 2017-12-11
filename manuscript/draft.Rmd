@@ -590,8 +590,8 @@ results to simple baselines to avoid over-interpreting the information present
 in these forecasts [Box 1]. Disciplines that have more mature forecasting
 cultures often do this by reporting "forecast skill", i.e., the improvement in
 the forecast relative to a simple baseline [@jolliffe2003]. We recommend
-following the example of @ye2015 and adopting this approach in future ecological
-forecasting research.
+following the example of @perretti2013 and adopting this approach in future
+ecological forecasting research.
 
 When comparing different methods for forecasting our results demonstrate the
 importance of considering uncertainty [Box 1; @clark2001; @dietze2016]. Previous
@@ -765,7 +765,7 @@ given ecological quantity [@clark2001; @ward2014]. This includes comparing
 process-based [e.g., @kearney2009] and data-driven models [e.g., @ward2014], as
 well as comparing the accuracy of forecasts to simple baselines to determine if
 the modeled forecasts are more accurate than the naive assumption that the world
-is static [@jolliffe2003; @ye2015].
+is static [@jolliffe2003; @perretti2013].
 
 ### 2. Use time-series data when possible
 
