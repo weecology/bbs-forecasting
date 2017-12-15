@@ -743,11 +743,9 @@ baselines.
 
 ## Acknowledgments
 
-This research was supported by the Gordon and Betty Moore Foundation's
-Data-Driven Discovery Initiative through Grant GBMF4563 to E.P. White. We thank
-the developers and providers of the data and software that made this research
-possible including: the PRISM Climate Group at Oregon State University, the
-staff at USGS and volunteer citizen scientists associated with the North
+We thank the developers and providers of the data and software that made this
+research possible including: the PRISM Climate Group at Oregon State University,
+the staff at USGS and volunteer citizen scientists associated with the North
 American Breeding Bird Survey, NASA, the World Climate Research Programme's
 Working Group on Coupled Modelling and its working groups, the U.S. Department
 of Energy's Program for Climate Model Diagnosis and Intercomparison, and the
