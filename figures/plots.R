@@ -110,7 +110,10 @@ make_scatterplots = function(models, main){
               hjust = 0, vjust = 1, size = 3, parse=TRUE) +
     theme_light(base_size = base_size) +
     xlim(x_range) + 
-    ggtitle(main) + 
+    labs(title=main,
+         x='Predicted richness',
+         y='Observed richness',
+         fill='Count') +
     theme(plot.margin = rep(unit(c(4, 0), "pt"), 2))
 }
 
