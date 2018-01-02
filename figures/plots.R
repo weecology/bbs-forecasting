@@ -90,8 +90,8 @@ R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>%
   mutate(x = min(mean - 4), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   mutate(R2 = 1 - var(mean - richness) / var(richness)) %>% 
-  mutate(R2_formatted = paste("R^2: ", 
-                              format(R2,digits = 2, nsmall = 2)))
+  mutate(R2_formatted = paste("r^2 == ", 
+                              format(R2, digits = 2, nsmall =  2)))
 
 make_scatterplots = function(models, main){
   x_range = range(bound$mean)
@@ -107,10 +107,13 @@ make_scatterplots = function(models, main){
     geom_text(inherit.aes = FALSE,
               data = filter(R2s, model %in% models),
               aes(x = x, y = y, label = R2_formatted),
-              hjust = 0, vjust = 1, size = 3) +
+              hjust = 0, vjust = 1, size = 3, parse=TRUE) +
     theme_light(base_size = base_size) +
     xlim(x_range) + 
-    ggtitle(main) + 
+    labs(title=main,
+         x='Predicted richness',
+         y='Observed richness',
+         fill='Count') +
     theme(plot.margin = rep(unit(c(4, 0), "pt"), 2))
 }
 
@@ -210,6 +213,7 @@ make_time_error = function(var_name, title){
     theme_light(base_size = base_size) +
     scale_color_manual(values = colors, name = "Model") +
     ylab(ifelse(grepl("RMSE", var_name), "RMSE", var_name)) + 
+    xlab('Year') +
     ggtitle(paste0(title, ". ", var_name))
 }
 
@@ -323,7 +327,7 @@ make_obs_arrows = function(variable, letter){
     theme_light(base_size = base_size) + 
     ggtitle(paste0(letter, ". ", variable)) +
     ylab(ifelse(grepl("RMSE", variable), "RMSE", variable)) +
-    xlab("model")
+    xlab("Model")
   
   if (variable == "Coverage") { 
     out = out + geom_hline(yintercept = 0.95)# +
