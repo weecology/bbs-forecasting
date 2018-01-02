@@ -327,7 +327,7 @@ make_obs_arrows = function(variable, letter){
     theme_light(base_size = base_size) + 
     ggtitle(paste0(letter, ". ", variable)) +
     ylab(ifelse(grepl("RMSE", variable), "RMSE", variable)) +
-    xlab("model")
+    xlab("Model")
   
   if (variable == "Coverage") { 
     out = out + geom_hline(yintercept = 0.95)# +
