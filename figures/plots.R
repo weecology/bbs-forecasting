@@ -213,6 +213,7 @@ make_time_error = function(var_name, title){
     theme_light(base_size = base_size) +
     scale_color_manual(values = colors, name = "Model") +
     ylab(ifelse(grepl("RMSE", var_name), "RMSE", var_name)) + 
+    xlab('Year') +
     ggtitle(paste0(title, ". ", var_name))
 }
 
