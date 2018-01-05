@@ -305,8 +305,8 @@ $$y_t = \mu + \epsilon_t.$$
 
 Predictions from the "average" model are thus centered on $\mu$, which could
 either be the mean of the raw training richness values, or an output from the
-observer model.  This model's confidence intervals have a constant width that
-depends on the standard deviation of $\epsilon$, which can either be the
+observer model. The confidence iterval width in this model is constant and a 
+consequence of the standard deviation $\epsilon$, which can either be the
 standard deviation of the raw training richness values, or
 $\sigma^\mathrm{residual}$ from the observer model; see supplement).
 
@@ -332,7 +332,7 @@ function in the package `forecast`; @forecast1] to represent an array of
 different time-series modeling approaches. These models can include an
 autoregressive component (as in the "naive" model, but with the possibility of
 longer-term dependencies in the underlying process), a moving average component
-(where the noise can have serial autocorrelation) and an
+(where the noise may be serially autocorrelation) and an
 integration/differencing component (so that the analysis could be performed on
 sequential differences of the raw data, accommodating more complex patterns
 including trends). The `auto.arima` function chooses whether to include each of
@@ -350,7 +350,7 @@ stacking individual species distribution models; and joint species distribution
 models (JSDMs). Following the standard approach, site-level random effects were
 not included in these models as predictors, meaning that this approach
 implicitly assumes that two sites with identical Bioclim, elevation, and NDVI
-values should have identical richness distributions. As above, we included
+values will have identical richness distributions. As above, we included
 observer effects and the associated uncertainty by running these models 500
 times (once per MCMC sample).
 
@@ -506,7 +506,7 @@ Most models produced confidence intervals that were too narrow, indicating
 overconfident predictions (Figure 5C). The random forest-based SDM stack was the
 most overconfident model, with only `r numbers$rf_coverage_pct`% of observations
 falling inside its 95% confidence intervals. This stacked SDM's narrow
-predictive distribution caused it to have notably higher deviance (Figure 5B)
+predictive distribution caused notably greater deviance (Figure 5B)
 than the next-worst model, even though its point estimates were not unusually
 bad in terms of RMSE (5A). As discussed elsewhere [@harris2015], this
 overconfidence is a product of the assumption in stacked SDMs that errors in the
@@ -556,12 +556,12 @@ Naive baseline, however.](../figures/obs_arrows.png)
 
 Forecasting is an emerging imperative in ecology; as such, the field needs to
 develop and follow best practices for conducting and evaluating ecological
-forecasts [@clark2001]. We have used a number of these practices (Box 1) in a
+forecasts [@clark2001]. We used a number of these practices (Box 1) in a
 single study that builds and evaluates forecasts of biodiversity in the form of
 species richness. The results of this effort are both promising and humbling.
 When comparing predictions across sites, many different approaches produce
-reasonable forecasts (Figure 3). If a site is predicted to have a high number of
-species in the future, relative to other sites, it generally does.  However,
+reasonable forecasts (Figure 3). If a site is predicted to have high species
+richness in the future, relative to other sites, it generally does.  However,
 none of the methods evaluated reliably determined how site-level richness
 changes over time (Figure 6), which is generally the stated purpose of these
 forecasts. As a result, baseline models, which did not attempt to anticipate
@@ -574,20 +574,20 @@ The most commonly used methods for forecasting future biodiversity, SDMs and
 macroecological models, both produced worse forecasts than time-series models
 and simple baselines. This weakness suggests that predictions about future
 biodiversity change should be viewed with skepticism unless the underlying
-models have been validated temporally, via hindcasting and comparison with
+models are temporally validated, via hindcasting and comparison with
 simple baselines. Since site-level richness is relatively stable, spatial
-validation is not enough: a model can have high accuracy across spatial
-gradients without being able to predict changes over time. This gap between
-spatial and temporal accuracy is known to be important for species-level
+validation is not enough: a model be accurate across spatial gradients while
+being unable to predict changes over time. This gap between
+spatial and temporal accuracy is important for species-level
 predictions [@rapacciuolo2012; @oedekoven2017]; our results indicate that it is
-substantial for higher-level patterns like richness as well. SDMs' poor temporal
-predictions are particularly sobering, as these models have been one of the main
-foundations for estimates of the predicted loss of biodiversity to climate
-change over the past decade or so [@thomas2004; @thuiller2011; @urban2015]. Our
+substantial for higher-level patterns like richness as well. The poor quality 
+temporal predictions of SDM's are particularly sobering because of their importance
+over the last decade or so for predicting biodiversity loss as a response to 
+climate change [@thomas2004; @thuiller2011; @urban2015]. Our
 results also highlight the importance of comparing multiple modeling approaches
 when conducting ecological forecasts, and in particular, the value of comparing
 results to simple baselines to avoid over-interpreting the information present
-in these forecasts [Box 1]. Disciplines that have more mature forecasting
+in these forecasts [Box 1]. Disciplines with more mature forecasting
 cultures often do this by reporting "forecast skill", i.e., the improvement in
 the forecast relative to a simple baseline [@jolliffe2003]. We recommend
 following the example of @perretti2013 and adopting this approach in future
@@ -605,11 +605,11 @@ values fell outside the stacked SDMs' 95% prediction intervals. Consistent with
 enabled them to avoid this problem. Macroecological models appear to share this
 advantage, while being considerably easier to implement. 
 
-We have only evaluated annual forecasts up to a decade into the future, but
+We only evaluated annual forecasts up to a decade into the future, but
 forecasts are often made with a lead time of 50 years or more. These long-term
 forecasts are difficult to evaluate given the small number of century-scale
 datasets, but are important for understanding changes in biodiversity at some of
-the lead times relevant for conservation and management. Two studies have
+the lead times relevant for conservation and management. Two studies
 assessed models of species richness at longer lead times [@algar2009;
 @distler2015], but the results were not compared to baseline or time-series
 models (in part due to data limitations) making them difficult to compare to our
@@ -674,7 +674,7 @@ introduced by the error in forecasting the environmental conditions that are
 used as predictor variables. In this, and other hindcasting studies, the
 environmental conditions for the "future" are known because the data has already
 been observed. However, in real forecasts the environmental conditions
-themselves have to be predicted, and environmental forecasts will also have
+themselves must be predicted, and environmental forecasts will also have
 uncertainty and bias. Ultimately, ecological forecasts that use environmental
 data will therefore be more uncertain than our current hindcasting efforts, and
 it is important to correctly incorporate this uncertainty into our models
@@ -722,7 +722,7 @@ assessment [@mcgill2012; @dietze2016]. These forecasts should include both
 short-term predictions, which can be assessed quickly, and mid- to long-term
 forecasts, which can help ecologists to assess long time-scale processes and
 determine how far into the future we can successfully forecast [@dietze2016;
-@tredennick2016]. We have openly archived forecasts from all six models through
+@tredennick2016]. We openly archived forecasts from all six models through
 the year 2050 [@zenodoPredict], so that we and others can assess how well they
 perform. We plan to evaluate these forecasts and report the results as each new
 year of BBS data becomes available, and make iterative improvements to the
