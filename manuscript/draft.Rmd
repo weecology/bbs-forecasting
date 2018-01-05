@@ -75,20 +75,20 @@ ecological models capture the key processes governing natural systems
 especially important, due to biodiversity's central role in conservation
 planning and its sensitivity to anthropogenic effects [@cardinale2012;
 @diaz2015; @tilman2017]. High-profile studies forecasting large biodiversity
-declines over the coming decades have played a large role in shaping ecologists'
-priorities [as well as those of policymakers; e.g. @ipcc2014], but it is
-inherently difficult to evaluate such long-term predictions before the projected
-biodiversity declines have occurred.
+declines over the coming decades have played a large role in shaping the
+priorities of ecologists and policymakers [e.g. @ipcc2014], but it is inherently
+difficult to evaluate such long-term predictions prior to the predicted decline
+in diversity.
 
 Previous efforts to predict future patterns of terrestrial species richness, and
 diversity more generally, have focused primarily on building species
 distributions models [SDMs; @thomas2004; @thuiller2011; @urban2015]. In general,
 these models describe individual species' occurrence patterns as functions of
 the environment. Given forecasts for environmental conditions, these models can
-predict where each species will occur in the future. These species-level 
-predictions are then combined ("stacked") to generate forecasts for species 
+predict where each species will occur in the future. These species-level
+predictions are then combined ("stacked") to generate forecasts for species
 richness [e.g. @calabrese2014]. Alternatively, models that directly relate
-spatial patterns of species richness to environment conditions have been
+spatial patterns of species richness to environment conditions are available
 developed and generally perform equivalently to stacked SDMs [@algar2009;
 @distler2015]. This approach is sometimes referred to as "macroecological"
 modeling, because it models the larger-scale pattern (richness) directly
@@ -165,7 +165,7 @@ package [@morris2013; @senyondo2017] and rdataretriever R package
 fixed locations along a 40km route. Here we denote each route as a site and
 summarize richness as the total species observed at all 50 locations in each
 surveyed year. Prior to summarizing the data was filtered to exclude all
-nocturnal, cepuscular, and aquatic species [since these species are not well
+nocturnal, crepuscular, and aquatic species [since these species are not well
 sampled by BBS methods; @hurlbert2005], as well as unidentified species, and
 hybrids. All data from surveys that did not meet BBS quality criteria were also
 excluded.
@@ -202,16 +202,16 @@ than point counts, we used the average value of each environmental variable
 within a 40 km radius of each BBS route's starting point.
 
 **Future environmental projections.** In addition to the analyses presented
-here, we have also generated and archived long term forecasts from 2014-2050.
-This will allow future researchers to assess the performance of our six models
-on longer time horizons as more years of BBS data become available.
-Precipitation and temperature were forecast using the CMIP5 multi-model ensemble
-dataset [@brekke2013]. 37 downscaled model runs [@brekke2013, see Table S1]
-using the RCP6.0 scenario were averaged together to create a single ensemble
-used to calculate the bioclimatic variables for North America. For NDVI, we used
-the per-site average values from 2000-2013 as a simple forecast. For observer
-effects (see below), each site was set to have zero observer bias. The
-predictions have been archived at [@zenodoPredict].
+here, we also generated and archived long term forecasts from 2014-2050. This
+will allow future researchers to assess the performance of our six models on
+longer time horizons as more years of BBS data become available. Precipitation
+and temperature were forecast using the CMIP5 multi-model ensemble dataset
+[@brekke2013]. We averaged 37 downscaled model runs [@brekke2013, see Table S1]
+using the RCP6.0 scenario to create a single ensemble used to calculate the
+bioclimatic variables for North America. For NDVI, we used the per-site average
+values from 2000-2013 as a simple forecast. For observer effects (see below),
+each site was set to zero observer bias. The predictions were archived at
+[@zenodoPredict].
 
 ### Accounting for observer effects
 
