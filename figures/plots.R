@@ -90,7 +90,7 @@ R2s = filter(bound, use_obs_model, year %in% c(2004, 2013)) %>%
   mutate(x = min(mean - 4), y = max(richness)) %>% 
   group_by(model, x, y, year) %>% 
   mutate(R2 = 1 - var(mean - richness) / var(richness)) %>% 
-  mutate(R2_formatted = paste("r^2 == ", 
+  mutate(R2_formatted = paste("R^2 == ", 
                               format(R2, digits = 2, nsmall =  2)))
 
 make_scatterplots = function(models, main){
